@@ -39,6 +39,8 @@ dependencies:
   youtube_player_flutter: ^8.1.2
   searchfield: ^0.9.0
   search_page: ^2.3.0
+  sqflite: ^2.3.2
+  sqflite_common_ffi: ^2.3.2+1
 
 dev_dependencies:
   flutter_test:

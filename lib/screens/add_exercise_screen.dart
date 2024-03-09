@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/pocketbase_helper.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class AddExerciseScreen extends StatefulWidget {
@@ -65,7 +65,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
                   _controller.load(videoID ?? 'INVALID_ID');
 
-                  PocketBaseHelper.saveExercise(Exercise(
+                  DatabaseHelper.saveExercise(Exercise(
                           name: exerciseNameTextController.text,
                           videoID: videoID))
                       .then((value) {

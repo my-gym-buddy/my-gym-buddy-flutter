@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/pocketbase_helper.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/single_exercise_screen.dart';
 
@@ -32,7 +32,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
           ],
         ),
         body: FutureBuilder(
-          future: PocketBaseHelper.getExercises(),
+          future: DatabaseHelper.getExercises(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.data != null && snapshot.data!.isNotEmpty) {

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
-import 'package:gym_buddy_app/pocketbase_helper.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
 import 'package:search_page/search_page.dart';
 
@@ -26,7 +26,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
 
   @override
   Widget build(BuildContext context) {
-    PocketBaseHelper.getExercises().then((value) {
+    DatabaseHelper.getExercises().then((value) {
       setState(() {
         exercises = value;
       });
@@ -41,7 +41,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
             onPressed: () async {
               workout.exercises = selectedExercises;
               workout.name = workoutNameTextController.text;
-              await PocketBaseHelper.saveWorkout(workout);
+              await DatabaseHelper.saveWorkout(workout);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('Workout added'),

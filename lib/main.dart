@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/all_workout_screen.dart';
 
 void main() {
-  runApp(const MyApp());
+  WidgetsFlutterBinding.ensureInitialized();
+
+  DatabaseHelper.openLocalDatabase();
+
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  MyApp({super.key});
 
   // This widget is the root of your application.
   @override
@@ -34,14 +39,34 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  final PageController _pageController = PageController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: PageView(
-      children: const [
-        AllWorkoutScreen(),
-        AllExercisesScreen(),
-      ],
-    ));
+      body: PageView(
+        controller: _pageController,
+        children: const [
+          //AllWorkoutScreen(),
+          //AllExercisesScreen(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: (index) {
+          _pageController.animateToPage(index,
+              duration: const Duration(milliseconds: 300), curve: Curves.ease);
+        },
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center),
+            label: 'Workouts',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.fitness_center),
+            label: 'Exercises',
+          ),
+        ],
+      ),
+    );
   }
 }
