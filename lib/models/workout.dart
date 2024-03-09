@@ -5,11 +5,11 @@ class Workout {
 
   String name;
 
-  List<Exercise> exercises = [];
+  List<Exercise>? exercises;
 
   Workout(this.name, {this.id});
 
   Workout.fromJson(Map<String, dynamic> json) : name = json['workout_name'] {
-    id = json['id'];
+    id = json['id'].toString();
   }
 }

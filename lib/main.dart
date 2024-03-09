@@ -3,10 +3,12 @@ import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/all_workout_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  DatabaseHelper.openLocalDatabase();
+  await DatabaseHelper.openLocalDatabase(newDatabase: false);
+
+  print('Database opened');
 
   runApp(MyApp());
 }
@@ -47,8 +49,8 @@ class _MyHomePageState extends State<MyHomePage> {
       body: PageView(
         controller: _pageController,
         children: const [
-          //AllWorkoutScreen(),
-          //AllExercisesScreen(),
+          AllWorkoutScreen(),
+          AllExercisesScreen(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(

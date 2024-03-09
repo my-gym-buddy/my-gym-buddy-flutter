@@ -32,7 +32,7 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
           ],
         ),
         body: FutureBuilder(
-          future: DatabaseHelper.getWorkouts(),
+          future: DatabaseHelper.getWorkoutList(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.data != null && snapshot.data!.isNotEmpty) {

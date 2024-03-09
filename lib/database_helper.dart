@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
-import 'package:pocketbase/pocketbase.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
@@ -23,8 +24,6 @@ class DatabaseHelper {
     return '$databasesPath/gym_buddy.db';
   }
 
-  static PocketBase pb = PocketBase('http://10.0.2.2:8090/');
-
   static Future<bool> saveExercise(Exercise exercise) async {
     database!.insert('exercises', exercise.toJson());
 
@@ -36,7 +35,7 @@ class DatabaseHelper {
         .insert('workout_templates', {'workout_name': workout.name});
 
     int index = 0;
-    for (final exercise in workout.exercises) {
+    for (final exercise in workout.exercises!) {
       var repSet = {'sets': []};
 
       for (final set in exercise.sets) {
@@ -47,7 +46,7 @@ class DatabaseHelper {
       final workoutTemplateExercise = <String, dynamic>{
         "exercise_id": int.parse(exercise.id!),
         "workout_template_id": rawWorkoutID,
-        "rep_set": repSet.toString(),
+        "rep_set": json.encode(repSet),
         "exercise_index": index,
       };
 
@@ -82,54 +81,65 @@ class DatabaseHelper {
     return Exercise.fromJson(record.first);
   }
 
-  static Future<List<Workout>> getWorkouts() async {
-    // if (database == null) {
-    //   await openLocalDatabase();
-    // }
+  static Future<List<Workout>> getWorkoutList() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
 
-    // final rawWorkout = await database!.query('workout_templates');
+    final rawWorkout = await database!.query('workout_templates');
 
-    // List<Workout> workouts = [];
-    // //? loop through each workout
-    // for (final record in rawWorkout) {
-    //   Workout workout = Workout.fromJson(
-    //     record,
-    //   );
+    if (kDebugMode) print(rawWorkout);
 
-    //   var rawExercisesInWorkout = await database!.query(
-    //       'workout_template_exercises',
-    //       where: 'workout_template_id = ?',
-    //       whereArgs: [record['id']]);
+    List<Workout> workouts = [];
+    for (final record in rawWorkout) {
+      Workout workout = Workout.fromJson(
+        record,
+      );
+      workouts.add(workout);
+    }
 
-    //   //? loop through each exercise in workout
-    //   for (final rawExerciseInWorkout in rawExercisesInWorkout) {
-    //     var exercise = await getExerciseGivenID(
-    //         rawExerciseInWorkout['exercise_id'].toString());
-
-    //     if (kDebugMode) print(exercise);
-
-    //     //? loop through each set in exercise
-    //     // for (final repSet in rawExerciseInWorkout['rep_set']['sets']) {
-    //     //   var set = RepSet(
-    //     //       reps: repSet['reps'],
-    //     //       weight: double.parse(repSet['weight'].toString()),
-    //     //       note: repSet['note']);
-    //     //   exercise.sets.add(set);
-    //     // }
-    //     // workout.exercises.add(exercise);
-    //   }
-
-    //   workouts.add(workout);
-    // }
-    // return workouts;
-
-    return [];
+    return workouts;
   }
 
-  static Future<Database> openLocalDatabase() async {
+  static Future<Workout> getWorkoutGivenID(String id) async {
+    final record = await database!
+        .query('workout_templates', where: 'id = ?', whereArgs: [id]);
+
+    final rawExercises = await database!.query('workout_template_exercises',
+        where: 'workout_template_id = ?', whereArgs: [id]);
+
+    List<Exercise> exercises = [];
+    for (final exercise in rawExercises) {
+      final exerciseID = exercise['exercise_id'].toString();
+      final exerciseRecord = await getExerciseGivenID(exerciseID);
+      final exerciseObject = Exercise.fromJson(exerciseRecord.toJson());
+
+      // convert rep_set to list of rep_set
+      final repSet = exercise['rep_set'];
+      final repSetMap = json.decode(repSet.toString());
+
+      for (final set in repSetMap['sets']) {
+        exerciseObject.sets.add(RepSet.fromJson(set));
+      }
+
+      exercises.add(exerciseObject);
+    }
+
+    Workout workout = Workout.fromJson(record.first);
+    workout.exercises = exercises;
+
+    return workout;
+  }
+
+  static Future<Database> openLocalDatabase({bool newDatabase = false}) async {
     if (Platform.isWindows) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
+    }
+
+    if (newDatabase) {
+      await deleteDatabase(await getDatabasePath());
+      database = null;
     }
 
     if (database == null) {

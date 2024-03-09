@@ -7,7 +7,7 @@ class RepSet {
   RepSet({required this.reps, required this.weight, this.note});
 
   RepSet.fromJson(Map<String, dynamic> json)
-      : reps = int.parse(json['reps']),
+      : reps = int.parse(json['reps'].toString()),
         weight = double.parse(json['weight'].toString()),
-        note = json['note'];
+        note = json['note'].toString();
 }

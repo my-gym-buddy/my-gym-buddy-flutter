@@ -19,6 +19,11 @@ class Exercise {
         'exercise_video': videoID,
       };
 
+  // add sets to the exercise
+  void addSetFromJson(Map<String, dynamic> json) {
+    sets.add(RepSet.fromJson(json));
+  }
+
   Exercise.fromJson(Map<String, dynamic> json)
       : name = json['exercise_name'],
         videoID = json['exercise_video'],
