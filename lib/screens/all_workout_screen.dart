@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/add_workout_screen.dart';
-import 'package:gym_buddy_app/screens/single_workout_screen.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/widgets/workout_card.dart';
 
 class AllWorkoutScreen extends StatefulWidget {
   const AllWorkoutScreen({super.key});
@@ -16,19 +17,21 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: const Text('All Workouts'),
+          title: const Text('all workouts'),
           actions: [
-            IconButton(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const AddWorkoutScreen()),
-                  );
-                  setState(() {});
-                },
-                icon: const Icon(Icons.add))
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child: atsIconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const AddWorkoutScreen()),
+                    );
+                    setState(() {});
+                  }),
+            )
           ],
         ),
         body: FutureBuilder(
@@ -40,16 +43,8 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
                     Workout workout = snapshot.data![index];
-                    return ListTile(
-                      title: Text(workout.name),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (context) =>
-                                  SingleWorkoutScreen(workout: workout)),
-                        );
-                      },
+                    return WorkoutCard(
+                      workout: workout,
                     );
                   },
                 );

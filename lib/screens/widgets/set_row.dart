@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
 class SetRow extends StatelessWidget {
   SetRow(
@@ -29,7 +31,9 @@ class SetRow extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: SizedBox(
               height: 30,
-              child: TextField(
+              child: atsTextField(
+                textAlign: TextAlign.center,
+                labelText: '',
                 keyboardType: TextInputType.number,
                 onChanged: (value) {
                   selectedExercises[index].sets[setIndex].reps =
@@ -37,9 +41,6 @@ class SetRow extends StatelessWidget {
                   refresh!();
                 },
                 enabled: refresh != null,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
               ),
             ),
           ),
@@ -50,7 +51,9 @@ class SetRow extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: SizedBox(
               height: 30,
-              child: TextField(
+              child: atsTextField(
+                textAlign: TextAlign.center,
+                labelText: '',
                 keyboardType: TextInputType.number,
                 enabled: refresh != null,
                 onChanged: (value) {
@@ -58,15 +61,16 @@ class SetRow extends StatelessWidget {
                       double.parse(value);
                   refresh!();
                 },
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                ),
               ),
             ),
           ),
         ),
         Expanded(
-          child: IconButton(
+          flex: 2,
+          child: atsIconButton(
+            size: 35,
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
             onPressed: refresh != null
                 ? () {
                     selectedExercises[index].sets.removeAt(setIndex);
