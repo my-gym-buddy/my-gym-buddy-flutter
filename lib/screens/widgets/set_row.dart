@@ -51,7 +51,6 @@ class SetRow extends StatelessWidget {
             child: SizedBox(
               height: 30,
               child: TextField(
-                controller: TextEditingController(),
                 keyboardType: TextInputType.number,
                 enabled: refresh != null,
                 onChanged: (value) {

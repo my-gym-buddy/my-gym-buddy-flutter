@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/models/workout.dart';
+import 'package:gym_buddy_app/screens/active_workout.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
+import 'package:gym_buddy_app/screens/widgets/set_row_display.dart';
 
 class SingleWorkoutScreen extends StatefulWidget {
   SingleWorkoutScreen({super.key, required this.workout});
@@ -27,7 +29,16 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: FloatingActionButton.extended(
-            onPressed: () {}, label: const Text('Start Workout')),
+            onPressed: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => ActiveWorkout(
+                      workoutTemplate: widget.workout,
+                    ),
+                  ));
+            },
+            label: const Text('Start Workout')),
         appBar: AppBar(
           backgroundColor: Theme.of(context).colorScheme.inversePrimary,
           title: Text(widget.workout.name),
@@ -49,12 +60,12 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                                   itemCount: widget
                                       .workout.exercises![index].sets.length,
                                   itemBuilder: (context, setIndex) {
-                                    return SetRow(
-                                        setIndex: setIndex,
-                                        index: index,
-                                        selectedExercises:
-                                            widget.workout.exercises!,
-                                        refresh: null);
+                                    return SetRowDisplay(
+                                      setIndex: setIndex,
+                                      index: index,
+                                      selectedExercises:
+                                          widget.workout.exercises!,
+                                    );
                                   },
                                 ));
                           },

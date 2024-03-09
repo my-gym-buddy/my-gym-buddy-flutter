@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class SingleExerciseScreen extends StatefulWidget {
@@ -16,23 +17,63 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-          title: Text(widget.exercise.name),
+          title: Text(widget.exercise.name.toLowerCase()),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 8.0),
+              child:
+                  atsIconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+            ),
+          ],
         ),
-        body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: <Widget>[
-              YoutubePlayer(
-                controller: YoutubePlayerController(
-                  initialVideoId: widget.exercise.videoID ?? '',
-                  flags: YoutubePlayerFlags(
-                    autoPlay: false,
-                    mute: false,
-                  ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: <Widget>[
+                YoutubePlayer.convertUrlToId(widget.exercise.videoID ?? '') !=
+                        null
+                    ? YoutubePlayer(
+                        controller: YoutubePlayerController(
+                          initialVideoId: widget.exercise.videoID ?? '',
+                          flags: const YoutubePlayerFlags(
+                            autoPlay: true,
+                            mute: true,
+                          ),
+                        ),
+                      )
+                    : Container(
+                        height: 200,
+                        decoration: BoxDecoration(
+                          color: Colors.grey[300],
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: const Center(
+                          child: Text('no video available'),
+                        ),
+                      ),
+                const SizedBox(height: 20),
+                Text(
+                  'description',
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
-            ],
+                Text(
+                  'no description available',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'statistics',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                Text(
+                  'no data available',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+              ],
+            ),
           ),
         ));
   }
