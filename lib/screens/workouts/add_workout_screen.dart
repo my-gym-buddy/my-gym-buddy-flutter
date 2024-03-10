@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
@@ -17,24 +19,19 @@ class AddWorkoutScreen extends StatefulWidget {
 }
 
 class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
-  List<Exercise> exercises = [];
-  List<Exercise> selectedExercises = [];
+  List<Exercise> allExercises = [];
   TextEditingController workoutNameTextController = TextEditingController();
   TextEditingController workoutDescriptionTextController =
       TextEditingController();
 
-  Workout workout = Workout('');
-
-  void refresh() {
-    setState(() {});
-  }
+  Workout workout = Workout(name: "", exercises: []);
 
   @override
   void initState() {
     super.initState();
     DatabaseHelper.getExercises().then((value) {
       setState(() {
-        exercises = value;
+        allExercises = value;
       });
     });
   }
@@ -68,22 +65,23 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                     if (newIndex > oldIndex) {
                       newIndex -= 1;
                     }
-                    final Exercise item = selectedExercises.removeAt(oldIndex);
-                    selectedExercises.insert(newIndex, item);
+                    final Exercise item = workout.exercises!.removeAt(oldIndex);
+                    workout.exercises!.insert(newIndex, item);
                   });
                 },
                 children: <Widget>[
                   for (int index = 0;
-                      index < selectedExercises.length;
+                      index < workout.exercises!.length;
                       index += 1)
                     Column(
-                      key: ValueKey(selectedExercises[index]),
+                      key: ValueKey(workout.exercises![index].name +
+                          (Random().nextInt(10000)).toString()),
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
-                              selectedExercises[index].name.toLowerCase(),
+                              workout.exercises![index].name.toLowerCase(),
                               style: Theme.of(context).textTheme.titleMedium,
                             ),
                             const SizedBox(
@@ -98,7 +96,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   .onErrorContainer,
                               onPressed: () {
                                 setState(() {
-                                  selectedExercises.removeAt(index);
+                                  workout.exercises!.removeAt(index);
                                 });
                               },
                               icon: const Icon(Icons.delete),
@@ -110,7 +108,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                           physics: const NeverScrollableScrollPhysics(),
                           children: [
                             for (int setIndex = -1;
-                                setIndex < selectedExercises[index].sets.length;
+                                setIndex <
+                                    workout.exercises![index].sets.length;
                                 setIndex += 1)
                               if (setIndex == -1)
                                 const Row(
@@ -136,14 +135,14 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                 SetRow(
                                     setIndex: setIndex,
                                     index: index,
-                                    selectedExercises: selectedExercises,
+                                    selectedExercises: workout.exercises!,
                                     isEditable: true),
                           ],
                         ),
                         atsButton(
                             onPressed: () {
                               setState(() {
-                                selectedExercises[index].sets.add(
+                                workout.exercises![index].sets.add(
                                     RepSet(reps: 0, weight: 0, note: null));
                               });
                             },
@@ -161,7 +160,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                         context: context,
                         delegate: SearchPage<Exercise>(
                             showItemsOnEmpty: true,
-                            items: exercises,
+                            items: allExercises,
                             searchLabel: 'search exercises',
                             failure: const Center(
                               child: Text('no exercises found'),
@@ -173,7 +172,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   title: Text(exercise.name.toLowerCase()),
                                   onTap: () {
                                     setState(() {
-                                      selectedExercises.add(exercise);
+                                      workout.exercises!.add(exercise);
                                     });
                                     Navigator.pop(context);
                                   },
@@ -184,7 +183,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 ),
                 atsButton(
                   onPressed: () async {
-                    workout.exercises = selectedExercises;
+                    workout.exercises = workout.exercises!;
                     workout.name = workoutNameTextController.text;
                     await DatabaseHelper.saveWorkout(workout);
 

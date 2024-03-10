@@ -7,7 +7,7 @@ class Workout {
 
   List<Exercise>? exercises;
 
-  Workout(this.name, {this.id});
+  Workout({required this.name, this.id, this.exercises});
 
   Workout.fromJson(Map<String, dynamic> json) : name = json['workout_name'] {
     id = json['id'].toString();

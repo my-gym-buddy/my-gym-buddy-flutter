@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row_display.dart';
+import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 
 class SingleWorkoutScreen extends StatefulWidget {
   SingleWorkoutScreen({super.key, required this.workout});
@@ -64,32 +65,7 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                   'exercises',
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
-                widget.workout.exercises != null
-                    ? ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: widget.workout.exercises!.length,
-                        itemBuilder: (context, index) {
-                          return ListTile(
-                              title:
-                                  Text(widget.workout.exercises![index].name),
-                              subtitle: ListView.builder(
-                                physics: const NeverScrollableScrollPhysics(),
-                                shrinkWrap: true,
-                                itemCount: widget
-                                    .workout.exercises![index].sets.length,
-                                itemBuilder: (context, setIndex) {
-                                  return SetRowDisplay(
-                                    setIndex: setIndex,
-                                    index: index,
-                                    selectedExercises:
-                                        widget.workout.exercises!,
-                                  );
-                                },
-                              ));
-                        },
-                      )
-                    : const CircularProgressIndicator(),
+                ExercisesRepSetDisplay(workout: widget.workout)
               ],
             ),
           ),
