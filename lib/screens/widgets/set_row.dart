@@ -9,9 +9,11 @@ class SetRow extends StatelessWidget {
       required this.setIndex,
       required this.index,
       required this.selectedExercises,
-      required this.isEditable});
+      required this.isEditable,
+      required this.refresh});
 
   final bool? isEditable;
+  final Function? refresh;
 
   final int setIndex;
   final int index;
@@ -83,6 +85,7 @@ class SetRow extends StatelessWidget {
             onPressed: isEditable != null
                 ? () {
                     selectedExercises[index].sets.removeAt(setIndex);
+                    refresh!();
                   }
                 : null,
             icon: const Icon(Icons.delete),

@@ -42,6 +42,7 @@ class DatabaseHelper {
         repSet['sets']!
             .add({'reps': set.reps, 'weight': set.weight, 'note': set.note});
       }
+      print(exercise.id!);
 
       final workoutTemplateExercise = <String, dynamic>{
         "exercise_id": int.parse(exercise.id!),

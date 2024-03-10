@@ -9,6 +9,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
+import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
 
 class AddWorkoutScreen extends StatefulWidget {
@@ -58,100 +59,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
               labelText: 'description',
             ),
             const SizedBox(height: 20),
-            Expanded(
-              child: ReorderableListView(
-                onReorder: (int oldIndex, int newIndex) {
-                  setState(() {
-                    if (newIndex > oldIndex) {
-                      newIndex -= 1;
-                    }
-                    final Exercise item = workout.exercises!.removeAt(oldIndex);
-                    workout.exercises!.insert(newIndex, item);
-                  });
-                },
-                children: <Widget>[
-                  for (int index = 0;
-                      index < workout.exercises!.length;
-                      index += 1)
-                    Column(
-                      key: ValueKey(workout.exercises![index].name +
-                          (Random().nextInt(10000)).toString()),
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            Text(
-                              workout.exercises![index].name.toLowerCase(),
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                            const SizedBox(
-                              width: 10,
-                            ),
-                            atsIconButton(
-                              size: 35,
-                              backgroundColor:
-                                  Theme.of(context).colorScheme.errorContainer,
-                              foregroundColor: Theme.of(context)
-                                  .colorScheme
-                                  .onErrorContainer,
-                              onPressed: () {
-                                setState(() {
-                                  workout.exercises!.removeAt(index);
-                                });
-                              },
-                              icon: const Icon(Icons.delete),
-                            )
-                          ],
-                        ),
-                        ListView(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          children: [
-                            for (int setIndex = -1;
-                                setIndex <
-                                    workout.exercises![index].sets.length;
-                                setIndex += 1)
-                              if (setIndex == -1)
-                                const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(child: Center(child: Text('set'))),
-                                    Expanded(
-                                        flex: 4,
-                                        child: Center(child: Text('previous'))),
-                                    Expanded(
-                                        flex: 4,
-                                        child: Center(child: Text('reps'))),
-                                    Expanded(
-                                        flex: 4,
-                                        child: Center(child: Text('weight'))),
-                                    Expanded(
-                                        flex: 2,
-                                        child: Center(child: Text(''))),
-                                  ],
-                                )
-                              else
-                                SetRow(
-                                    setIndex: setIndex,
-                                    index: index,
-                                    selectedExercises: workout.exercises!,
-                                    isEditable: true),
-                          ],
-                        ),
-                        atsButton(
-                            onPressed: () {
-                              setState(() {
-                                workout.exercises![index].sets.add(
-                                    RepSet(reps: 0, weight: 0, note: null));
-                              });
-                            },
-                            child: const Text('add set')),
-                      ],
-                    ),
-                ],
-              ),
-            ),
+            Expanded(child: ExercisesRepSetDisplay(workoutTemplate: workout)),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
@@ -172,7 +80,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   title: Text(exercise.name.toLowerCase()),
                                   onTap: () {
                                     setState(() {
-                                      workout.exercises!.add(exercise);
+                                      workout.exercises!.add(
+                                          Exercise.fromJson(exercise.toJson()));
                                     });
                                     Navigator.pop(context);
                                   },

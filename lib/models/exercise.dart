@@ -15,6 +15,7 @@ class Exercise {
       this.sets = const []});
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'exercise_name': name,
         'exercise_video': videoID,
       };
