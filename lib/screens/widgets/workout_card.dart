@@ -3,9 +3,10 @@ import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/workouts/single_workout_screen.dart';
 
 class WorkoutCard extends StatelessWidget {
-  const WorkoutCard({super.key, required this.workout});
+  WorkoutCard({super.key, required this.workout, this.refresh});
 
   final Workout workout;
+  Function? refresh;
 
   @override
   Widget build(BuildContext context) {
@@ -19,12 +20,15 @@ class WorkoutCard extends StatelessWidget {
         ),
         title: Text(workout.name.toLowerCase(),
             style: Theme.of(context).textTheme.titleSmall),
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          await Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (context) => SingleWorkoutScreen(workout: workout)),
           );
+          if (refresh != null) {
+            refresh!();
+          }
         },
       ),
     );

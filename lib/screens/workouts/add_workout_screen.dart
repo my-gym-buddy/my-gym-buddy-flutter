@@ -69,8 +69,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 widget.workout != null
                     ? atsButton(
                         onPressed: () async {
-                          //await DatabaseHelper.deleteWorkout(workout.id!);
+                          await DatabaseHelper.deleteWorkout(widget.workout!);
                           Navigator.pop(context);
+                          return null;
                         },
                         backgroundColor:
                             Theme.of(context).colorScheme.errorContainer,

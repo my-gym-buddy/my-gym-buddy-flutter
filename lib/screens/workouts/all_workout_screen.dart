@@ -45,6 +45,9 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
                     Workout workout = snapshot.data![index];
                     return WorkoutCard(
                       workout: workout,
+                      refresh: () {
+                        setState(() {});
+                      },
                     );
                   },
                 );

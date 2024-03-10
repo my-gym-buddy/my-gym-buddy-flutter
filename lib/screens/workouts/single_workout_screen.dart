@@ -46,13 +46,17 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
               padding: const EdgeInsets.only(right: 8.0),
               child: atsIconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    var editedWorkout = await Navigator.push(
                         context,
                         MaterialPageRoute(
                             builder: (context) => AddWorkoutScreen(
                                   workout: widget.workout,
                                 )));
+                    if (editedWorkout == null) {
+                      Navigator.pop(context);
+                      return;
+                    }
                   }),
             ),
           ],
