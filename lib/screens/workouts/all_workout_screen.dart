@@ -27,7 +27,7 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const AddWorkoutScreen()),
+                          builder: (context) => AddWorkoutScreen()),
                     );
                     setState(() {});
                   }),
