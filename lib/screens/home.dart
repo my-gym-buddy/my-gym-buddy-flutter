@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gym_buddy_app/screens/all_exercises_screen.dart';
-import 'package:gym_buddy_app/screens/all_workout_screen.dart';
+import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
+import 'package:gym_buddy_app/screens/workouts/all_workout_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 
 class Home extends StatefulWidget {

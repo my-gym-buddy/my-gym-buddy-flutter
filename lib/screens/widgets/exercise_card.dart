@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/screens/single_exercise_screen.dart';
+import 'package:gym_buddy_app/screens/exercises/single_exercise_screen.dart';
 
 class ExerciseCard extends StatelessWidget {
   const ExerciseCard({super.key, required this.exercise});
