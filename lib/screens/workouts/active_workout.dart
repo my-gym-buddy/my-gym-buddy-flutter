@@ -102,7 +102,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                           in widget.workoutTemplate.exercises!) {
                         List<RepSet> repSetToRemove = [];
                         for (final repSet in exercise.sets) {
-                          if (repSet.reps == 0) {
+                          if (repSet.completed == false) {
                             repSetToRemove.add(repSet);
                           }
                         }
