@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/models/workout.dart';
-import 'package:gym_buddy_app/screens/active_workout.dart';
+import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row_display.dart';

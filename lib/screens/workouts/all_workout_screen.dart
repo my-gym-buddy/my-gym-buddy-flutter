@@ -1,55 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
-import 'package:gym_buddy_app/screens/add_exercise_screen.dart';
+import 'package:gym_buddy_app/screens/workouts/add_workout_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
-import 'package:gym_buddy_app/screens/single_exercise_screen.dart';
-import 'package:gym_buddy_app/screens/widgets/exercise_card.dart';
+import 'package:gym_buddy_app/screens/widgets/workout_card.dart';
 
-class AllExercisesScreen extends StatefulWidget {
-  const AllExercisesScreen({super.key});
+class AllWorkoutScreen extends StatefulWidget {
+  const AllWorkoutScreen({super.key});
 
   @override
-  State<AllExercisesScreen> createState() => _AllExercisesScreenState();
+  State<AllWorkoutScreen> createState() => _AllWorkoutScreenState();
 }
 
-class _AllExercisesScreenState extends State<AllExercisesScreen> {
+class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('all exercises',
-              style: Theme.of(context).textTheme.titleLarge),
+          title: const Text('all workouts'),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: atsIconButton(
+                  icon: const Icon(Icons.add),
                   onPressed: () async {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const AddExerciseScreen()),
+                          builder: (context) => const AddWorkoutScreen()),
                     );
                     setState(() {});
-                  },
-                  icon: const Icon(Icons.add)),
-            ),
+                  }),
+            )
           ],
         ),
         body: FutureBuilder(
-          future: DatabaseHelper.getExercises(),
+          future: DatabaseHelper.getWorkoutList(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.done) {
               if (snapshot.data != null && snapshot.data!.isNotEmpty) {
                 return ListView.builder(
                   itemCount: snapshot.data!.length,
                   itemBuilder: (context, index) {
-                    Exercise exercise = snapshot.data![index];
-                    return ExerciseCard(exercise: exercise);
+                    Workout workout = snapshot.data![index];
+                    return WorkoutCard(
+                      workout: workout,
+                    );
                   },
                 );
               } else {
-                return const Center(child: Text('no exercises found'));
+                return const Center(child: Text('No workouts found'));
               }
             } else {
               return const Center(child: CircularProgressIndicator());
