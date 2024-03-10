@@ -12,9 +12,12 @@ class ExercisesRepSetDisplay extends StatefulWidget {
   ExercisesRepSetDisplay(
       {super.key,
       required this.workoutTemplate,
-      this.physics = const ScrollPhysics()});
+      this.physics = const ScrollPhysics(),
+      this.isActiveWorkout = false});
 
   Workout workoutTemplate;
+
+  bool isActiveWorkout;
 
   ScrollPhysics physics;
 
@@ -105,6 +108,7 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                             )
                           else
                             SetRow(
+                                isActiveWorkout: widget.isActiveWorkout,
                                 setIndex: setIndex,
                                 index: index,
                                 selectedExercises:

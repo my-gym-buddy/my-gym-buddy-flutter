@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
 class SetRow extends StatelessWidget {
@@ -10,10 +11,13 @@ class SetRow extends StatelessWidget {
       required this.index,
       required this.selectedExercises,
       required this.isEditable,
-      required this.refresh});
+      required this.refresh,
+      this.isActiveWorkout = false});
 
   final bool? isEditable;
   final Function? refresh;
+
+  final bool? isActiveWorkout;
 
   final int setIndex;
   final int index;
@@ -78,18 +82,21 @@ class SetRow extends StatelessWidget {
         ),
         Expanded(
           flex: 2,
-          child: atsIconButton(
-            size: 35,
-            backgroundColor: Theme.of(context).colorScheme.errorContainer,
-            foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-            onPressed: isEditable != null
-                ? () {
-                    selectedExercises[index].sets.removeAt(setIndex);
-                    refresh!();
-                  }
-                : null,
-            icon: const Icon(Icons.delete),
-          ),
+          child: isActiveWorkout == true
+              ? atsCheckbox()
+              : atsIconButton(
+                  size: 35,
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  foregroundColor:
+                      Theme.of(context).colorScheme.onErrorContainer,
+                  onPressed: isEditable != null
+                      ? () {
+                          selectedExercises[index].sets.removeAt(setIndex);
+                          refresh!();
+                        }
+                      : null,
+                  icon: const Icon(Icons.delete),
+                ),
         )
       ],
     );

@@ -31,6 +31,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           child: Column(
             children: [
               ExercisesRepSetDisplay(
+                  isActiveWorkout: true,
                   physics: const NeverScrollableScrollPhysics(),
                   workoutTemplate: widget.workoutTemplate),
               const SizedBox(height: 20),
