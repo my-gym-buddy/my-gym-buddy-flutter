@@ -1,14 +1,9 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
-import 'package:gym_buddy_app/screens/widgets/set_row.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
 

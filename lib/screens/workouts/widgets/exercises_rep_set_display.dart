@@ -9,9 +9,14 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
 
 class ExercisesRepSetDisplay extends StatefulWidget {
-  ExercisesRepSetDisplay({super.key, required this.workoutTemplate});
+  ExercisesRepSetDisplay(
+      {super.key,
+      required this.workoutTemplate,
+      this.physics = const ScrollPhysics()});
 
   Workout workoutTemplate;
+
+  ScrollPhysics physics;
 
   @override
   State<ExercisesRepSetDisplay> createState() => _ExercisesRepSetDisplayState();
@@ -25,6 +30,8 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
             child: Text('No exercises added'),
           )
         : ReorderableListView(
+            shrinkWrap: true,
+            physics: widget.physics,
             onReorder: (int oldIndex, int newIndex) {
               setState(() {
                 if (newIndex > oldIndex) {

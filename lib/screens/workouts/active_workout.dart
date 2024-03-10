@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 
 class ActiveWorkout extends StatefulWidget {
   const ActiveWorkout({super.key, required this.workoutTemplate});
@@ -24,29 +25,41 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           )
         ],
       ),
-      body: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(15.0),
+          child: Column(
             children: [
-              atsButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                child: Text('cancel workout',
-                    style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                        color: Theme.of(context).colorScheme.onErrorContainer)),
-              ),
-              atsButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: const Text('finish workout'),
+              ExercisesRepSetDisplay(
+                  physics: const NeverScrollableScrollPhysics(),
+                  workoutTemplate: widget.workoutTemplate),
+              const SizedBox(height: 20),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  atsButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    backgroundColor:
+                        Theme.of(context).colorScheme.errorContainer,
+                    child: Text('cancel workout',
+                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
+                            color: Theme.of(context)
+                                .colorScheme
+                                .onErrorContainer)),
+                  ),
+                  atsButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('finish workout'),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
