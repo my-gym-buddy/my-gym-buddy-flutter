@@ -113,20 +113,23 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                   width: 10,
                 ),
                 atsButton(
-                  onPressed: () async {
-                    workout.exercises = workout.exercises!;
-                    workout.name = workoutNameTextController.text;
-                    await DatabaseHelper.saveWorkout(workout);
+                    onPressed: () async {
+                      workout.exercises = workout.exercises!;
+                      workout.name = workoutNameTextController.text;
+                      widget.workout != null
+                          ? DatabaseHelper.updateWorkout(workout)
+                          : await DatabaseHelper.saveWorkout(workout);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Workout added'),
-                      ),
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text('save'),
-                ),
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(widget.workout != null
+                              ? 'workout updated'
+                              : 'workout added'),
+                        ),
+                      );
+                      Navigator.pop(context, widget.workout);
+                    },
+                    child: const Text("save")),
               ],
             )
           ],

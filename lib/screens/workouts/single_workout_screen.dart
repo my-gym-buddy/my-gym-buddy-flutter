@@ -53,9 +53,14 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                             builder: (context) => AddWorkoutScreen(
                                   workout: widget.workout,
                                 )));
+
                     if (editedWorkout == null) {
                       Navigator.pop(context);
                       return;
+                    } else {
+                      setState(() {
+                        widget.workout = editedWorkout;
+                      });
                     }
                   }),
             ),

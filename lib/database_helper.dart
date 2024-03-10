@@ -75,7 +75,9 @@ class DatabaseHelper {
   }
 
   static Future<bool> updateWorkout(Workout workout) async {
-    //TODO !!!
+    //todo: improve that :D
+    await deleteWorkout(workout);
+    await saveWorkout(workout);
 
     return true;
   }
