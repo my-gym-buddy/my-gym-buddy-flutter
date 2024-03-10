@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class DatabaseHelper {
@@ -22,6 +23,11 @@ class DatabaseHelper {
     var databasesPath = await getDatabasesPath();
     if (kDebugMode) print(databasesPath);
     return '$databasesPath/gym_buddy.db';
+  }
+
+  static Future<void> exportDatabase() async {
+    Share.shareXFiles([XFile(await getDatabasePath())],
+        subject: 'Gym Buddy Database');
   }
 
   static Future<bool> saveExercise(Exercise exercise) async {

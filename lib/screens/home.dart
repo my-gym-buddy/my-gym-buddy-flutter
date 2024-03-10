@@ -42,7 +42,7 @@ class _HomeState extends State<Home> {
               height: 10,
             ),
             const Text("statistics"),
-            atsButton(child: Text('statistics'), onPressed: () {}),
+            atsButton(child: Text('statistics'), onPressed: null),
             const SizedBox(
               height: 10,
             ),
@@ -59,6 +59,12 @@ class _HomeState extends State<Home> {
               height: 10,
             ),
             const Text("settings"),
+            atsButton(
+                child: Text('export database'),
+                onPressed: () {
+                  DatabaseHelper.exportDatabase();
+                }),
+            atsButton(child: Text('import database'), onPressed: null),
             atsButton(
                 backgroundColor: Theme.of(context).colorScheme.errorContainer,
                 child: Text(
