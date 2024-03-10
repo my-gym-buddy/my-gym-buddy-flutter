@@ -5,7 +5,7 @@ class atsButton extends StatelessWidget {
       {super.key,
       required this.child,
       required this.onPressed,
-      this.backgroundColor = null});
+      this.backgroundColor});
 
   final Widget child;
   final Function? onPressed;
@@ -14,11 +14,11 @@ class atsButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ElevatedButton(
-        child: child,
         onPressed: onPressed as void Function()?,
         style: ElevatedButton.styleFrom(
             elevation: 0,
             backgroundColor: backgroundColor ??
-                Theme.of(context).colorScheme.primaryContainer));
+                Theme.of(context).colorScheme.primaryContainer),
+        child: child);
   }
 }

@@ -109,7 +109,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                 setIndex < selectedExercises[index].sets.length;
                                 setIndex += 1)
                               if (setIndex == -1)
-                                Row(
+                                const Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
@@ -175,7 +175,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                   },
                                 ))),
                     child: const Text('add exercise')),
-                SizedBox(
+                const SizedBox(
                   width: 10,
                 ),
                 atsButton(
@@ -183,6 +183,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                     workout.exercises = selectedExercises;
                     workout.name = workoutNameTextController.text;
                     await DatabaseHelper.saveWorkout(workout);
+
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Workout added'),

@@ -3,7 +3,6 @@ import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
-import 'package:gym_buddy_app/screens/exercises/single_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/widgets/exercise_card.dart';
 
 class AllExercisesScreen extends StatefulWidget {
