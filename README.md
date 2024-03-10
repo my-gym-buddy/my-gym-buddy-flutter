@@ -1,16 +1,15 @@
-# gym_buddy_app
+## MyGymBuddy
 
-A new Flutter project.
+Welcome to MyGymBuddy! MyGymBuddy is a project designed to help individuals track their fitness progress, schedule workouts, and stay motivated on their fitness journey. Whether you're a seasoned gym-goer or just starting out, MyGymBuddy aims to be your reliable companion in achieving your fitness goals.
 
-## Getting Started
+### Features
 
-This project is a starting point for a Flutter application.
+- Fitness Tracking: Keep track of your workouts, including exercises, sets, reps, and weights used.
+- Progress Monitoring: Monitor your progress over time with visual charts and statistics.
 
-A few resources to get you started if this is your first Flutter project:
+## Contributing
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+We welcome contributions from the community to make MyGymBuddy even better! If you have any ideas, bug fixes, or feature requests, please open an issue or submit a pull request.
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+License
+This project is licensed under the GNU General Public License v3.0 - see the LICENSE file for details.
