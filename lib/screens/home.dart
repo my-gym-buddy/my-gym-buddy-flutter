@@ -1,4 +1,6 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/workouts/all_workout_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
@@ -23,11 +25,11 @@ class _HomeState extends State<Home> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text("Today's Activities"),
+            const Text("today's activities"),
             const SizedBox(
               height: 10,
             ),
-            const Text("Workout Routines"),
+            const Text("workout routines"),
             atsButton(
                 child: Text('all workout routines'),
                 onPressed: () {
@@ -39,12 +41,12 @@ class _HomeState extends State<Home> {
             const SizedBox(
               height: 10,
             ),
-            const Text("Statistics"),
+            const Text("statistics"),
             atsButton(child: Text('statistics'), onPressed: () {}),
             const SizedBox(
               height: 10,
             ),
-            const Text("Exercises"),
+            const Text("exercises"),
             atsButton(
                 child: Text('all excerises'),
                 onPressed: () {
@@ -52,6 +54,21 @@ class _HomeState extends State<Home> {
                       context,
                       MaterialPageRoute(
                           builder: (context) => const AllExercisesScreen()));
+                }),
+            const SizedBox(
+              height: 10,
+            ),
+            const Text("settings"),
+            atsButton(
+                backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                child: Text(
+                  'reset database',
+                  style: TextStyle(
+                      color: Theme.of(context).colorScheme.onErrorContainer),
+                ),
+                onPressed: () {
+                  DatabaseHelper.resetDatabase();
+                  if (kDebugMode) print('database reset');
                 }),
           ],
         ),

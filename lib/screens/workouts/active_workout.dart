@@ -62,9 +62,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ),
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(15.0),
+          padding: const EdgeInsets.only(left: 15.0, right: 15.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(
+                'there is no description for this workout',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+              const SizedBox(height: 20),
               ExercisesRepSetDisplay(
                   isActiveWorkout: true,
                   physics: const NeverScrollableScrollPhysics(),
