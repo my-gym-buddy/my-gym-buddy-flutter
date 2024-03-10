@@ -35,8 +35,8 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                   context,
                   MaterialPageRoute(
                       builder: (context) => ActiveWorkout(
-                            workoutTemplate: widget.workout,
-                          )));
+                          workoutTemplate:
+                              Workout.fromJson(widget.workout.toJson()))));
             }),
         appBar: AppBar(
           title: Text(widget.workout.name),
