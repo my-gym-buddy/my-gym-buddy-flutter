@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class atsButton extends StatelessWidget {
-  atsButton(
+  const atsButton(
       {super.key,
       required this.child,
       required this.onPressed,

@@ -30,13 +30,17 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  void initState() {
+    super.initState();
     DatabaseHelper.getExercises().then((value) {
       setState(() {
         exercises = value;
       });
     });
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('add workout'),
@@ -133,7 +137,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                     setIndex: setIndex,
                                     index: index,
                                     selectedExercises: selectedExercises,
-                                    refresh: refresh),
+                                    isEditable: true),
                           ],
                         ),
                         atsButton(
