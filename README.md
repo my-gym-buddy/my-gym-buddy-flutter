@@ -11,5 +11,5 @@ Welcome to MyGymBuddy! MyGymBuddy is a project designed to help individuals trac
 
 We welcome contributions from the community to make MyGymBuddy even better! If you have any ideas, bug fixes, or feature requests, please open an issue or submit a pull request.
 
-License
+## License
 This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](https://github.com/my-gym-buddy/my-gym-buddy-flutter/blob/main/LICENSE) file for details.
