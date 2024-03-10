@@ -27,7 +27,7 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
                     await Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const AddWorkoutScreen()),
+                          builder: (context) => AddWorkoutScreen()),
                     );
                     setState(() {});
                   }),
@@ -45,6 +45,9 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
                     Workout workout = snapshot.data![index];
                     return WorkoutCard(
                       workout: workout,
+                      refresh: () {
+                        setState(() {});
+                      },
                     );
                   },
                 );

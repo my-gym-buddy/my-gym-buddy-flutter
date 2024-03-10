@@ -118,7 +118,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       }
 
                       DatabaseHelper.saveWorkoutSession(widget.workoutTemplate,
-                          widget.stopWatchTimer.rawTime.value);
+                          widget.stopWatchTimer.secondTime.value);
                       Navigator.pop(context);
                     },
                     child: const Text('finish workout'),

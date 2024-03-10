@@ -44,8 +44,11 @@ class DatabaseHelper {
   }
 
   static Future<bool> saveWorkoutSession(Workout workout, int duration) async {
-    var rawWorkoutID = await database!.insert('workout_session',
-        {'workout_template_id': workout.id, 'duration': duration});
+    var rawWorkoutID = await database!.insert('workout_session', {
+      'workout_template_id': workout.id,
+      'duration': duration,
+      'start_time': DateTime.now().toIso8601String()
+    });
 
     int index = 0;
     for (final exercise in workout.exercises!) {
@@ -67,6 +70,24 @@ class DatabaseHelper {
           .insert('workout_session_exercises', workoutSessionExercise);
       index++;
     }
+
+    return true;
+  }
+
+  static Future<bool> updateWorkout(Workout workout) async {
+    //todo: improve that :D
+    await deleteWorkout(workout);
+    await saveWorkout(workout);
+
+    return true;
+  }
+
+  static Future<bool> deleteWorkout(Workout workout) async {
+    await database!
+        .delete('workout_templates', where: 'id = ?', whereArgs: [workout.id]);
+
+    await database!.delete('workout_template_exercises',
+        where: 'workout_template_id = ?', whereArgs: [workout.id]);
 
     return true;
   }

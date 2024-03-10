@@ -8,7 +8,9 @@ import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display
 import 'package:search_page/search_page.dart';
 
 class AddWorkoutScreen extends StatefulWidget {
-  const AddWorkoutScreen({super.key});
+  AddWorkoutScreen({super.key, this.workout});
+
+  Workout? workout;
 
   @override
   State<AddWorkoutScreen> createState() => _AddWorkoutScreenState();
@@ -25,6 +27,12 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   @override
   void initState() {
     super.initState();
+
+    if (widget.workout != null) {
+      workout = widget.workout!;
+      workoutNameTextController.text = workout.name;
+    }
+
     DatabaseHelper.getExercises().then((value) {
       setState(() {
         allExercises = value;
@@ -58,6 +66,25 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                widget.workout != null
+                    ? atsButton(
+                        onPressed: () async {
+                          await DatabaseHelper.deleteWorkout(widget.workout!);
+                          Navigator.pop(context);
+                          return null;
+                        },
+                        backgroundColor:
+                            Theme.of(context).colorScheme.errorContainer,
+                        child: Text('delete',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer)),
+                      )
+                    : const SizedBox(),
+                const SizedBox(
+                  width: 10,
+                ),
                 atsButton(
                     onPressed: () => showSearch(
                         context: context,
@@ -86,20 +113,23 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                   width: 10,
                 ),
                 atsButton(
-                  onPressed: () async {
-                    workout.exercises = workout.exercises!;
-                    workout.name = workoutNameTextController.text;
-                    await DatabaseHelper.saveWorkout(workout);
+                    onPressed: () async {
+                      workout.exercises = workout.exercises!;
+                      workout.name = workoutNameTextController.text;
+                      widget.workout != null
+                          ? DatabaseHelper.updateWorkout(workout)
+                          : await DatabaseHelper.saveWorkout(workout);
 
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Workout added'),
-                      ),
-                    );
-                    Navigator.pop(context);
-                  },
-                  child: const Text('save'),
-                ),
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(widget.workout != null
+                              ? 'workout updated'
+                              : 'workout added'),
+                        ),
+                      );
+                      Navigator.pop(context, widget.workout);
+                    },
+                    child: const Text("save")),
               ],
             )
           ],

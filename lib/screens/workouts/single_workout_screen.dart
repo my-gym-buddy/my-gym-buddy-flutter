@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row_display.dart';
+import 'package:gym_buddy_app/screens/workouts/add_workout_screen.dart';
 
 class SingleWorkoutScreen extends StatefulWidget {
   SingleWorkoutScreen({super.key, required this.workout});
@@ -43,8 +44,25 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child:
-                  atsIconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+              child: atsIconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () async {
+                    var editedWorkout = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => AddWorkoutScreen(
+                                  workout: widget.workout,
+                                )));
+
+                    if (editedWorkout == null) {
+                      Navigator.pop(context);
+                      return;
+                    } else {
+                      setState(() {
+                        widget.workout = editedWorkout;
+                      });
+                    }
+                  }),
             ),
           ],
         ),
