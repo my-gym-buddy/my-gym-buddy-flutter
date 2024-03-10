@@ -43,6 +43,34 @@ class DatabaseHelper {
     return true;
   }
 
+  static Future<bool> saveWorkoutSession(Workout workout, int duration) async {
+    var rawWorkoutID = await database!.insert('workout_session',
+        {'workout_template_id': workout.id, 'duration': duration});
+
+    int index = 0;
+    for (final exercise in workout.exercises!) {
+      var repSet = {'sets': []};
+
+      for (final set in exercise.sets) {
+        repSet['sets']!
+            .add({'reps': set.reps, 'weight': set.weight, 'note': set.note});
+      }
+
+      final workoutSessionExercise = <String, dynamic>{
+        "exercise_id": int.parse(exercise.id!),
+        "workout_session_id": rawWorkoutID,
+        "rep_set": json.encode(repSet),
+        "exercise_index": index,
+      };
+
+      await database!
+          .insert('workout_session_exercises', workoutSessionExercise);
+      index++;
+    }
+
+    return true;
+  }
+
   static Future<bool> saveWorkout(Workout workout) async {
     var rawWorkoutID = await database!
         .insert('workout_templates', {'workout_name': workout.name});

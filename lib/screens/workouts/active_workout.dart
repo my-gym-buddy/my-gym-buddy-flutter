@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/database_helper.dart';
+import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
@@ -93,6 +96,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   ),
                   atsButton(
                     onPressed: () {
+                      // if repset is not complete, remove it from the list
+                      List<Exercise> exerciseToRemove = [];
+                      for (final exercise
+                          in widget.workoutTemplate.exercises!) {
+                        List<RepSet> repSetToRemove = [];
+                        for (final repSet in exercise.sets) {
+                          if (repSet.reps == 0) {
+                            repSetToRemove.add(repSet);
+                          }
+                        }
+                        for (final repSet in repSetToRemove) {
+                          exercise.sets.remove(repSet);
+                        }
+                        if (exercise.sets.isEmpty) {
+                          exerciseToRemove.add(exercise);
+                        }
+                      }
+                      for (final exercise in exerciseToRemove) {
+                        widget.workoutTemplate.exercises!.remove(exercise);
+                      }
+
+                      DatabaseHelper.saveWorkoutSession(widget.workoutTemplate,
+                          widget.stopWatchTimer.rawTime.value);
                       Navigator.pop(context);
                     },
                     child: const Text('finish workout'),
