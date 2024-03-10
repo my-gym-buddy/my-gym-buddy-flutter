@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
 class atsCheckbox extends StatefulWidget {
-  atsCheckbox({super.key, this.checked = false});
+  atsCheckbox({super.key, this.checked = false, this.onChanged, this.onHold});
 
   bool checked;
+
+  Function? onChanged;
+  Function? onHold;
 
   @override
   State<atsCheckbox> createState() => _atsCheckboxState();
@@ -13,9 +16,17 @@ class _atsCheckboxState extends State<atsCheckbox> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      onLongPress: () {
+        if (widget.onHold != null) {
+          widget.onHold!();
+        }
+      },
       onTap: () {
         setState(() {
           widget.checked = !widget.checked;
+          if (widget.onChanged != null) {
+            widget.onChanged!(widget.checked);
+          }
         });
       },
       child: Container(

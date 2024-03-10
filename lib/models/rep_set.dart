@@ -4,6 +4,8 @@ class RepSet {
 
   String? note;
 
+  bool completed = false;
+
   RepSet({required this.reps, required this.weight, this.note});
 
   Map<String, dynamic> toJson() {

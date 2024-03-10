@@ -83,7 +83,19 @@ class SetRow extends StatelessWidget {
         Expanded(
           flex: 2,
           child: isActiveWorkout == true
-              ? atsCheckbox()
+              ? atsCheckbox(
+                  checked: selectedExercises[index].sets[setIndex].completed,
+                  onChanged: (value) {
+                    selectedExercises[index].sets[setIndex].completed = value;
+                    refresh!();
+                  },
+                  onHold: isEditable != null
+                      ? () {
+                          selectedExercises[index].sets.removeAt(setIndex);
+                          refresh!();
+                        }
+                      : null,
+                )
               : atsIconButton(
                   size: 35,
                   backgroundColor: Theme.of(context).colorScheme.errorContainer,
