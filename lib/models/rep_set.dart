@@ -4,7 +4,17 @@ class RepSet {
 
   String? note;
 
+  bool completed = false;
+
   RepSet({required this.reps, required this.weight, this.note});
+
+  Map<String, dynamic> toJson() {
+    return {
+      'reps': reps,
+      'weight': weight,
+      'note': note,
+    };
+  }
 
   RepSet.fromJson(Map<String, dynamic> json)
       : reps = int.parse(json['reps'].toString()),

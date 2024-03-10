@@ -31,13 +31,19 @@ class atsTextField extends StatefulWidget {
 class _atsTextFieldState extends State<atsTextField> {
   @override
   Widget build(BuildContext context) {
+    print('atsTextField build called');
     return TextField(
         textAlign: widget.textAlign,
         keyboardType: widget.keyboardType,
         controller: widget.textEditingController,
         enabled: widget.enabled,
         onEditingComplete: widget.onEditingComplete as void Function()?,
-        onChanged: widget.onChanged as void Function(String)?,
+        onChanged: (value) {
+          if (widget.onChanged != null) {
+            widget.textEditingController!.text = value;
+            widget.onChanged!(value);
+          }
+        },
         decoration: InputDecoration(
           floatingLabelAlignment: FloatingLabelAlignment.center,
           border: const OutlineInputBorder(

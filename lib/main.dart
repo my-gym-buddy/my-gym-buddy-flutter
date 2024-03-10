@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
         title: 'Gym Buddy',
         theme: ThemeData(
           fontFamily: 'Montserrat',
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
           useMaterial3: true,
         ),
         debugShowCheckedModeBanner: false,

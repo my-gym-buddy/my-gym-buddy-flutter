@@ -15,8 +15,10 @@ class Exercise {
       this.sets = const []});
 
   Map<String, dynamic> toJson() => {
+        'id': id,
         'exercise_name': name,
         'exercise_video': videoID,
+        'sets': sets.map((e) => e.toJson()).toList(),
       };
 
   // add sets to the exercise
@@ -27,5 +29,11 @@ class Exercise {
   Exercise.fromJson(Map<String, dynamic> json)
       : name = json['exercise_name'],
         videoID = json['exercise_video'],
-        id = json['id'].toString();
+        id = json['id'].toString() {
+    if (json['sets'] == null) return;
+
+    for (var set in json['sets']) {
+      addSetFromJson(set);
+    }
+  }
 }
