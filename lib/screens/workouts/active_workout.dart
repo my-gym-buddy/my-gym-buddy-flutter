@@ -34,6 +34,151 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     await widget.stopWatchTimer.dispose(); // Need to call dispose function.
   }
 
+  void showCancelWorkoutModal() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'cancel workout session?',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',
+                    style: Theme.of(context).textTheme.bodyMedium!.copyWith(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      atsButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        backgroundColor:
+                            Theme.of(context).colorScheme.errorContainer,
+                        child: Text('cancel workout',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer)),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      atsButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('continue workout'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
+  void showEndWorkoutModal() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'end workout session?',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'are you sure you want to end the workout session? This will end the current workout and save all the data.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      atsButton(
+                        onPressed: () async {
+                          List<Exercise> exerciseToRemove = [];
+                          for (final exercise
+                              in widget.workoutTemplate.exercises!) {
+                            List<RepSet> repSetToRemove = [];
+                            for (final repSet in exercise.sets) {
+                              if (repSet.completed == false) {
+                                repSetToRemove.add(repSet);
+                              }
+                            }
+                            for (final repSet in repSetToRemove) {
+                              exercise.sets.remove(repSet);
+                            }
+                            if (exercise.sets.isEmpty) {
+                              exerciseToRemove.add(exercise);
+                            }
+                          }
+                          for (final exercise in exerciseToRemove) {
+                            widget.workoutTemplate.exercises!.remove(exercise);
+                          }
+
+                          DatabaseHelper.saveWorkoutSession(
+                              widget.workoutTemplate,
+                              widget.stopWatchTimer.secondTime.value);
+                          Navigator.pop(context);
+                          Navigator.pop(context);
+                        },
+                        backgroundColor:
+                            Theme.of(context).colorScheme.errorContainer,
+                        child: Text('end & save',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer)),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      atsButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('continue workout'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -42,8 +187,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         leading: atsIconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              widget.stopWatchTimer.onStartTimer();
-              Navigator.pop(context);
+              showEndWorkoutModal();
             }),
         actions: [
           Padding(
@@ -84,7 +228,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                 children: [
                   atsButton(
                     onPressed: () {
-                      Navigator.pop(context);
+                      showCancelWorkoutModal();
                     },
                     backgroundColor:
                         Theme.of(context).colorScheme.errorContainer,
@@ -96,32 +240,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   ),
                   atsButton(
                     onPressed: () {
-                      // if repset is not complete, remove it from the list
-                      List<Exercise> exerciseToRemove = [];
-                      for (final exercise
-                          in widget.workoutTemplate.exercises!) {
-                        List<RepSet> repSetToRemove = [];
-                        for (final repSet in exercise.sets) {
-                          if (repSet.completed == false) {
-                            repSetToRemove.add(repSet);
-                          }
-                        }
-                        for (final repSet in repSetToRemove) {
-                          exercise.sets.remove(repSet);
-                        }
-                        if (exercise.sets.isEmpty) {
-                          exerciseToRemove.add(exercise);
-                        }
-                      }
-                      for (final exercise in exerciseToRemove) {
-                        widget.workoutTemplate.exercises!.remove(exercise);
-                      }
-
-                      DatabaseHelper.saveWorkoutSession(widget.workoutTemplate,
-                          widget.stopWatchTimer.secondTime.value);
-                      Navigator.pop(context);
+                      showEndWorkoutModal();
                     },
-                    child: const Text('finish workout'),
+                    child: Text(
+                      'end workout',
+                    ),
                   ),
                 ],
               ),
