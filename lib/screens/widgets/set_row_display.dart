@@ -13,17 +13,29 @@ class SetRowDisplay extends StatelessWidget {
 
   List<Exercise> selectedExercises;
 
+  String getPreviousWeight() {
+    print(selectedExercises[index].previousSets);
+
+    if (selectedExercises[index].previousSets == null) return "-";
+
+    if (setIndex > selectedExercises[index].previousSets!.length - 1) {
+      return '-';
+    } else {
+      return '${selectedExercises[index].previousSets![setIndex].weight}kg x ${selectedExercises[index].previousSets![setIndex].reps}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Expanded(child: Center(child: Text('${setIndex + 1}'))),
-        const Expanded(
+        Expanded(
             flex: 4,
             child: Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Center(child: Text('999kg x 999')),
+              padding: const EdgeInsets.all(8.0),
+              child: Center(child: Text(getPreviousWeight())),
             )),
         Expanded(
           flex: 4,

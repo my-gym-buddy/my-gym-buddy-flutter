@@ -31,13 +31,16 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         floatingActionButton: atsButton(
             child: const Text('start workout'),
-            onPressed: () {
-              Navigator.push(
+            onPressed: () async {
+              await Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => ActiveWorkout(
                           workoutTemplate:
                               Workout.fromJson(widget.workout.toJson()))));
+
+              widget.workout.exercises = null;
+              setState(() {});
             }),
         appBar: AppBar(
           title: Text(widget.workout.name),
