@@ -7,6 +7,7 @@ class Workout {
 
   int? duration;
   DateTime? startTime;
+  double? totalWeightLifted;
 
   List<Exercise>? exercises;
 

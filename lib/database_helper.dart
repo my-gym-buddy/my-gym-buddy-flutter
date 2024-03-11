@@ -168,6 +168,30 @@ class DatabaseHelper {
     return exercises;
   }
 
+  static Future<dynamic> getWeeklyStatistics() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    final rawWorkout =
+        await database!.query('workout_session', orderBy: 'start_time DESC');
+
+    int totalDuration = 0;
+    double totalWeightLifted = 0;
+    int totalWorkouts = 0;
+
+    for (final record in rawWorkout) {
+      totalDuration += record['duration'] as int;
+      totalWorkouts++;
+    }
+
+    return {
+      'totalDuration': totalDuration,
+      'totalWeightLifted': totalWeightLifted,
+      'totalWorkouts': totalWorkouts
+    };
+  }
+
   static Future<List<Workout>> getAllWorkoutSessions() async {
     if (database == null) {
       await openLocalDatabase();
@@ -183,7 +207,30 @@ class DatabaseHelper {
 
       workout.startTime = DateTime.parse(record['start_time'].toString());
       workout.duration = record['duration'] as int;
+      workout.totalWeightLifted = 0;
+
       workouts.add(workout);
+
+      final rawExercises = await database!.query('workout_session_exercises',
+          where: 'workout_session_id = ?', whereArgs: [record['id']]);
+
+      for (final exercise in rawExercises) {
+        final exerciseID = exercise['exercise_id'].toString();
+        final exerciseRecord = await getExerciseGivenID(exerciseID);
+        final exerciseObject = Exercise.fromJson(exerciseRecord.toJson());
+
+        // convert rep_set to list of rep_set
+        final repSet = exercise['rep_set'];
+        final repSetMap = json.decode(repSet.toString());
+
+        for (final set in repSetMap['sets']) {
+          exerciseObject.sets.add(RepSet.fromJson(set));
+          workout.totalWeightLifted =
+              workout.totalWeightLifted! + (set['weight'] * set['reps']);
+        }
+
+        workout.exercises!.add(exerciseObject);
+      }
     }
 
     return workouts;
