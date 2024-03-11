@@ -102,9 +102,24 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                     ),
                     atsButton(
                         onPressed: () {
+                          RepSet? lastRepSet;
+
+                          if (widget.workoutTemplate.exercises![index].sets
+                              .isNotEmpty) {
+                            lastRepSet = widget
+                                .workoutTemplate.exercises![index].sets.last;
+                          }
+
                           setState(() {
-                            widget.workoutTemplate.exercises![index].sets
-                                .add(RepSet(reps: 0, weight: 0, note: null));
+                            widget.workoutTemplate.exercises![index].sets.add(
+                                RepSet(
+                                    reps: lastRepSet != null
+                                        ? lastRepSet.reps
+                                        : 0,
+                                    weight: lastRepSet != null
+                                        ? lastRepSet.weight
+                                        : 0,
+                                    note: null));
                           });
                         },
                         child: const Text('add set')),
