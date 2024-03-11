@@ -14,8 +14,6 @@ class SetRowDisplay extends StatelessWidget {
   List<Exercise> selectedExercises;
 
   String getPreviousWeight() {
-    print(selectedExercises[index].previousSets);
-
     if (selectedExercises[index].previousSets == null) return "-";
 
     if (setIndex > selectedExercises[index].previousSets!.length - 1) {
