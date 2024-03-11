@@ -248,6 +248,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   ),
                 ],
               ),
+              SizedBox(height: 20)
             ],
           ),
         ),

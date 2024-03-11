@@ -48,91 +48,95 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: <Widget>[
-            atsTextField(
-              textEditingController: workoutNameTextController,
-              labelText: 'workout name',
-            ),
-            const SizedBox(height: 15),
-            atsTextField(
-              textEditingController: workoutDescriptionTextController,
-              labelText: 'description',
-            ),
-            const SizedBox(height: 20),
-            Expanded(child: ExercisesRepSetDisplay(workoutTemplate: workout)),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                widget.workout != null
-                    ? atsButton(
-                        onPressed: () async {
-                          await DatabaseHelper.deleteWorkout(widget.workout!);
-                          Navigator.pop(context);
-                          return null;
-                        },
-                        backgroundColor:
-                            Theme.of(context).colorScheme.errorContainer,
-                        child: Text('delete',
-                            style: TextStyle(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .onErrorContainer)),
-                      )
-                    : const SizedBox(),
-                const SizedBox(
-                  width: 10,
-                ),
-                atsButton(
-                    onPressed: () => showSearch(
-                        context: context,
-                        delegate: SearchPage<Exercise>(
-                            showItemsOnEmpty: true,
-                            items: allExercises,
-                            searchLabel: 'search exercises',
-                            failure: const Center(
-                              child: Text('no exercises found'),
-                            ),
-                            filter: (exercise) => [
-                                  exercise.name,
-                                ],
-                            builder: (exercise) => ListTile(
-                                  title: Text(exercise.name.toLowerCase()),
-                                  onTap: () {
-                                    setState(() {
-                                      workout.exercises!.add(
-                                          Exercise.fromJson(exercise.toJson()));
-                                    });
-                                    Navigator.pop(context);
-                                  },
-                                ))),
-                    child: const Text('add exercise')),
-                const SizedBox(
-                  width: 10,
-                ),
-                atsButton(
-                    onPressed: () async {
-                      workout.exercises = workout.exercises!;
-                      workout.name = workoutNameTextController.text;
-                      widget.workout != null
-                          ? DatabaseHelper.updateWorkout(workout)
-                          : await DatabaseHelper.saveWorkout(workout);
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: <Widget>[
+              atsTextField(
+                textEditingController: workoutNameTextController,
+                labelText: 'workout name',
+              ),
+              const SizedBox(height: 15),
+              atsTextField(
+                textEditingController: workoutDescriptionTextController,
+                labelText: 'description',
+              ),
+              const SizedBox(height: 20),
+              ExercisesRepSetDisplay(workoutTemplate: workout),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  widget.workout != null
+                      ? atsButton(
+                          onPressed: () async {
+                            await DatabaseHelper.deleteWorkout(widget.workout!);
+                            Navigator.pop(context);
+                            return null;
+                          },
+                          backgroundColor:
+                              Theme.of(context).colorScheme.errorContainer,
+                          child: Text('delete',
+                              style: TextStyle(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer)),
+                        )
+                      : const SizedBox(),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  atsButton(
+                      onPressed: () => showSearch(
+                          context: context,
+                          delegate: SearchPage<Exercise>(
+                              showItemsOnEmpty: true,
+                              items: allExercises,
+                              searchLabel: 'search exercises',
+                              failure: const Center(
+                                child: Text('no exercises found'),
+                              ),
+                              filter: (exercise) => [
+                                    exercise.name,
+                                  ],
+                              builder: (exercise) => ListTile(
+                                    title: Text(exercise.name.toLowerCase()),
+                                    onTap: () {
+                                      setState(() {
+                                        workout.exercises!.add(
+                                            Exercise.fromJson(
+                                                exercise.toJson()));
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                  ))),
+                      child: const Text('add exercise')),
+                  const SizedBox(
+                    width: 10,
+                  ),
+                  atsButton(
+                      onPressed: () async {
+                        workout.exercises = workout.exercises!;
+                        workout.name = workoutNameTextController.text;
+                        widget.workout != null
+                            ? DatabaseHelper.updateWorkout(workout)
+                            : await DatabaseHelper.saveWorkout(workout);
 
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(widget.workout != null
-                              ? 'workout updated'
-                              : 'workout added'),
-                        ),
-                      );
-                      Navigator.pop(context, widget.workout);
-                    },
-                    child: const Text("save")),
-              ],
-            )
-          ],
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text(widget.workout != null
+                                ? 'workout updated'
+                                : 'workout added'),
+                          ),
+                        );
+                        Navigator.pop(context, widget.workout);
+                      },
+                      child: const Text("save")),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );

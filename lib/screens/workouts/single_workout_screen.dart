@@ -116,6 +116,9 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                         },
                       )
                     : const CircularProgressIndicator(),
+                SizedBox(
+                  height: 60,
+                )
               ],
             ),
           ),
