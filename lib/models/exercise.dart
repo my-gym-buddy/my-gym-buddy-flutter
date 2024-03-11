@@ -7,6 +7,7 @@ class Exercise {
   final String? videoID;
 
   List<RepSet> sets = [];
+  List<RepSet>? previousSets;
 
   Exercise(
       {required this.name,
@@ -19,6 +20,7 @@ class Exercise {
         'exercise_name': name,
         'exercise_video': videoID,
         'sets': sets.map((e) => e.toJson()).toList(),
+        'previousSets': previousSets?.map((e) => e.toJson()).toList(),
       };
 
   // add sets to the exercise
@@ -26,14 +28,28 @@ class Exercise {
     sets.add(RepSet.fromJson(json));
   }
 
+  void addPreviousSetsFromJson(Map<String, dynamic> json) {
+    previousSets = [];
+    for (var set in json['sets']) {
+      previousSets!.add(RepSet.fromJson(set));
+    }
+  }
+
   Exercise.fromJson(Map<String, dynamic> json)
       : name = json['exercise_name'],
         videoID = json['exercise_video'],
         id = json['id'].toString() {
-    if (json['sets'] == null) return;
+    if (json['sets'] != null) {
+      for (var set in json['sets']) {
+        addSetFromJson(set);
+      }
+    }
 
-    for (var set in json['sets']) {
-      addSetFromJson(set);
+    if (json['previousSets'] != null) {
+      previousSets = [];
+      for (var set in json['previousSets']) {
+        previousSets!.add(RepSet.fromJson(set));
+      }
     }
   }
 }

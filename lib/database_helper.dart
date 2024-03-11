@@ -123,7 +123,6 @@ class DatabaseHelper {
         repSet['sets']!
             .add({'reps': set.reps, 'weight': set.weight, 'note': set.note});
       }
-      print(exercise.id!);
 
       final workoutTemplateExercise = <String, dynamic>{
         "exercise_id": int.parse(exercise.id!),
@@ -150,8 +149,18 @@ class DatabaseHelper {
     List<Exercise> exercises = [];
     for (final record in records) {
       if (kDebugMode) print(record);
-      print(record);
       exercises.add(Exercise.fromJson(record));
+
+      final previousRecord = await database!.query('workout_session_exercises',
+          where: 'exercise_id = ?',
+          whereArgs: [record['id']],
+          orderBy: 'id DESC',
+          limit: 1);
+
+      if (previousRecord.isNotEmpty) {
+        exercises.last.addPreviousSetsFromJson(
+            json.decode(previousRecord.first['rep_set'].toString()));
+      }
     }
 
     return exercises;
@@ -161,25 +170,28 @@ class DatabaseHelper {
     final record =
         await database!.query('exercises', where: 'id = ?', whereArgs: [id]);
 
-    return Exercise.fromJson(record.first);
+    // get the last record from session exercises
+    final previousRecord = await database!.query('workout_session_exercises',
+        where: 'exercise_id = ?',
+        whereArgs: [id],
+        orderBy: 'id DESC',
+        limit: 1);
+
+    Exercise exercise = Exercise.fromJson(record.first);
+    if (previousRecord.isNotEmpty) {
+      exercise.addPreviousSetsFromJson(
+          json.decode(previousRecord.first['rep_set'].toString()));
+    }
+
+    return exercise;
   }
 
   static Future<List<Workout>> getWorkoutList() async {
-    print('getWorkoutList');
-
-    print(database);
-
     if (database == null) {
       await openLocalDatabase();
     }
 
-    print("1");
-
-    print(await database!.getVersion());
-
     final rawWorkout = await database!.query('workout_templates');
-
-    print("2");
 
     if (kDebugMode) print(rawWorkout);
 
