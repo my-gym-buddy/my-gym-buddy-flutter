@@ -27,90 +27,109 @@ class SetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     print('set row build called');
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Expanded(child: Center(child: Text('${setIndex + 1}'))),
-        const Expanded(flex: 4, child: Center(child: Text('999kg x 999'))),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                textEditingController: TextEditingController(
-                    text: selectedExercises[index]
-                        .sets[setIndex]
-                        .reps
-                        .toString()),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].reps =
-                      int.parse(value);
-                },
-                enabled: isEditable != null,
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                textEditingController: TextEditingController(
-                    text: selectedExercises[index]
-                        .sets[setIndex]
-                        .weight
-                        .toString()),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                enabled: isEditable != null,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].weight =
-                      double.parse(value);
-                },
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: isActiveWorkout == true
-              ? atsCheckbox(
-                  checked: selectedExercises[index].sets[setIndex].completed,
-                  onChanged: (value) {
-                    selectedExercises[index].sets[setIndex].completed = value;
-                    refresh!();
-                  },
-                  onHold: isEditable != null
-                      ? () {
-                          selectedExercises[index].sets.removeAt(setIndex);
-                          refresh!();
-                        }
-                      : null,
-                )
-              : atsIconButton(
-                  size: 35,
-                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onErrorContainer,
-                  onPressed: isEditable != null
-                      ? () {
-                          selectedExercises[index].sets.removeAt(setIndex);
-                          refresh!();
-                        }
-                      : null,
-                  icon: const Icon(Icons.delete),
+    return setIndex == -1
+        ? const Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Center(child: Text('set'))),
+              Expanded(flex: 4, child: Center(child: Text('previous'))),
+              Expanded(flex: 4, child: Center(child: Text('+kgs'))),
+              Expanded(flex: 4, child: Center(child: Text('reps'))),
+              Expanded(flex: 2, child: Center(child: Text(''))),
+            ],
+          )
+        : Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Center(child: Text('${setIndex + 1}'))),
+              const Expanded(
+                  flex: 4, child: Center(child: Text('999kg x 999'))),
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 30,
+                    child: atsTextField(
+                      textEditingController: TextEditingController(
+                          text: selectedExercises[index]
+                              .sets[setIndex]
+                              .weight
+                              .toString()),
+                      textAlign: TextAlign.center,
+                      labelText: '',
+                      keyboardType: TextInputType.number,
+                      enabled: isEditable != null,
+                      onChanged: (value) {
+                        selectedExercises[index].sets[setIndex].weight =
+                            double.parse(value);
+                      },
+                    ),
+                  ),
                 ),
-        )
-      ],
-    );
+              ),
+              Expanded(
+                flex: 4,
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: SizedBox(
+                    height: 30,
+                    child: atsTextField(
+                      textEditingController: TextEditingController(
+                          text: selectedExercises[index]
+                              .sets[setIndex]
+                              .reps
+                              .toString()),
+                      textAlign: TextAlign.center,
+                      labelText: '',
+                      keyboardType: TextInputType.number,
+                      onChanged: (value) {
+                        selectedExercises[index].sets[setIndex].reps =
+                            int.parse(value);
+                      },
+                      enabled: isEditable != null,
+                    ),
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 2,
+                child: isActiveWorkout == true
+                    ? atsCheckbox(
+                        checked:
+                            selectedExercises[index].sets[setIndex].completed,
+                        onChanged: (value) {
+                          selectedExercises[index].sets[setIndex].completed =
+                              value;
+                          refresh!();
+                        },
+                        onHold: isEditable != null
+                            ? () {
+                                selectedExercises[index]
+                                    .sets
+                                    .removeAt(setIndex);
+                                refresh!();
+                              }
+                            : null,
+                      )
+                    : atsIconButton(
+                        size: 35,
+                        backgroundColor:
+                            Theme.of(context).colorScheme.errorContainer,
+                        foregroundColor:
+                            Theme.of(context).colorScheme.onErrorContainer,
+                        onPressed: isEditable != null
+                            ? () {
+                                selectedExercises[index]
+                                    .sets
+                                    .removeAt(setIndex);
+                                refresh!();
+                              }
+                            : null,
+                        icon: const Icon(Icons.delete),
+                      ),
+              )
+            ],
+          );
   }
 }

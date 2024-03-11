@@ -29,14 +29,14 @@ class SetRowDisplay extends StatelessWidget {
           flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('${selectedExercises[index].sets[setIndex].reps} reps'),
+            child: Text('${selectedExercises[index].sets[setIndex].weight} kg'),
           ),
         ),
         Expanded(
           flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('${selectedExercises[index].sets[setIndex].weight} Kg'),
+            child: Text('${selectedExercises[index].sets[setIndex].reps} reps'),
           ),
         ),
       ],
