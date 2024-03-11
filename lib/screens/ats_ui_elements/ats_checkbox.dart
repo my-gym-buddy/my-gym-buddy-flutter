@@ -30,25 +30,22 @@ class _atsCheckboxState extends State<atsCheckbox> {
         });
       },
       child: Container(
-        height: 30,
-        width: 30,
-        decoration: BoxDecoration(
-            border: Border.all(
-                color: widget.checked
-                    ? Colors.transparent
-                    : Theme.of(context).colorScheme.scrim,
-                width: 1),
-            color: widget.checked
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(30)),
-        child: widget.checked
-            ? Icon(
-                Icons.check,
-                color: Theme.of(context).colorScheme.onPrimaryContainer,
-              )
-            : null,
-      ),
+          height: 30,
+          width: 30,
+          decoration: BoxDecoration(
+              border: Border.all(
+                  color: widget.checked
+                      ? Colors.transparent
+                      : Theme.of(context).colorScheme.scrim,
+                  width: 1),
+              color: widget.checked
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(30)),
+          child: Icon(
+            Icons.check,
+            color: Theme.of(context).colorScheme.onPrimaryContainer,
+          )),
     );
   }
 }
