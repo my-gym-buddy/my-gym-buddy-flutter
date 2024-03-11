@@ -4,7 +4,7 @@ import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 
 class StatisticsScreen extends StatelessWidget {
-  const StatisticsScreen({super.key});
+  StatisticsScreen({super.key});
 
   String prettyTime(int seconds) {
     int hours = seconds ~/ 3600;
@@ -34,26 +34,32 @@ class StatisticsScreen extends StatelessWidget {
             children: [
               Text('weekly statistics',
                   style: Theme.of(context).textTheme.titleMedium),
-              Text('number of workouts: 3'),
-              Text('total kg lifted: 1000'),
-              Text('total time spent: 3 hours'),
-              const SizedBox(height: 10),
+              Text('number of workouts: xx'),
+              Text('total kg lifted: xx'),
+              Text('total time spent: xx hours'),
+              const SizedBox(height: 20),
               Text('history', style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 10),
               FutureBuilder(
                   future: DatabaseHelper.getAllWorkoutSessions(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
-                      if (snapshot.hasData) {
+                      if (snapshot.data.length > 0) {
                         return ListView.builder(
                             physics: const NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             itemCount: snapshot.data.length,
                             itemBuilder: (BuildContext context, int index) {
                               return ListTile(
+                                tileColor: Theme.of(context)
+                                    .colorScheme
+                                    .primaryContainer,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(30.0),
+                                ),
                                 title: Text(snapshot.data[index].name),
-                                // start time and duration in hh:mm:ss
                                 subtitle: Text(
-                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${prettyTime(snapshot.data[index].duration)}'),
+                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${prettyTime(snapshot.data[index].duration)} - ${snapshot.data[index].totalWeightLifted} total kg lifted'),
                               );
                             });
                       } else {
