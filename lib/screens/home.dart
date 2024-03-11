@@ -1,10 +1,10 @@
 import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
+import 'package:gym_buddy_app/screens/statistics/statistics.dart';
 import 'package:gym_buddy_app/screens/workouts/all_workout_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 
@@ -45,7 +45,14 @@ class _HomeState extends State<Home> {
               height: 10,
             ),
             const Text("statistics"),
-            atsButton(child: Text('statistics'), onPressed: null),
+            atsButton(
+                child: Text('statistics'),
+                onPressed: () {
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const StatisticsScreen()));
+                }),
             const SizedBox(
               height: 10,
             ),
