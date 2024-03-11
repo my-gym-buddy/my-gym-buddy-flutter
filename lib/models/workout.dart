@@ -5,6 +5,9 @@ class Workout {
 
   String name;
 
+  int? duration;
+  DateTime? startTime;
+
   List<Exercise>? exercises;
 
   Workout({required this.name, this.id, this.exercises});

@@ -66,7 +66,9 @@ class DatabaseHelper {
     var rawWorkoutID = await database!.insert('workout_session', {
       'workout_template_id': workout.id,
       'duration': duration,
-      'start_time': DateTime.now().toIso8601String()
+      'start_time': DateTime.now()
+          .subtract(Duration(seconds: duration))
+          .toIso8601String(),
     });
 
     int index = 0;
@@ -166,6 +168,27 @@ class DatabaseHelper {
     return exercises;
   }
 
+  static Future<List<Workout>> getAllWorkoutSessions() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    final rawWorkout =
+        await database!.query('workout_session', orderBy: 'start_time DESC');
+
+    List<Workout> workouts = [];
+    for (final record in rawWorkout) {
+      final workout =
+          await getWorkoutGivenID(record['workout_template_id'].toString());
+
+      workout.startTime = DateTime.parse(record['start_time'].toString());
+      workout.duration = record['duration'] as int;
+      workouts.add(workout);
+    }
+
+    return workouts;
+  }
+
   static Future<Exercise> getExerciseGivenID(String id) async {
     final record =
         await database!.query('exercises', where: 'id = ?', whereArgs: [id]);
@@ -209,6 +232,10 @@ class DatabaseHelper {
   static Future<Workout> getWorkoutGivenID(String id) async {
     final record = await database!
         .query('workout_templates', where: 'id = ?', whereArgs: [id]);
+
+    if (record.isEmpty) {
+      return Workout(name: 'no name', id: '-1');
+    }
 
     final rawExercises = await database!.query('workout_template_exercises',
         where: 'workout_template_id = ?', whereArgs: [id]);
