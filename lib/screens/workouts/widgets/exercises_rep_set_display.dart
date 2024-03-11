@@ -88,35 +88,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                                 widget.workoutTemplate.exercises![index].sets
                                     .length;
                             setIndex += 1)
-                          if (setIndex == -1)
-                            const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Expanded(child: Center(child: Text('set'))),
-                                Expanded(
-                                    flex: 4,
-                                    child: Center(child: Text('previous'))),
-                                Expanded(
-                                    flex: 4,
-                                    child: Center(child: Text('+kgs'))),
-                                Expanded(
-                                    flex: 4,
-                                    child: Center(child: Text('reps'))),
-                                Expanded(
-                                    flex: 2, child: Center(child: Text(''))),
-                              ],
-                            )
-                          else
-                            SetRow(
-                                isActiveWorkout: widget.isActiveWorkout,
-                                setIndex: setIndex,
-                                index: index,
-                                selectedExercises:
-                                    widget.workoutTemplate.exercises!,
-                                refresh: () {
-                                  setState(() {});
-                                },
-                                isEditable: true),
+                          SetRow(
+                              isActiveWorkout: widget.isActiveWorkout,
+                              setIndex: setIndex,
+                              index: index,
+                              selectedExercises:
+                                  widget.workoutTemplate.exercises!,
+                              refresh: () {
+                                setState(() {});
+                              },
+                              isEditable: true),
                       ],
                     ),
                     atsButton(
