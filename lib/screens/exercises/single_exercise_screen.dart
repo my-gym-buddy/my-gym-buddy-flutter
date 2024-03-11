@@ -18,6 +18,11 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
     return Scaffold(
         appBar: AppBar(
           title: Text(widget.exercise.name.toLowerCase()),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),

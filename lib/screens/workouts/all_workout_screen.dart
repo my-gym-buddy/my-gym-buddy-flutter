@@ -18,6 +18,11 @@ class _AllWorkoutScreenState extends State<AllWorkoutScreen> {
     return Scaffold(
         appBar: AppBar(
           title: const Text('all workouts'),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),

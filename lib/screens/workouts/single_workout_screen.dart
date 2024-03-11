@@ -44,6 +44,11 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
             }),
         appBar: AppBar(
           title: Text(widget.workout.name),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),

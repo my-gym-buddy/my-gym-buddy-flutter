@@ -19,6 +19,11 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
         appBar: AppBar(
           title: Text('all exercises',
               style: Theme.of(context).textTheme.titleLarge),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
