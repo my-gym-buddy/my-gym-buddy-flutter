@@ -42,16 +42,16 @@ class SetRow extends StatelessWidget {
                 textEditingController: TextEditingController(
                     text: selectedExercises[index]
                         .sets[setIndex]
-                        .reps
+                        .weight
                         .toString()),
                 textAlign: TextAlign.center,
                 labelText: '',
                 keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].reps =
-                      int.parse(value);
-                },
                 enabled: isEditable != null,
+                onChanged: (value) {
+                  selectedExercises[index].sets[setIndex].weight =
+                      double.parse(value);
+                },
               ),
             ),
           ),
@@ -66,16 +66,16 @@ class SetRow extends StatelessWidget {
                 textEditingController: TextEditingController(
                     text: selectedExercises[index]
                         .sets[setIndex]
-                        .weight
+                        .reps
                         .toString()),
                 textAlign: TextAlign.center,
                 labelText: '',
                 keyboardType: TextInputType.number,
-                enabled: isEditable != null,
                 onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].weight =
-                      double.parse(value);
+                  selectedExercises[index].sets[setIndex].reps =
+                      int.parse(value);
                 },
+                enabled: isEditable != null,
               ),
             ),
           ),

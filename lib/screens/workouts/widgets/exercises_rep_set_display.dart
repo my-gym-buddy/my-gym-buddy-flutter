@@ -98,10 +98,10 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                                     child: Center(child: Text('previous'))),
                                 Expanded(
                                     flex: 4,
-                                    child: Center(child: Text('reps'))),
+                                    child: Center(child: Text('+kgs'))),
                                 Expanded(
                                     flex: 4,
-                                    child: Center(child: Text('weight'))),
+                                    child: Center(child: Text('reps'))),
                                 Expanded(
                                     flex: 2, child: Center(child: Text(''))),
                               ],
