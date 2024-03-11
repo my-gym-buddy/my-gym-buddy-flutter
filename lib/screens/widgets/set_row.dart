@@ -74,7 +74,7 @@ class SetRow extends StatelessWidget {
                       enabled: isEditable != null,
                       onChanged: (value) {
                         selectedExercises[index].sets[setIndex].weight =
-                            double.parse(value);
+                            double.tryParse(value) ?? 0;
                       },
                     ),
                   ),
@@ -97,7 +97,7 @@ class SetRow extends StatelessWidget {
                       keyboardType: TextInputType.number,
                       onChanged: (value) {
                         selectedExercises[index].sets[setIndex].reps =
-                            int.parse(value);
+                            int.tryParse(value) ?? 0;
                       },
                       enabled: isEditable != null,
                     ),
