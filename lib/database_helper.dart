@@ -25,6 +25,19 @@ class DatabaseHelper {
     return '$databasesPath/gym_buddy.db';
   }
 
+  static Future<String?> importDatabase(File newDatabase) async {
+    if (newDatabase.path.split('.').last != 'db') {
+      return "Invalid file type";
+    }
+
+    await deleteDatabase(await getDatabasePath());
+    File newFile = await newDatabase.copy(await getDatabasePath());
+    await newFile.rename(await getDatabasePath());
+    await openLocalDatabase(reopen: true);
+
+    return null;
+  }
+
   static Future<void> exportDatabase() async {
     Share.shareXFiles([XFile(await getDatabasePath())],
         subject: 'Gym Buddy Database');
@@ -152,11 +165,21 @@ class DatabaseHelper {
   }
 
   static Future<List<Workout>> getWorkoutList() async {
+    print('getWorkoutList');
+
+    print(database);
+
     if (database == null) {
       await openLocalDatabase();
     }
 
+    print("1");
+
+    print(await database!.getVersion());
+
     final rawWorkout = await database!.query('workout_templates');
+
+    print("2");
 
     if (kDebugMode) print(rawWorkout);
 
@@ -201,7 +224,8 @@ class DatabaseHelper {
     return workout;
   }
 
-  static Future<Database> openLocalDatabase({bool newDatabase = false}) async {
+  static Future<Database> openLocalDatabase(
+      {bool newDatabase = false, bool reopen = false}) async {
     if (Platform.isWindows) {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfi;
@@ -212,7 +236,7 @@ class DatabaseHelper {
       database = null;
     }
 
-    if (database == null) {
+    if (database == null || reopen) {
       database =
           await openDatabase(await getDatabasePath(), onCreate: (db, version) {
         db.execute(
@@ -233,7 +257,6 @@ class DatabaseHelper {
   }
 
   static void resetDatabase() async {
-    await deleteDatabase(await getDatabasePath());
-    database = null;
+    await openLocalDatabase(newDatabase: true);
   }
 }
