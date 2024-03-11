@@ -31,7 +31,6 @@ class atsTextField extends StatefulWidget {
 class _atsTextFieldState extends State<atsTextField> {
   @override
   Widget build(BuildContext context) {
-    print('atsTextField build called');
     return TextField(
         textAlign: widget.textAlign,
         keyboardType: widget.keyboardType,
@@ -43,6 +42,11 @@ class _atsTextFieldState extends State<atsTextField> {
             widget.textEditingController!.text = value;
             widget.onChanged!(value);
           }
+        },
+        onTap: () {
+          widget.textEditingController!.selection = TextSelection(
+              baseOffset: 0,
+              extentOffset: widget.textEditingController!.text.length);
         },
         decoration: InputDecoration(
           floatingLabelAlignment: FloatingLabelAlignment.center,
