@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 
 class SetRowDisplay extends StatelessWidget {
@@ -19,7 +21,7 @@ class SetRowDisplay extends StatelessWidget {
     if (setIndex > selectedExercises[index].previousSets!.length - 1) {
       return '-';
     } else {
-      return '${selectedExercises[index].previousSets![setIndex].weight}kg x ${selectedExercises[index].previousSets![setIndex].reps}';
+      return '${Helper.getWeightInCorrectUnit(selectedExercises[index].previousSets![setIndex].weight).toStringAsFixed(1)}${Config.getUnitAbbreviation()} x ${selectedExercises[index].previousSets![setIndex].reps}';
     }
   }
 
@@ -39,7 +41,8 @@ class SetRowDisplay extends StatelessWidget {
           flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('${selectedExercises[index].sets[setIndex].weight} kg'),
+            child: Text(
+                '${Helper.getWeightInCorrectUnit(selectedExercises[index].sets[setIndex].weight).toStringAsFixed(1)} ${Config.getUnitAbbreviation()}'),
           ),
         ),
         Expanded(

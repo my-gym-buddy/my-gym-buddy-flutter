@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 
 class StatisticsScreen extends StatelessWidget {
@@ -59,7 +61,7 @@ class StatisticsScreen extends StatelessWidget {
                                 ),
                                 title: Text(snapshot.data[index].name),
                                 subtitle: Text(
-                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${prettyTime(snapshot.data[index].duration)} - ${snapshot.data[index].totalWeightLifted} total kg lifted'),
+                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${prettyTime(snapshot.data[index].duration)} - ${Helper.getWeightInCorrectUnit(snapshot.data[index].totalWeightLifted).toStringAsFixed(2)} total ${Config.getUnitAbbreviation()} lifted'),
                               );
                             });
                       } else {

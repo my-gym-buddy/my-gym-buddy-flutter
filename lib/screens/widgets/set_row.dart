@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
@@ -32,7 +34,7 @@ class SetRow extends StatelessWidget {
     if (setIndex > selectedExercises[index].previousSets!.length - 1) {
       return '-';
     } else {
-      return '${selectedExercises[index].previousSets![setIndex].weight}kg x ${selectedExercises[index].previousSets![setIndex].reps}';
+      return '${Helper.getWeightInCorrectUnit(selectedExercises[index].previousSets![setIndex].weight).toStringAsFixed(1)}${Config.getUnitAbbreviation()} x ${selectedExercises[index].previousSets![setIndex].reps}';
     }
   }
 
@@ -40,14 +42,17 @@ class SetRow extends StatelessWidget {
   Widget build(BuildContext context) {
     print('set row build called');
     return setIndex == -1
-        ? const Row(
+        ? Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Center(child: Text('set'))),
-              Expanded(flex: 4, child: Center(child: Text('previous'))),
-              Expanded(flex: 4, child: Center(child: Text('+kgs'))),
-              Expanded(flex: 4, child: Center(child: Text('reps'))),
-              Expanded(flex: 2, child: Center(child: Text(''))),
+              const Expanded(child: Center(child: Text('set'))),
+              const Expanded(flex: 4, child: Center(child: Text('previous'))),
+              Expanded(
+                  flex: 4,
+                  child:
+                      Center(child: Text('+${Config.getUnitAbbreviation()}'))),
+              const Expanded(flex: 4, child: Center(child: Text('reps'))),
+              const Expanded(flex: 2, child: Center(child: Text(''))),
             ],
           )
         : Row(
@@ -65,17 +70,18 @@ class SetRow extends StatelessWidget {
                     child: atsTextField(
                       selectAllOnTap: true,
                       textEditingController: TextEditingController(
-                          text: selectedExercises[index]
-                              .sets[setIndex]
-                              .weight
-                              .toString()),
+                          text: Helper.getWeightInCorrectUnit(
+                                  selectedExercises[index]
+                                      .sets[setIndex]
+                                      .weight)
+                              .toStringAsFixed(1)),
                       textAlign: TextAlign.center,
                       labelText: '',
                       keyboardType: TextInputType.number,
                       enabled: isEditable != null,
                       onChanged: (value) {
                         selectedExercises[index].sets[setIndex].weight =
-                            double.tryParse(value) ?? 0;
+                            Helper.convertToKg(double.tryParse(value) ?? 0);
                       },
                     ),
                   ),

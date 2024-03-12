@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/statistics.dart';
@@ -163,6 +164,43 @@ class _HomeState extends State<Home> {
                         );
                       });
                 }),
+            const SizedBox(
+              height: 10,
+            ),
+            Container(
+              width: MediaQuery.of(context).size.width * 0.5,
+              child: DropdownButtonFormField(
+                  borderRadius: const BorderRadius.all(Radius.circular(30)),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Theme.of(context).colorScheme.primaryContainer,
+                    border: const OutlineInputBorder(
+                        borderSide: BorderSide.none,
+                        borderRadius: BorderRadius.all(Radius.circular(50))),
+                  ),
+                  isExpanded: true,
+                  alignment: Alignment.center,
+                  value: Config.unit,
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleSmall!
+                      .copyWith(color: Theme.of(context).colorScheme.primary),
+                  items: const [
+                    DropdownMenuItem(
+                        alignment: Alignment.center,
+                        value: 'metric',
+                        child: Text(
+                          'metric (kg)',
+                        )),
+                    DropdownMenuItem(
+                        alignment: Alignment.center,
+                        value: 'imperial',
+                        child: Text('imperial (lb)'))
+                  ],
+                  onChanged: (value) {
+                    Config.unit = value.toString();
+                  }),
+            ),
           ],
         ),
       ),
