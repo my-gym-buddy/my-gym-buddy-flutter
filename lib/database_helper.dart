@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
+import 'package:gym_buddy_app/sql_queries.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
@@ -325,17 +326,18 @@ class DatabaseHelper {
     if (database == null || reopen) {
       database =
           await openDatabase(await getDatabasePath(), onCreate: (db, version) {
-        db.execute(
-            "CREATE TABLE exercises (id INTEGER PRIMARY KEY, exercise_name TEXT, exercise_video TEXT)");
-        db.execute(
-            "CREATE TABLE workout_templates (id INTEGER PRIMARY KEY, workout_name TEXT)");
-        db.execute(
-            "CREATE TABLE workout_template_exercises (id INTEGER PRIMARY KEY, exercise_id INTEGER, workout_template_id INTEGER, rep_set TEXT, exercise_index INTEGER)");
-        db.execute(
-            "CREATE TABLE workout_session (id INTEGER PRIMARY KEY, workout_template_id INTEGER, start_time TEXT, duration INTEGER)");
-        db.execute(
-            "CREATE TABLE workout_session_exercises (id INTEGER PRIMARY KEY, workout_session_id INTEGER, exercise_id INTEGER, rep_set TEXT, exercise_index INTEGER)");
-      }, version: 1);
+        for (final query in SqlQueries.databaseCreationV2) {
+          db.execute(query);
+        }
+      }, onUpgrade: (db, oldVersion, newVersion) {
+        if (oldVersion == 1 && newVersion == 2) {
+          if (kDebugMode) print('upgrading from v1 to v2');
+          for (final query in SqlQueries.databaseUpgradeV1toV2) {
+            db.execute(query);
+          }
+          if (kDebugMode) print('upgraded from v1 to v2');
+        }
+      }, version: 2);
       return database!;
     }
 
