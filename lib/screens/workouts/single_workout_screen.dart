@@ -19,6 +19,8 @@ class SingleWorkoutScreen extends StatefulWidget {
 class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
   @override
   Widget build(BuildContext context) {
+    print(widget.workout.description);
+
     if (widget.workout.exercises == null) {
       DatabaseHelper.getWorkoutGivenID(widget.workout.id!).then((value) {
         setState(() {
@@ -81,10 +83,12 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  'there is no description for this workout',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
+                widget.workout.description != null
+                    ? Text(
+                        widget.workout.description ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    : const SizedBox(),
                 const SizedBox(height: 20),
                 Text(
                   'exercises',

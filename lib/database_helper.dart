@@ -115,9 +115,11 @@ class DatabaseHelper {
   }
 
   static Future<bool> saveWorkout(Workout workout) async {
+    print(workout.description);
     var rawWorkoutID = await database!.insert('workout_templates', {
       'workout_name': workout.name,
-      'workout_description': workout.description
+      'workout_description':
+          workout.description == '' ? null : workout.description,
     });
 
     int index = 0;

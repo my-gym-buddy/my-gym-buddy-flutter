@@ -31,6 +31,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
     if (widget.workout != null) {
       workout = widget.workout!;
       workoutNameTextController.text = workout.name;
+      workoutDescriptionTextController.text = workout.description!;
     }
 
     DatabaseHelper.getExercises().then((value) {
@@ -119,7 +120,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                       onPressed: () async {
                         workout.exercises = workout.exercises!;
                         workout.name = workoutNameTextController.text;
-
+                        workout.description =
+                            workoutDescriptionTextController.text;
                         widget.workout != null
                             ? DatabaseHelper.updateWorkout(workout)
                             : await DatabaseHelper.saveWorkout(workout);
