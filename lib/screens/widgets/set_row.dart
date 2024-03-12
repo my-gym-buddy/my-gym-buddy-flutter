@@ -63,6 +63,7 @@ class SetRow extends StatelessWidget {
                   child: SizedBox(
                     height: 30,
                     child: atsTextField(
+                      selectAllOnTap: true,
                       textEditingController: TextEditingController(
                           text: selectedExercises[index]
                               .sets[setIndex]
@@ -87,6 +88,7 @@ class SetRow extends StatelessWidget {
                   child: SizedBox(
                     height: 30,
                     child: atsTextField(
+                      selectAllOnTap: true,
                       textEditingController: TextEditingController(
                           text: selectedExercises[index]
                               .sets[setIndex]

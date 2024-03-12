@@ -213,10 +213,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'there is no description for this workout',
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
+              widget.workoutTemplate.description != null
+                  ? Text(
+                      widget.workoutTemplate.description ?? '',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    )
+                  : const SizedBox(),
               const SizedBox(height: 20),
               ExercisesRepSetDisplay(
                   isActiveWorkout: true,

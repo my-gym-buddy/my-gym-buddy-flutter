@@ -10,12 +10,15 @@ class atsTextField extends StatefulWidget {
       this.keyboardType,
       this.enabled = true,
       this.onChanged,
-      this.textAlign = TextAlign.start});
+      this.textAlign = TextAlign.start,
+      this.selectAllOnTap = false});
 
   final TextEditingController? textEditingController;
   final String labelText;
 
   final TextInputType? keyboardType;
+
+  final bool selectAllOnTap;
 
   final bool enabled;
 
@@ -44,9 +47,11 @@ class _atsTextFieldState extends State<atsTextField> {
           }
         },
         onTap: () {
-          widget.textEditingController!.selection = TextSelection(
-              baseOffset: 0,
-              extentOffset: widget.textEditingController!.text.length);
+          if (widget.selectAllOnTap) {
+            widget.textEditingController!.selection = TextSelection(
+                baseOffset: 0,
+                extentOffset: widget.textEditingController!.text.length);
+          }
         },
         decoration: InputDecoration(
           floatingLabelAlignment: FloatingLabelAlignment.center,
