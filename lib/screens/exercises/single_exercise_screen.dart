@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class SingleExerciseScreen extends StatefulWidget {
@@ -26,8 +27,17 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
           actions: [
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
-              child:
-                  atsIconButton(icon: const Icon(Icons.edit), onPressed: () {}),
+              child: atsIconButton(
+                  icon: const Icon(Icons.edit),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            AddExerciseScreen(exercise: widget.exercise),
+                      ),
+                    );
+                  }),
             ),
           ],
         ),

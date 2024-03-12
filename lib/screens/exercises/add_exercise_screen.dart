@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
@@ -18,7 +19,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   bool validURL = false;
 
   YoutubePlayerController _controller = YoutubePlayerController(
-    initialVideoId: 'YJXkSFOVZZw',
+    initialVideoId: '',
     flags: YoutubePlayerFlags(
       hideControls: true,
       loop: true,
@@ -31,11 +32,39 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
   TextEditingController videoIDTextController = TextEditingController();
 
   @override
+  void initState() {
+    super.initState();
+
+    if (widget.exercise != null) {
+      exerciseNameTextController.text = widget.exercise!.name;
+      videoIDTextController.text = widget.exercise!.videoID ?? '';
+      var videoID =
+          YoutubePlayer.convertUrlToId(widget.exercise!.videoID ?? '');
+
+      if (videoID != null) {
+        setState(() {
+          validURL = true;
+          _controller.load(videoID);
+        });
+      } else {
+        setState(() {
+          validURL = false;
+        });
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
           title:
               Text(widget.exercise == null ? 'add exercise' : 'edit exercise'),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context);
+              }),
         ),
         body: SingleChildScrollView(
           child: Padding(
@@ -90,10 +119,33 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                   children: [
                     widget.exercise != null
                         ? atsButton(
-                            child: Text("delete"),
-                            onPressed: () {},
+                            child: Text("delete",
+                                style: TextStyle(
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onErrorContainer)),
+                            backgroundColor:
+                                Theme.of(context).colorScheme.errorContainer,
+                            onPressed: () {
+                              DatabaseHelper.deleteExercise(widget.exercise!)
+                                  .then((value) {
+                                if (value) {
+                                  Navigator.pop(context);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                          'Failed to delete exercise as it is in use in a workout.'),
+                                    ),
+                                  );
+                                }
+                              });
+                            },
                           )
                         : Container(),
+                    const SizedBox(
+                      width: 10,
+                    ),
                     atsButton(
                       child: Text("save"),
                       onPressed: () {
@@ -102,16 +154,37 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
                         _controller.load(videoID ?? 'INVALID_ID');
 
-                        DatabaseHelper.saveExercise(Exercise(
-                                name: exerciseNameTextController.text,
-                                videoID: videoID))
-                            .then((value) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Exercise saved!'),
-                            ),
-                          );
-                        });
+                        if (widget.exercise == null) {
+                          DatabaseHelper.saveExercise(Exercise(
+                            name: exerciseNameTextController.text,
+                            videoID: videoID,
+                          )).then((value) {
+                            if (value) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Exercise saved!'),
+                                ),
+                              );
+
+                              Navigator.pop(context);
+                            }
+                          });
+                        } else {
+                          DatabaseHelper.updateExercise(Exercise(
+                            id: widget.exercise!.id,
+                            name: exerciseNameTextController.text,
+                            videoID: videoID,
+                          )).then((value) {
+                            if (value) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Exercise updated!'),
+                                ),
+                              );
+                              Navigator.pop(context);
+                            }
+                          });
+                        }
                       },
                     ),
                   ],

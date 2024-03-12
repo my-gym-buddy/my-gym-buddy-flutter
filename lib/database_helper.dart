@@ -97,6 +97,36 @@ class DatabaseHelper {
     return true;
   }
 
+  static Future<bool> deleteExercise(Exercise exercise) async {
+    final rawWorkout = await database!.query('workout_template_exercises',
+        where: 'exercise_id = ?', whereArgs: [exercise.id]);
+
+    final rawWorkoutSession = await database!.query('workout_session_exercises',
+        where: 'exercise_id = ?', whereArgs: [exercise.id]);
+
+    if (rawWorkout.isNotEmpty || rawWorkoutSession.isNotEmpty) {
+      return false;
+    }
+
+    await database!
+        .delete('exercises', where: 'id = ?', whereArgs: [exercise.id]);
+
+    return true;
+  }
+
+  static Future<bool> updateExercise(Exercise exercise) async {
+    var data = exercise.toJson();
+    var safeData = {
+      'exercise_name': data['exercise_name'],
+      'exercise_video': data['exercise_video'],
+    };
+
+    database!.update('exercises', safeData,
+        where: 'id = ?', whereArgs: [exercise.id]);
+
+    return true;
+  }
+
   static Future<bool> updateWorkout(Workout workout) async {
     //todo: improve that :D
     await deleteWorkout(workout);
