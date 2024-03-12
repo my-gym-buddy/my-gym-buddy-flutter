@@ -115,8 +115,10 @@ class DatabaseHelper {
   }
 
   static Future<bool> saveWorkout(Workout workout) async {
-    var rawWorkoutID = await database!
-        .insert('workout_templates', {'workout_name': workout.name});
+    var rawWorkoutID = await database!.insert('workout_templates', {
+      'workout_name': workout.name,
+      'workout_description': workout.description
+    });
 
     int index = 0;
     for (final exercise in workout.exercises!) {

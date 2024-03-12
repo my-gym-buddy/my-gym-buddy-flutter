@@ -119,6 +119,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                       onPressed: () async {
                         workout.exercises = workout.exercises!;
                         workout.name = workoutNameTextController.text;
+
                         widget.workout != null
                             ? DatabaseHelper.updateWorkout(workout)
                             : await DatabaseHelper.saveWorkout(workout);
