@@ -34,6 +34,50 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     await widget.stopWatchTimer.dispose(); // Need to call dispose function.
   }
 
+  void showEmptyWorkoutErrorMessage() {
+    showModalBottomSheet(
+        context: context,
+        builder: (context) {
+          return Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'empty workout',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Text(
+                    'you cannot end a workout with no exercises. Please add exercises to the workout before ending it.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(
+                    height: 20,
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      atsButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('ok'),
+                      ),
+                    ],
+                  )
+                ],
+              ),
+            ),
+          );
+        });
+  }
+
   void showCancelWorkoutModal() {
     showModalBottomSheet(
         context: context,
@@ -147,11 +191,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             widget.workoutTemplate.exercises!.remove(exercise);
                           }
 
-                          DatabaseHelper.saveWorkoutSession(
-                              widget.workoutTemplate,
-                              widget.stopWatchTimer.secondTime.value);
-                          Navigator.pop(context);
-                          Navigator.pop(context);
+                          if (widget.workoutTemplate.exercises!.isNotEmpty) {
+                            DatabaseHelper.saveWorkoutSession(
+                                widget.workoutTemplate,
+                                widget.stopWatchTimer.secondTime.value);
+                            Navigator.pop(context);
+                            Navigator.pop(context);
+                          } else {
+                            Navigator.pop(context);
+                            showEmptyWorkoutErrorMessage();
+                          }
                         },
                         backgroundColor:
                             Theme.of(context).colorScheme.errorContainer,
