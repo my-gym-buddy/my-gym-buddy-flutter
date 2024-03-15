@@ -38,26 +38,33 @@ class StatisticsScreen extends StatelessWidget {
                   future: DatabaseHelper.getAllWorkoutSessions(),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
-                      if (snapshot.data.length > 0) {
-                        return ListView.builder(
-                            physics: const NeverScrollableScrollPhysics(),
-                            shrinkWrap: true,
-                            itemCount: snapshot.data.length,
-                            itemBuilder: (BuildContext context, int index) {
-                              return ListTile(
-                                tileColor: Theme.of(context)
-                                    .colorScheme
-                                    .primaryContainer,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(30.0),
-                                ),
-                                title: Text(snapshot.data[index].name),
-                                subtitle: Text(
-                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${Helper.prettyTime(snapshot.data[index].duration)} - ${Helper.getWeightInCorrectUnit(snapshot.data[index].totalWeightLifted).toStringAsFixed(2)} total ${Config.getUnitAbbreviation()} lifted'),
-                              );
-                            });
-                      } else {
+                      if (!snapshot.hasData) {
                         return const Text('no workout sessions found');
+                      } else {
+                        if (snapshot.data.length > 0) {
+                          return ListView.builder(
+                              physics: const NeverScrollableScrollPhysics(),
+                              shrinkWrap: true,
+                              itemCount: snapshot.data.length,
+                              itemBuilder: (BuildContext context, int index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 8.0),
+                                  child: ListTile(
+                                    tileColor: Theme.of(context)
+                                        .colorScheme
+                                        .primaryContainer,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(30.0),
+                                    ),
+                                    title: Text(snapshot.data[index].name),
+                                    subtitle: Text(
+                                        'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${Helper.prettyTime(snapshot.data[index].duration)} - ${Helper.getWeightInCorrectUnit(snapshot.data[index].totalWeightLifted).toStringAsFixed(2)} total ${Config.getUnitAbbreviation()} lifted'),
+                                  ),
+                                );
+                              });
+                        } else {
+                          return const Text('no workout sessions found');
+                        }
                       }
                     } else {
                       return const CircularProgressIndicator();
