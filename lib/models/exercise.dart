@@ -6,18 +6,22 @@ class Exercise {
   final String name;
   final String? videoID;
 
+  String? description;
+
   List<RepSet> sets = [];
   List<RepSet>? previousSets;
 
   Exercise(
       {required this.name,
       required this.videoID,
+      this.description,
       this.id,
       this.sets = const []});
 
   Map<String, dynamic> toJson() => {
         'id': id,
         'exercise_name': name,
+        'exercise_description': description,
         'exercise_video': videoID,
         'sets': sets.map((e) => e.toJson()).toList(),
         'previousSets': previousSets?.map((e) => e.toJson()).toList(),
@@ -38,6 +42,7 @@ class Exercise {
   Exercise.fromJson(Map<String, dynamic> json)
       : name = json['exercise_name'],
         videoID = json['exercise_video'],
+        description = json['exercise_description'],
         id = json['id'].toString() {
     if (json['sets'] != null) {
       for (var set in json['sets']) {

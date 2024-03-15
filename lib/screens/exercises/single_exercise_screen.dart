@@ -29,14 +29,19 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
               padding: const EdgeInsets.only(right: 8.0),
               child: atsIconButton(
                   icon: const Icon(Icons.edit),
-                  onPressed: () {
-                    Navigator.push(
+                  onPressed: () async {
+                    Exercise? updatedExercise = await Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AddExerciseScreen(exercise: widget.exercise),
-                      ),
+                          builder: (context) =>
+                              AddExerciseScreen(exercise: widget.exercise)),
                     );
+
+                    if (updatedExercise != null) {
+                      setState(() {
+                        widget.exercise = updatedExercise;
+                      });
+                    }
                   }),
             ),
           ],
@@ -75,7 +80,7 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 Text(
-                  'no description available',
+                  widget.exercise.description ?? 'no description available',
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const SizedBox(height: 20),

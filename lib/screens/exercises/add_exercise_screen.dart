@@ -30,6 +30,8 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
 
   TextEditingController exerciseNameTextController = TextEditingController();
   TextEditingController videoIDTextController = TextEditingController();
+  TextEditingController exerciseDescriptionTextController =
+      TextEditingController();
 
   @override
   void initState() {
@@ -94,6 +96,12 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                 ),
                 const SizedBox(height: 20),
                 atsTextField(
+                  textEditingController: exerciseDescriptionTextController,
+                  labelText: 'Description',
+                  maxLines: 4,
+                ),
+                const SizedBox(height: 20),
+                atsTextField(
                   textEditingController: videoIDTextController,
                   labelText: 'Youtube Video URL or ID',
                   onEditingComplete: () {
@@ -113,7 +121,6 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                     videoIDTextController.text = videoID ?? '';
                   },
                 ),
-                const SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
@@ -158,6 +165,7 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                           DatabaseHelper.saveExercise(Exercise(
                             name: exerciseNameTextController.text,
                             videoID: videoID,
+                            description: exerciseDescriptionTextController.text,
                           )).then((value) {
                             if (value) {
                               ScaffoldMessenger.of(context).showSnackBar(
@@ -170,18 +178,21 @@ class _AddExerciseScreenState extends State<AddExerciseScreen> {
                             }
                           });
                         } else {
-                          DatabaseHelper.updateExercise(Exercise(
+                          Exercise exercise = Exercise(
                             id: widget.exercise!.id,
                             name: exerciseNameTextController.text,
+                            description: exerciseDescriptionTextController.text,
                             videoID: videoID,
-                          )).then((value) {
+                          );
+
+                          DatabaseHelper.updateExercise(exercise).then((value) {
                             if (value) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                   content: Text('Exercise updated!'),
                                 ),
                               );
-                              Navigator.pop(context);
+                              Navigator.pop(context, exercise);
                             }
                           });
                         }

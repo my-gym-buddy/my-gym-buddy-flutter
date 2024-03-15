@@ -54,6 +54,7 @@ class DatabaseHelper {
     var safeData = {
       'exercise_name': data['exercise_name'],
       'exercise_video': data['exercise_video'],
+      'exercise_description': data['exercise_description'],
     };
 
     database!.insert(
@@ -119,6 +120,7 @@ class DatabaseHelper {
     var safeData = {
       'exercise_name': data['exercise_name'],
       'exercise_video': data['exercise_video'],
+      'exercise_description': data['exercise_description'],
     };
 
     database!.update('exercises', safeData,
