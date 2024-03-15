@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
@@ -140,7 +143,100 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         });
   }
 
-  void showEndWorkoutModal() {
+  Future<void> showEndWorkoutSummaryModal() async {
+    await showModalBottomSheet(
+        isDismissible: false,
+        enableDrag: false,
+        context: context,
+        builder: (context) {
+          return Padding(
+              padding: const EdgeInsets.all(15.0),
+              child: Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'workout summary',
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          'duration: ${StopWatchTimer.getDisplayTime(widget.stopWatchTimer.rawTime.value, milliSecond: false)}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        Text(
+                          'total weight lifted: ${Helper.getWeightInCorrectUnit(Helper.calculateTotalWeightLifted(widget.workoutTemplate)).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Expanded(
+                          child: Center(
+                            child: SingleChildScrollView(
+                              child: Column(children: [
+                                ...widget.workoutTemplate.exercises!
+                                    .map((exercise) => Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              exercise.name,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleSmall,
+                                            ),
+                                            ...exercise.sets
+                                                .map((repSet) => Text(
+                                                    '${Helper.getWeightInCorrectUnit(repSet.weight).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}x ${repSet.reps} reps',
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium))
+                                                .toList(),
+                                            const SizedBox(
+                                              height: 10,
+                                            ),
+                                          ],
+                                        ))
+                                    .toList(),
+                              ]),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            atsButton(
+                              onPressed: () {
+                                Helper.shareWorkoutSummary(
+                                    widget.workoutTemplate,
+                                    widget.stopWatchTimer.secondTime.value);
+                              },
+                              child: const Text('share'),
+                            ),
+                            const SizedBox(
+                              width: 10,
+                            ),
+                            atsButton(
+                              onPressed: () {
+                                Navigator.pop(context);
+                              },
+                              child: const Text('close'),
+                            ),
+                          ],
+                        )
+                      ])));
+        });
+  }
+
+  void showEndWorkoutConfirmationModal() async {
     showModalBottomSheet(
         context: context,
         builder: (context) {
@@ -195,6 +291,11 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             DatabaseHelper.saveWorkoutSession(
                                 widget.workoutTemplate,
                                 widget.stopWatchTimer.secondTime.value);
+
+                            widget.stopWatchTimer.onStopTimer();
+
+                            await showEndWorkoutSummaryModal();
+
                             Navigator.pop(context);
                             Navigator.pop(context);
                           } else {
@@ -236,7 +337,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         leading: atsIconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () {
-              showEndWorkoutModal();
+              showEndWorkoutConfirmationModal();
             }),
         actions: [
           Padding(
@@ -291,7 +392,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   ),
                   atsButton(
                     onPressed: () {
-                      showEndWorkoutModal();
+                      showEndWorkoutConfirmationModal();
                     },
                     child: Text(
                       'end workout',

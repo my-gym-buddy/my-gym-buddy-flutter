@@ -8,14 +8,6 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 class StatisticsScreen extends StatelessWidget {
   StatisticsScreen({super.key});
 
-  String prettyTime(int seconds) {
-    int hours = seconds ~/ 3600;
-    int minutes = (seconds % 3600) ~/ 60;
-    int remainingSeconds = seconds % 60;
-
-    return '${hours}h ${minutes.toString().padLeft(2, '0')}m ${remainingSeconds.toString().padLeft(2, '0')}s';
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -61,7 +53,7 @@ class StatisticsScreen extends StatelessWidget {
                                 ),
                                 title: Text(snapshot.data[index].name),
                                 subtitle: Text(
-                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${prettyTime(snapshot.data[index].duration)} - ${Helper.getWeightInCorrectUnit(snapshot.data[index].totalWeightLifted).toStringAsFixed(2)} total ${Config.getUnitAbbreviation()} lifted'),
+                                    'at ${snapshot.data[index].startTime!.hour.toString().padLeft(2, '0')}:${snapshot.data[index].startTime!.minute.toString().padLeft(2, '0')} for ${Helper.prettyTime(snapshot.data[index].duration)} - ${Helper.getWeightInCorrectUnit(snapshot.data[index].totalWeightLifted).toStringAsFixed(2)} total ${Config.getUnitAbbreviation()} lifted'),
                               );
                             });
                       } else {
