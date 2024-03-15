@@ -45,7 +45,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('add workout'),
+        title: Text(widget.workout != null ? 'edit workout' : 'add workout'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
