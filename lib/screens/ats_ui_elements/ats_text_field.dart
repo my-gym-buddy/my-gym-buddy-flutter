@@ -11,7 +11,9 @@ class atsTextField extends StatefulWidget {
       this.enabled = true,
       this.onChanged,
       this.textAlign = TextAlign.start,
-      this.selectAllOnTap = false});
+      this.selectAllOnTap = false,
+      this.minLines = 1,
+      this.maxLines = 1});
 
   final TextEditingController? textEditingController;
   final String labelText;
@@ -25,6 +27,9 @@ class atsTextField extends StatefulWidget {
   Function? onEditingComplete;
   Function? onChanged;
 
+  final int minLines;
+  final int maxLines;
+
   TextAlign textAlign = TextAlign.start;
 
   @override
@@ -35,6 +40,8 @@ class _atsTextFieldState extends State<atsTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+        minLines: widget.minLines,
+        maxLines: widget.maxLines,
         textAlign: widget.textAlign,
         keyboardType: widget.keyboardType,
         controller: widget.textEditingController,
