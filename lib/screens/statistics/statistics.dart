@@ -3,6 +3,7 @@ import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/statistics/add_workout_session_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
 
 class StatisticsScreen extends StatefulWidget {
@@ -24,6 +25,21 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             Navigator.pop(context);
           },
         ),
+        actions: [
+          atsIconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              setState(() async {
+                await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => AddWorkoutSessionScreen()));
+
+                setState(() {});
+              });
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

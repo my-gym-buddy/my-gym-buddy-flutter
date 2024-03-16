@@ -35,6 +35,9 @@ class _AddWorkoutSessionScreenState extends State<AddWorkoutSessionScreen> {
       workout = widget.workout!;
       workoutNameTextController.text = workout.name;
       workoutDescriptionTextController.text = workout.description ?? '';
+    } else {
+      workout.startTime = DateTime.now();
+      workout.duration = 0;
     }
 
     DatabaseHelper.getExercises().then((value) {
