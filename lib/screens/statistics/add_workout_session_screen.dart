@@ -1,22 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
 
-class AddWorkoutScreen extends StatefulWidget {
-  AddWorkoutScreen({super.key, this.workout});
+class AddWorkoutSessionScreen extends StatefulWidget {
+  AddWorkoutSessionScreen({super.key, this.workout});
 
   Workout? workout;
 
   @override
-  State<AddWorkoutScreen> createState() => _AddWorkoutScreenState();
+  State<AddWorkoutSessionScreen> createState() =>
+      _AddWorkoutSessionScreenState();
 }
 
-class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
+class _AddWorkoutSessionScreenState extends State<AddWorkoutSessionScreen> {
   List<Exercise> allExercises = [];
   TextEditingController workoutNameTextController = TextEditingController();
   TextEditingController workoutDescriptionTextController =
@@ -31,7 +34,10 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
     if (widget.workout != null) {
       workout = widget.workout!;
       workoutNameTextController.text = workout.name;
-      workoutDescriptionTextController.text = workout.description!;
+      workoutDescriptionTextController.text = workout.description ?? '';
+    } else {
+      workout.startTime = DateTime.now();
+      workout.duration = 0;
     }
 
     DatabaseHelper.getExercises().then((value) {
@@ -45,7 +51,13 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.workout != null ? 'edit workout' : 'add workout'),
+        title: Text(widget.workout != null ? 'edit session' : 'add session'),
+        leading: atsIconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context, widget.workout);
+          },
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -64,6 +76,71 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 textEditingController: workoutDescriptionTextController,
                 labelText: 'description',
               ),
+              const SizedBox(height: 15),
+              atsButton(
+                  child: Text(
+                      'choose duration (${Helper.prettyTime(workout.duration!)})'),
+                  onPressed: () {
+                    showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(
+                          hour: workout.duration! ~/ 3600,
+                          minute: (workout.duration! % 3600) ~/ 60),
+                    ).then((value) {
+                      if (value != null) {
+                        setState(() {
+                          workout.duration =
+                              value.hour * 3600 + value.minute * 60;
+                        });
+                      }
+                    });
+                  }),
+              const SizedBox(height: 10),
+              atsButton(
+                  child: Text(
+                      'choose start date  (${workout.startTime!.toIso8601String().split('T')[0]})'),
+                  onPressed: () {
+                    showDatePicker(
+                      context: context,
+                      initialDate: workout.startTime!,
+                      firstDate: DateTime(2015),
+                      lastDate: DateTime(2101),
+                    ).then((value) {
+                      if (value != null) {
+                        setState(() {
+                          workout.startTime = DateTime(
+                              value.year,
+                              value.month,
+                              value.day,
+                              workout.startTime!.hour,
+                              workout.startTime!.minute);
+                        });
+                      }
+                    });
+                  }),
+              const SizedBox(height: 10),
+              atsButton(
+                  child: Text(
+                      'choose start time  (${workout.startTime!.toIso8601String().split('T')[1].split('.')[0]})'),
+                  onPressed: () {
+                    showTimePicker(
+                      context: context,
+                      initialTime: TimeOfDay(
+                          hour: workout.startTime!.hour,
+                          minute: workout.startTime!.minute),
+                    ).then((value) {
+                      if (value != null) {
+                        setState(() {
+                          workout.startTime = DateTime(
+                              workout.startTime!.year,
+                              workout.startTime!.month,
+                              workout.startTime!.day,
+                              value.hour,
+                              value.minute);
+                        });
+                      }
+                    });
+                  }),
               const SizedBox(height: 20),
               ExercisesRepSetDisplay(workoutTemplate: workout),
               Row(
@@ -72,7 +149,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                   widget.workout != null
                       ? atsButton(
                           onPressed: () async {
-                            await DatabaseHelper.deleteWorkout(widget.workout!);
+                            await DatabaseHelper.deleteWorkoutSession(
+                                widget.workout!);
                             Navigator.pop(context);
                             return null;
                           },
@@ -122,9 +200,11 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                         workout.name = workoutNameTextController.text;
                         workout.description =
                             workoutDescriptionTextController.text;
+
                         widget.workout != null
-                            ? DatabaseHelper.updateWorkout(workout)
-                            : await DatabaseHelper.saveWorkout(workout);
+                            ? DatabaseHelper.updateWorkoutSession(workout)
+                            : await DatabaseHelper.saveWorkoutSession(
+                                workout, workout.duration!);
 
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
