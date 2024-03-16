@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/database_helper.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
@@ -86,6 +87,14 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                 widget.workout.description != null
                     ? Text(
                         widget.workout.description ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    : const SizedBox(),
+                widget.workout.daysOfWeek != null
+                    ? Text(
+                        'days of the week: ${widget.workout.daysOfWeek!.map((e) {
+                          return Helper.daysInWeek[e];
+                        }).join(', ')}',
                         style: Theme.of(context).textTheme.bodyMedium,
                       )
                     : const SizedBox(),

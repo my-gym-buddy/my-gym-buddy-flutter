@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
@@ -32,6 +34,11 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
       workout = widget.workout!;
       workoutNameTextController.text = workout.name;
       workoutDescriptionTextController.text = workout.description!;
+      workout.daysOfWeek = workout.daysOfWeek;
+    }
+
+    if (workout.daysOfWeek == null) {
+      workout.daysOfWeek = Set();
     }
 
     DatabaseHelper.getExercises().then((value) {
@@ -64,6 +71,45 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 textEditingController: workoutDescriptionTextController,
                 labelText: 'description',
               ),
+              const SizedBox(height: 15),
+              Text('days of the week',
+                  style: Theme.of(context).textTheme.titleMedium),
+
+              // horizontal scrollable list of days of the week
+              SizedBox(
+                height: 50,
+                child: SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      for (var day in Helper.daysInWeek.values)
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: atsCheckbox(
+                              width: 100,
+                              height: 40,
+                              checked: workout.daysOfWeek!.contains(
+                                  Helper.daysInWeek.keys.firstWhere(
+                                      (key) => Helper.daysInWeek[key] == day)),
+                              onChanged: (value) {
+                                setState(() {
+                                  int dayIndex = Helper.daysInWeek.keys
+                                      .firstWhere((key) =>
+                                          Helper.daysInWeek[key] == day);
+                                  if (value) {
+                                    workout.daysOfWeek!.add(dayIndex);
+                                  } else {
+                                    workout.daysOfWeek!.remove(dayIndex);
+                                  }
+                                });
+                              },
+                              child: Center(child: Text(day))),
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 20),
               ExercisesRepSetDisplay(workoutTemplate: workout),
               Row(

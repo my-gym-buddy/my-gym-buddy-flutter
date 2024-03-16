@@ -168,11 +168,14 @@ class DatabaseHelper {
   }
 
   static Future<bool> saveWorkout(Workout workout) async {
-    print(workout.description);
+    print(workout.getWorkoutDaysAsInt());
     var rawWorkoutID = await database!.insert('workout_templates', {
       'workout_name': workout.name,
       'workout_description':
           workout.description == '' ? null : workout.description,
+      "workout_day": workout.getWorkoutDaysAsInt() == 0
+          ? null
+          : workout.getWorkoutDaysAsInt(),
     });
 
     int index = 0;
@@ -367,6 +370,7 @@ class DatabaseHelper {
     }
 
     Workout workout = Workout.fromJson(record.first);
+
     workout.exercises = exercises;
 
     return workout;

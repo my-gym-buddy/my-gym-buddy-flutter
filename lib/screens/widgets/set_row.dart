@@ -27,8 +27,6 @@ class SetRow extends StatelessWidget {
   List<Exercise> selectedExercises;
 
   String getPreviousWeight() {
-    print(selectedExercises[index].previousSets);
-
     if (selectedExercises[index].previousSets == null) return "-";
 
     if (setIndex > selectedExercises[index].previousSets!.length - 1) {
@@ -40,7 +38,6 @@ class SetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('set row build called');
     return setIndex == -1
         ? Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
