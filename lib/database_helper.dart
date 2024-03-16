@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
-import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
@@ -43,6 +42,28 @@ class DatabaseHelper {
   static Future<void> exportDatabase() async {
     Share.shareXFiles([XFile(await getDatabasePath())],
         subject: 'Gym Buddy Database');
+  }
+
+  static Future<List<Workout>> getTodayRecommendedWorkouts() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    // workout_day is in format 1234567 where 1 is monday and 7 is sunday
+    int day = DateTime.now().weekday;
+
+    final rawWorkout = await database!
+        .query('workout_templates', where: "workout_day like '%$day%'");
+
+    List<Workout> workouts = [];
+    for (final record in rawWorkout) {
+      Workout workout = Workout.fromJson(
+        record,
+      );
+      workouts.add(workout);
+    }
+
+    return workouts;
   }
 
   static Future<bool> saveExercise(Exercise exercise) async {
