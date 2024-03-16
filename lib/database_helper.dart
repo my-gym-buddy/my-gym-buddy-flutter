@@ -130,6 +130,25 @@ class DatabaseHelper {
     return true;
   }
 
+  static Future<bool> deleteWorkoutSession(Workout workout) async {
+    print('deleting workout ${workout.id}');
+
+    await database!
+        .delete('workout_session', where: 'id = ?', whereArgs: [workout.id]);
+    await database!.delete('workout_session_exercises',
+        where: 'workout_session_id = ?', whereArgs: [workout.id]);
+
+    return true;
+  }
+
+  static Future<bool> updateWorkoutSession(Workout workout) async {
+    //todo: improve that :D
+    await deleteWorkoutSession(workout);
+    await saveWorkoutSession(workout, workout.duration!);
+
+    return true;
+  }
+
   static Future<bool> updateWorkout(Workout workout) async {
     //todo: improve that :D
     await deleteWorkout(workout);
@@ -242,10 +261,10 @@ class DatabaseHelper {
     List<Workout> workouts = [];
     for (final record in rawWorkout) {
       Workout workout = Workout(
-          id: record['workout_template_id'].toString(),
+          id: record['id'].toString(),
           name: record['workout_session_name'] != null
               ? record['workout_session_name'].toString()
-              : 'no name',
+              : 'unnamed workout',
           exercises: []);
 
       workout.startTime = DateTime.parse(record['start_time'].toString());

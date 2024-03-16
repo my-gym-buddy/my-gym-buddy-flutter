@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
 
-class StatisticsScreen extends StatelessWidget {
-  StatisticsScreen({super.key});
+class StatisticsScreen extends StatefulWidget {
+  const StatisticsScreen({super.key});
 
+  @override
+  State<StatisticsScreen> createState() => _StatisticsScreenState();
+}
+
+class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,6 +55,17 @@ class StatisticsScreen extends StatelessWidget {
                                 return Padding(
                                   padding: const EdgeInsets.only(top: 8.0),
                                   child: ListTile(
+                                    onTap: () async {
+                                      await Navigator.push(
+                                          context,
+                                          MaterialPageRoute(
+                                              builder: (context) =>
+                                                  SingleWorkoutStatsisticsScreen(
+                                                      workout: snapshot
+                                                          .data[index])));
+
+                                      setState(() {});
+                                    },
                                     tileColor: Theme.of(context)
                                         .colorScheme
                                         .primaryContainer,
