@@ -58,6 +58,7 @@ class Workout {
     if (json['workout_day'] != null) {
       daysOfWeek =
           json['workout_day'].toString().split('').map(int.parse).toSet();
+      print(daysOfWeek);
     } else {
       daysOfWeek = {};
     }
