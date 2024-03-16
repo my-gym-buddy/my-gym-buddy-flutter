@@ -25,7 +25,7 @@ class SqlQueries {
     'INSERT INTO "workout_session_temp"("id", "workout_template_id", "start_time", "duration") SELECT "id", "workout_template_id", "start_time", "duration" FROM "workout_session"',
     'INSERT INTO "workout_session_exercises_temp"("id", "workout_session_id", "exercise_id", "rep_set", "exercise_index") SELECT "id", "workout_session_id", "exercise_id", "rep_set", "exercise_index" FROM "workout_session_exercises"',
     'INSERT INTO "workout_template_exercises_temp"("id", "exercise_id", "workout_template_id", "rep_set", "exercise_index") SELECT "id", "exercise_id", "workout_template_id", "rep_set", "exercise_index" FROM "workout_template_exercises"',
-    'INSERT INTO "workout_templates_temp"("id", "workout_name", "workout_description", "workout_day") SELECT "id", "workout_name", "workout_description", "workout_day" FROM "workout_templates"',
+    'INSERT INTO "workout_templates_temp"("id", "workout_name", "workout_description", "workout_day") SELECT "id", "workout_name", "", null FROM "workout_templates"',
     'DROP TABLE IF EXISTS "exercises"',
     'DROP TABLE IF EXISTS "workout_session"',
     'DROP TABLE IF EXISTS "workout_session_exercises"',
