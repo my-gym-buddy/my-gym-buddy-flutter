@@ -91,9 +91,11 @@ class DatabaseHelper {
       'workout_template_id': workout.id,
       'duration': duration,
       'workout_session_name': workout.name,
-      'start_time': DateTime.now()
-          .subtract(Duration(seconds: duration))
-          .toIso8601String(),
+      'start_time': workout.startTime != null
+          ? workout.startTime!.toIso8601String()
+          : DateTime.now()
+              .subtract(Duration(seconds: duration))
+              .toIso8601String(),
     });
 
     int index = 0;
@@ -262,15 +264,26 @@ class DatabaseHelper {
     double totalWeightLifted = 0;
     int totalWorkouts = 0;
 
+    Map<DateTime, int> dailyTotalDuration = {};
+
     for (final record in rawWorkout) {
       totalDuration += record['duration'] as int;
+
+      // only date without time
+      var date =
+          DateTime.parse(record['start_time'].toString().substring(0, 10));
+
+      dailyTotalDuration[date] = dailyTotalDuration[date] =
+          (dailyTotalDuration[date] ?? 0) + (record['duration'] as int);
+
       totalWorkouts++;
     }
 
     return {
       'totalDuration': totalDuration,
       'totalWeightLifted': totalWeightLifted,
-      'totalWorkouts': totalWorkouts
+      'totalWorkouts': totalWorkouts,
+      'dailyTotalDuration': dailyTotalDuration
     };
   }
 
