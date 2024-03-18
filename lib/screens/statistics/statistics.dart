@@ -15,6 +15,13 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    DatabaseHelper.getWeeklyStatistics().then((value) => print(value));
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -28,15 +35,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         actions: [
           atsIconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              setState(() async {
-                await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddWorkoutSessionScreen()));
+            onPressed: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AddWorkoutSessionScreen()));
 
-                setState(() {});
-              });
+              setState(() {});
             },
           ),
         ],
