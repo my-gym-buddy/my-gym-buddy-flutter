@@ -42,14 +42,16 @@ class SetRowDisplay extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
-                '${Helper.getWeightInCorrectUnit(selectedExercises[index].sets[setIndex].weight).toStringAsFixed(1)} ${Config.getUnitAbbreviation()}'),
+                '${Helper.getWeightInCorrectUnit(selectedExercises[index].sets[setIndex].weight).toStringAsFixed(1)} ${Config.getUnitAbbreviation()}',
+                textAlign: TextAlign.right),
           ),
         ),
         Expanded(
           flex: 4,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
-            child: Text('${selectedExercises[index].sets[setIndex].reps} reps'),
+            child: Text('${selectedExercises[index].sets[setIndex].reps} reps',
+                textAlign: TextAlign.right),
           ),
         ),
       ],
