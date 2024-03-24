@@ -5,9 +5,13 @@ import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/statistics/add_workout_session_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  StatisticsScreen({super.key});
+
+  dynamic data;
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -18,7 +22,11 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
   void initState() {
     super.initState();
 
-    DatabaseHelper.getWeeklyStatistics().then((value) => print(value));
+    DatabaseHelper.getWeeklyStatistics().then((value) => setState(() {
+          widget.data = value;
+        }));
+
+    print(widget.data);
   }
 
   @override
@@ -54,9 +62,43 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             children: [
               Text('weekly statistics',
                   style: Theme.of(context).textTheme.titleMedium),
-              Text('number of workouts: xx'),
-              Text('total kg lifted: xx'),
-              Text('total time spent: xx hours'),
+              Text(
+                  'number of workouts: ${widget.data != null ? widget.data['workouts'] : 'xx'}'),
+              Text(
+                  'total kg lifted: ${widget.data != null ? widget.data['totalWeightLifted'] : "0.0"}'),
+              Text(
+                  'total time spent: ${widget.data != null ? Helper.prettyTime(widget.data['totalTimeSpent'] ?? 0) : 0}'),
+              const SizedBox(height: 20),
+              SfCartesianChart(
+                  // Initialize category axis
+                  primaryXAxis: CategoryAxis(),
+                  series: <LineSeries<dynamic, String>>[
+                    LineSeries<dynamic, String>(
+                        dataSource: <Map<DateTime, int>>[
+                          {
+                            DateTime.now().subtract(const Duration(days: 6)): 10
+                          },
+                          {
+                            DateTime.now().subtract(const Duration(days: 5)): 20
+                          },
+                          {
+                            DateTime.now().subtract(const Duration(days: 4)): 30
+                          },
+                          {
+                            DateTime.now().subtract(const Duration(days: 3)): 40
+                          },
+                          {
+                            DateTime.now().subtract(const Duration(days: 2)): 50
+                          },
+                          {
+                            DateTime.now().subtract(const Duration(days: 1)): 60
+                          },
+                          {DateTime.now(): 70},
+                        ],
+                        xValueMapper: (dynamic sales, _) =>
+                            sales.keys.first.day.toString(),
+                        yValueMapper: (dynamic sales, _) => sales.values.first)
+                  ]),
               const SizedBox(height: 20),
               Text('history', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 10),

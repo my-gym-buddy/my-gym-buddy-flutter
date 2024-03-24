@@ -279,6 +279,13 @@ class DatabaseHelper {
       totalWorkouts++;
     }
 
+    print({
+      'totalDuration': totalDuration,
+      'totalWeightLifted': totalWeightLifted,
+      'totalWorkouts': totalWorkouts,
+      'dailyTotalDuration': dailyTotalDuration
+    });
+
     return {
       'totalDuration': totalDuration,
       'totalWeightLifted': totalWeightLifted,
