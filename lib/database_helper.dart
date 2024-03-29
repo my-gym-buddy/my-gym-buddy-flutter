@@ -264,7 +264,7 @@ class DatabaseHelper {
     double totalWeightLifted = 0;
     int totalWorkouts = 0;
 
-    Map<DateTime, int> dailyTotalDuration = {};
+    Map<DateTime, double> dailyTotalDuration = {};
 
     for (final record in rawWorkout) {
       totalDuration += record['duration'] as int;
@@ -273,8 +273,8 @@ class DatabaseHelper {
       var date =
           DateTime.parse(record['start_time'].toString().substring(0, 10));
 
-      dailyTotalDuration[date] = dailyTotalDuration[date] =
-          (dailyTotalDuration[date] ?? 0) + (record['duration'] as int);
+      dailyTotalDuration[date] = (dailyTotalDuration[date] ?? 0) +
+          ((record['duration'] as int) / 3600);
 
       totalWorkouts++;
     }

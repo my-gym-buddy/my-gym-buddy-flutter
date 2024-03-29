@@ -6,7 +6,6 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/statistics/add_workout_session_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:syncfusion_flutter_charts/sparkcharts.dart';
 
 class StatisticsScreen extends StatefulWidget {
   StatisticsScreen({super.key});
@@ -24,13 +23,20 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
 
     DatabaseHelper.getWeeklyStatistics().then((value) => setState(() {
           widget.data = value;
+          print(widget.data);
         }));
+  }
 
-    print(widget.data);
+  DateTime dateTimeToDateOnly(DateTime dateTime) {
+    return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
 
   @override
   Widget build(BuildContext context) {
+    if (widget.data != null) {
+      print(DateTime.now().subtract(const Duration(days: 1)) ?? 0);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('statistics'),
@@ -69,36 +75,80 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Text(
                   'total time spent: ${widget.data != null ? Helper.prettyTime(widget.data['totalTimeSpent'] ?? 0) : 0}'),
               const SizedBox(height: 20),
-              SfCartesianChart(
-                  // Initialize category axis
-                  primaryXAxis: CategoryAxis(),
-                  series: <LineSeries<dynamic, String>>[
-                    LineSeries<dynamic, String>(
-                        dataSource: <Map<DateTime, int>>[
-                          {
-                            DateTime.now().subtract(const Duration(days: 6)): 10
-                          },
-                          {
-                            DateTime.now().subtract(const Duration(days: 5)): 20
-                          },
-                          {
-                            DateTime.now().subtract(const Duration(days: 4)): 30
-                          },
-                          {
-                            DateTime.now().subtract(const Duration(days: 3)): 40
-                          },
-                          {
-                            DateTime.now().subtract(const Duration(days: 2)): 50
-                          },
-                          {
-                            DateTime.now().subtract(const Duration(days: 1)): 60
-                          },
-                          {DateTime.now(): 70},
-                        ],
-                        xValueMapper: (dynamic sales, _) =>
-                            sales.keys.first.day.toString(),
-                        yValueMapper: (dynamic sales, _) => sales.values.first)
-                  ]),
+              widget.data != null
+                  ? SfCartesianChart(
+                      // Initialize category axis
+                      primaryXAxis: CategoryAxis(),
+                      series: <LineSeries<dynamic, String>>[
+                          LineSeries<dynamic, String>(
+                              dataSource: <Map<DateTime, double>>[
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 6)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 6)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 5)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 5)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 4)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 4)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 3)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 3)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 2)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 2)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now()
+                                      .subtract(const Duration(days: 1)): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now()
+                                              .subtract(
+                                                  const Duration(days: 1)))] ??
+                                      0
+                                },
+                                {
+                                  DateTime.now(): widget
+                                              .data['dailyTotalDuration'][
+                                          dateTimeToDateOnly(DateTime.now())] ??
+                                      0
+                                },
+                              ],
+                              xValueMapper: (dynamic sales, _) =>
+                                  sales.keys.first.day.toString(),
+                              yValueMapper: (dynamic sales, _) =>
+                                  sales.values.first)
+                        ])
+                  : const CircularProgressIndicator(),
               const SizedBox(height: 20),
               Text('history', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 10),
