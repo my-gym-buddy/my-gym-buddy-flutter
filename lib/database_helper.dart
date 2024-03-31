@@ -265,6 +265,7 @@ class DatabaseHelper {
     int totalWorkouts = 0;
 
     Map<DateTime, double> dailyTotalDuration = {};
+    Map<DateTime, double> dailyTotalWeightLifted = {};
 
     for (final record in rawWorkout) {
       totalDuration += record['duration'] as int;
@@ -277,20 +278,36 @@ class DatabaseHelper {
           ((record['duration'] as int) / 3600);
 
       totalWorkouts++;
+
+      final rawExercises = await database!.query('workout_session_exercises',
+          where: 'workout_session_id = ?', whereArgs: [record['id']]);
+      for (final exercise in rawExercises) {
+        final repSet = exercise['rep_set'];
+        final repSetMap = json.decode(repSet.toString());
+
+        for (final set in repSetMap['sets']) {
+          totalWeightLifted += (set['weight'] * set['reps']);
+
+          dailyTotalWeightLifted[date] = (dailyTotalWeightLifted[date] ?? 0) +
+              ((set['weight'] * set['reps']));
+        }
+      }
     }
 
     print({
       'totalDuration': totalDuration,
       'totalWeightLifted': totalWeightLifted,
       'totalWorkouts': totalWorkouts,
-      'dailyTotalDuration': dailyTotalDuration
+      'dailyTotalDuration': dailyTotalDuration,
+      'dailyTotalWeightLifted': dailyTotalWeightLifted
     });
 
     return {
       'totalDuration': totalDuration,
       'totalWeightLifted': totalWeightLifted,
       'totalWorkouts': totalWorkouts,
-      'dailyTotalDuration': dailyTotalDuration
+      'dailyTotalDuration': dailyTotalDuration,
+      'dailyTotalWeightLifted': dailyTotalWeightLifted
     };
   }
 

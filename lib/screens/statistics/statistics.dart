@@ -27,6 +27,22 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         }));
   }
 
+  List<Map<DateTime, double>> getDailyTotalDurationForSpecificPeriod(
+      DateTime startDate, DateTime endDate, String dataKey) {
+    List<Map<DateTime, double>> data = [];
+
+    for (DateTime date = startDate;
+        date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
+        date = date.add(const Duration(days: 1))) {
+      data.add({
+        dateTimeToDateOnly(date):
+            widget.data[dataKey][dateTimeToDateOnly(date)] ?? 0.0
+      });
+    }
+
+    return data;
+  }
+
   DateTime dateTimeToDateOnly(DateTime dateTime) {
     return DateTime(dateTime.year, dateTime.month, dateTime.day);
   }
@@ -69,85 +85,52 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               Text('weekly statistics',
                   style: Theme.of(context).textTheme.titleMedium),
               Text(
-                  'number of workouts: ${widget.data != null ? widget.data['workouts'] : 'xx'}'),
+                  'number of workouts: ${widget.data != null ? widget.data['totalWorkouts'] : '0'}'),
               Text(
                   'total kg lifted: ${widget.data != null ? widget.data['totalWeightLifted'] : "0.0"}'),
               Text(
-                  'total time spent: ${widget.data != null ? Helper.prettyTime(widget.data['totalTimeSpent'] ?? 0) : 0}'),
+                  'total time spent: ${widget.data != null ? Helper.prettyTime(widget.data['totalDuration'] ?? 0) : Helper.prettyTime(0)}'),
               const SizedBox(height: 20),
               widget.data != null
-                  ? SfCartesianChart(
-                      // Initialize category axis
-                      primaryXAxis: CategoryAxis(),
-                      series: <LineSeries<dynamic, String>>[
-                          LineSeries<dynamic, String>(
-                              dataSource: <Map<DateTime, double>>[
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 6)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 6)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 5)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 5)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 4)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 4)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 3)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 3)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 2)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 2)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now()
-                                      .subtract(const Duration(days: 1)): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now()
-                                              .subtract(
-                                                  const Duration(days: 1)))] ??
-                                      0
-                                },
-                                {
-                                  DateTime.now(): widget
-                                              .data['dailyTotalDuration'][
-                                          dateTimeToDateOnly(DateTime.now())] ??
-                                      0
-                                },
+                  ? SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.4,
+                      width: MediaQuery.of(context).size.width,
+                      child: PageView.builder(
+                          itemCount: 2,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                    index == 0
+                                        ? 'total weight lifted'
+                                        : 'total time spent',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium),
+                                SfCartesianChart(
+                                    // Initialize category axis
+                                    primaryXAxis: const CategoryAxis(),
+                                    series: <LineSeries<dynamic, String>>[
+                                      LineSeries<dynamic, String>(
+                                          dataSource:
+                                              getDailyTotalDurationForSpecificPeriod(
+                                                  DateTime.now().subtract(
+                                                      const Duration(days: 6)),
+                                                  DateTime.now(),
+                                                  index == 0
+                                                      ? 'dailyTotalWeightLifted'
+                                                      : 'dailyTotalDuration'),
+                                          xValueMapper: (dynamic sales, _) =>
+                                              sales.keys.first.day.toString(),
+                                          yValueMapper: (dynamic sales, _) =>
+                                              sales.values.first)
+                                    ]),
                               ],
-                              xValueMapper: (dynamic sales, _) =>
-                                  sales.keys.first.day.toString(),
-                              yValueMapper: (dynamic sales, _) =>
-                                  sales.values.first)
-                        ])
+                            );
+                          }),
+                    )
                   : const CircularProgressIndicator(),
               const SizedBox(height: 20),
               Text('history', style: Theme.of(context).textTheme.titleMedium),
