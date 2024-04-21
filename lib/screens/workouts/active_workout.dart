@@ -8,7 +8,9 @@ import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
+import 'package:search_page/search_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class ActiveWorkout extends StatefulWidget {
@@ -25,10 +27,18 @@ class ActiveWorkout extends StatefulWidget {
 }
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
+  List<Exercise> allExercises = [];
+
   @override
   void initState() {
     super.initState();
     widget.stopWatchTimer.onStartTimer();
+
+    DatabaseHelper.getExercises().then((value) {
+      setState(() {
+        allExercises = value;
+      });
+    });
   }
 
   @override
@@ -374,6 +384,36 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   isActiveWorkout: true,
                   physics: const NeverScrollableScrollPhysics(),
                   workoutTemplate: widget.workoutTemplate),
+              const SizedBox(height: 20),
+              Center(
+                child: atsButton(
+                    onPressed: () => showSearch(
+                        context: context,
+                        delegate: SearchPage<Exercise>(
+                            showItemsOnEmpty: true,
+                            items: allExercises,
+                            searchLabel: 'search exercises',
+                            failure: const Center(
+                              child: Text('no exercises found'),
+                            ),
+                            filter: (exercise) => [
+                                  exercise.name,
+                                ],
+                            builder: (exercise) => ListTile(
+                                  title: Text(exercise.name.toLowerCase()),
+                                  onTap: () {
+                                    setState(() {
+                                      widget.workoutTemplate.exercises!.add(
+                                          Exercise.fromJson(exercise.toJson()));
+                                    });
+                                    Navigator.pop(context);
+                                  },
+                                ))),
+                    child: const Text('add exercise')),
+              ),
+              const SizedBox(
+                width: 10,
+              ),
               const SizedBox(height: 20),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
