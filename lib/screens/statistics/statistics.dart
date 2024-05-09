@@ -5,9 +5,12 @@ import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/statistics/add_workout_session_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 class StatisticsScreen extends StatefulWidget {
-  const StatisticsScreen({super.key});
+  StatisticsScreen({super.key});
+
+  dynamic data;
 
   @override
   State<StatisticsScreen> createState() => _StatisticsScreenState();
@@ -15,7 +18,41 @@ class StatisticsScreen extends StatefulWidget {
 
 class _StatisticsScreenState extends State<StatisticsScreen> {
   @override
+  void initState() {
+    super.initState();
+
+    DatabaseHelper.getWeeklyStatistics().then((value) => setState(() {
+          widget.data = value;
+          print(widget.data);
+        }));
+  }
+
+  List<Map<DateTime, double>> getDailyTotalDurationForSpecificPeriod(
+      DateTime startDate, DateTime endDate, String dataKey) {
+    List<Map<DateTime, double>> data = [];
+
+    for (DateTime date = startDate;
+        date.isBefore(endDate) || date.isAtSameMomentAs(endDate);
+        date = date.add(const Duration(days: 1))) {
+      data.add({
+        dateTimeToDateOnly(date):
+            widget.data[dataKey][dateTimeToDateOnly(date)] ?? 0.0
+      });
+    }
+
+    return data;
+  }
+
+  DateTime dateTimeToDateOnly(DateTime dateTime) {
+    return DateTime(dateTime.year, dateTime.month, dateTime.day);
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (widget.data != null) {
+      print(DateTime.now().subtract(const Duration(days: 1)) ?? 0);
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('statistics'),
@@ -28,15 +65,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
         actions: [
           atsIconButton(
             icon: const Icon(Icons.add),
-            onPressed: () {
-              setState(() async {
-                await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => AddWorkoutSessionScreen()));
+            onPressed: () async {
+              await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => AddWorkoutSessionScreen()));
 
-                setState(() {});
-              });
+              setState(() {});
             },
           ),
         ],
@@ -49,9 +84,54 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
             children: [
               Text('weekly statistics',
                   style: Theme.of(context).textTheme.titleMedium),
-              Text('number of workouts: xx'),
-              Text('total kg lifted: xx'),
-              Text('total time spent: xx hours'),
+              Text(
+                  'number of workouts: ${widget.data != null ? widget.data['totalWorkouts'] : '0'}'),
+              Text(
+                  'total kg lifted: ${widget.data != null ? widget.data['totalWeightLifted'] : "0.0"}'),
+              Text(
+                  'total time spent: ${widget.data != null ? Helper.prettyTime(widget.data['totalDuration'] ?? 0) : Helper.prettyTime(0)}'),
+              const SizedBox(height: 20),
+              widget.data != null
+                  ? SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.4,
+                      width: MediaQuery.of(context).size.width,
+                      child: PageView.builder(
+                          itemCount: 2,
+                          scrollDirection: Axis.horizontal,
+                          itemBuilder: (BuildContext context, int index) {
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                    index == 0
+                                        ? 'total weight lifted'
+                                        : 'total time spent',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium),
+                                SfCartesianChart(
+                                    // Initialize category axis
+                                    primaryXAxis: const CategoryAxis(),
+                                    series: <LineSeries<dynamic, String>>[
+                                      LineSeries<dynamic, String>(
+                                          dataSource:
+                                              getDailyTotalDurationForSpecificPeriod(
+                                                  DateTime.now().subtract(
+                                                      const Duration(days: 6)),
+                                                  DateTime.now(),
+                                                  index == 0
+                                                      ? 'dailyTotalWeightLifted'
+                                                      : 'dailyTotalDuration'),
+                                          xValueMapper: (dynamic sales, _) =>
+                                              sales.keys.first.day.toString(),
+                                          yValueMapper: (dynamic sales, _) =>
+                                              sales.values.first)
+                                    ]),
+                              ],
+                            );
+                          }),
+                    )
+                  : const CircularProgressIndicator(),
               const SizedBox(height: 20),
               Text('history', style: Theme.of(context).textTheme.titleMedium),
               const SizedBox(height: 10),

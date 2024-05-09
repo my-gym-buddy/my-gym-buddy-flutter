@@ -8,7 +8,9 @@ import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
+import 'package:search_page/search_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
 
 class ActiveWorkout extends StatefulWidget {
@@ -25,10 +27,18 @@ class ActiveWorkout extends StatefulWidget {
 }
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
+  List<Exercise> allExercises = [];
+
   @override
   void initState() {
     super.initState();
     widget.stopWatchTimer.onStartTimer();
+
+    DatabaseHelper.getExercises().then((value) {
+      setState(() {
+        allExercises = value;
+      });
+    });
   }
 
   @override
@@ -69,8 +79,24 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       atsButton(
                         onPressed: () {
                           Navigator.pop(context);
+                          Navigator.pop(context);
                         },
-                        child: const Text('ok'),
+                        backgroundColor:
+                            Theme.of(context).colorScheme.errorContainer,
+                        child: Text('cancel workout',
+                            style: TextStyle(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .onErrorContainer)),
+                      ),
+                      const SizedBox(
+                        width: 10,
+                      ),
+                      atsButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('continue workout'),
                       ),
                     ],
                   )
@@ -331,77 +357,117 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.workoutTemplate.name),
-        leading: atsIconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              showEndWorkoutConfirmationModal();
-            }),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: atsButton(
-                child: StreamBuilder<int>(
-                  stream: widget.stopWatchTimer.rawTime,
-                  initialData: 0,
-                  builder: (context, snapshot) {
-                    final value = snapshot.data;
-                    final displayTime = StopWatchTimer.getDisplayTime(value!,
-                        milliSecond: false);
-                    return Text(displayTime);
-                  },
+    return PopScope(
+      canPop: false,
+      onPopInvoked: (status) {
+        showEndWorkoutConfirmationModal();
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(widget.workoutTemplate.name),
+          leading: atsIconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                showEndWorkoutConfirmationModal();
+              }),
+          actions: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: atsButton(
+                  child: StreamBuilder<int>(
+                    stream: widget.stopWatchTimer.rawTime,
+                    initialData: 0,
+                    builder: (context, snapshot) {
+                      final value = snapshot.data;
+                      final displayTime = StopWatchTimer.getDisplayTime(value!,
+                          milliSecond: false);
+                      return Text(displayTime);
+                    },
+                  ),
+                  onPressed: () {}),
+            )
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 15.0, right: 15.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                widget.workoutTemplate.description != null
+                    ? Text(
+                        widget.workoutTemplate.description ?? '',
+                        style: Theme.of(context).textTheme.bodyMedium,
+                      )
+                    : const SizedBox(),
+                const SizedBox(height: 20),
+                ExercisesRepSetDisplay(
+                    isActiveWorkout: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    workoutTemplate: widget.workoutTemplate),
+                const SizedBox(height: 20),
+                Center(
+                  child: atsButton(
+                      onPressed: () => showSearch(
+                          context: context,
+                          delegate: SearchPage<Exercise>(
+                              showItemsOnEmpty: true,
+                              items: allExercises,
+                              searchLabel: 'search exercises',
+                              failure: const Center(
+                                child: Text('no exercises found'),
+                              ),
+                              filter: (exercise) => [
+                                    exercise.name,
+                                  ],
+                              builder: (exercise) => ListTile(
+                                    title: Text(exercise.name.toLowerCase()),
+                                    onTap: () {
+                                      setState(() {
+                                        widget.workoutTemplate.exercises!.add(
+                                            Exercise.fromJson(
+                                                exercise.toJson()));
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                  ))),
+                      child: const Text('add exercise')),
                 ),
-                onPressed: () {}),
-          )
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(left: 15.0, right: 15.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              widget.workoutTemplate.description != null
-                  ? Text(
-                      widget.workoutTemplate.description ?? '',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    )
-                  : const SizedBox(),
-              const SizedBox(height: 20),
-              ExercisesRepSetDisplay(
-                  isActiveWorkout: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  workoutTemplate: widget.workoutTemplate),
-              const SizedBox(height: 20),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  atsButton(
-                    onPressed: () {
-                      showCancelWorkoutModal();
-                    },
-                    backgroundColor:
-                        Theme.of(context).colorScheme.errorContainer,
-                    child: Text('cancel workout',
-                        style: Theme.of(context).textTheme.titleSmall!.copyWith(
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onErrorContainer)),
-                  ),
-                  atsButton(
-                    onPressed: () {
-                      showEndWorkoutConfirmationModal();
-                    },
-                    child: Text(
-                      'end workout',
+                const SizedBox(
+                  width: 10,
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    atsButton(
+                      onPressed: () {
+                        showCancelWorkoutModal();
+                      },
+                      backgroundColor:
+                          Theme.of(context).colorScheme.errorContainer,
+                      child: Text('cancel workout',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleSmall!
+                              .copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onErrorContainer)),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: 20)
-            ],
+                    atsButton(
+                      onPressed: () {
+                        showEndWorkoutConfirmationModal();
+                      },
+                      child: Text(
+                        'end workout',
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20)
+              ],
+            ),
           ),
         ),
       ),

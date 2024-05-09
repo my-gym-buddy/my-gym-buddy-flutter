@@ -91,9 +91,11 @@ class DatabaseHelper {
       'workout_template_id': workout.id,
       'duration': duration,
       'workout_session_name': workout.name,
-      'start_time': DateTime.now()
-          .subtract(Duration(seconds: duration))
-          .toIso8601String(),
+      'start_time': workout.startTime != null
+          ? workout.startTime!.toIso8601String()
+          : DateTime.now()
+              .subtract(Duration(seconds: duration))
+              .toIso8601String(),
     });
 
     int index = 0;
@@ -262,15 +264,50 @@ class DatabaseHelper {
     double totalWeightLifted = 0;
     int totalWorkouts = 0;
 
+    Map<DateTime, double> dailyTotalDuration = {};
+    Map<DateTime, double> dailyTotalWeightLifted = {};
+
     for (final record in rawWorkout) {
       totalDuration += record['duration'] as int;
+
+      // only date without time
+      var date =
+          DateTime.parse(record['start_time'].toString().substring(0, 10));
+
+      dailyTotalDuration[date] = (dailyTotalDuration[date] ?? 0) +
+          ((record['duration'] as int) / 3600);
+
       totalWorkouts++;
+
+      final rawExercises = await database!.query('workout_session_exercises',
+          where: 'workout_session_id = ?', whereArgs: [record['id']]);
+      for (final exercise in rawExercises) {
+        final repSet = exercise['rep_set'];
+        final repSetMap = json.decode(repSet.toString());
+
+        for (final set in repSetMap['sets']) {
+          totalWeightLifted += (set['weight'] * set['reps']);
+
+          dailyTotalWeightLifted[date] = (dailyTotalWeightLifted[date] ?? 0) +
+              ((set['weight'] * set['reps']));
+        }
+      }
     }
+
+    print({
+      'totalDuration': totalDuration,
+      'totalWeightLifted': totalWeightLifted,
+      'totalWorkouts': totalWorkouts,
+      'dailyTotalDuration': dailyTotalDuration,
+      'dailyTotalWeightLifted': dailyTotalWeightLifted
+    });
 
     return {
       'totalDuration': totalDuration,
       'totalWeightLifted': totalWeightLifted,
-      'totalWorkouts': totalWorkouts
+      'totalWorkouts': totalWorkouts,
+      'dailyTotalDuration': dailyTotalDuration,
+      'dailyTotalWeightLifted': dailyTotalWeightLifted
     };
   }
 
