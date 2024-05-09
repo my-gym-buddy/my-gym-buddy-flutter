@@ -154,7 +154,7 @@ class _SettingsState extends State<Settings> {
                         child: Text('imperial (lb)'))
                   ],
                   onChanged: (value) {
-                    Config.unit = value.toString();
+                    Config.setUnit(value!);
                   }),
             ),
           ],

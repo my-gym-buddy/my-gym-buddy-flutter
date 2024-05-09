@@ -43,6 +43,8 @@ dependencies:
   share_plus: ^7.2.2
   file_picker: ^6.2.0
   syncfusion_flutter_charts: ^25.1.35
+  shared_preferences_riverpod: ^0.3.0
+  shared_preferences: ^2.2.3
 
 dev_dependencies:
   flutter_test:
