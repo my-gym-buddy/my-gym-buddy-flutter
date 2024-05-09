@@ -7,6 +7,7 @@ import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/statistics/statistics.dart';
+import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
 import 'package:gym_buddy_app/screens/workouts/all_workout_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/workouts/single_workout_screen.dart';
@@ -52,7 +53,7 @@ class _HomeState extends State<Home> {
                               child: ListView.builder(
                                   shrinkWrap: true,
                                   scrollDirection: Axis.horizontal,
-                                  itemCount: snapshot.data.length + 1,
+                                  itemCount: snapshot.data.length + 2,
                                   itemBuilder:
                                       (BuildContext context, int index) {
                                     if (index == snapshot.data.length) {
@@ -67,6 +68,26 @@ class _HomeState extends State<Home> {
                                                   MaterialPageRoute(
                                                       builder: (context) =>
                                                           const AllWorkoutScreen()));
+                                            }),
+                                      );
+                                    }
+
+                                    if (index == snapshot.data.length + 1) {
+                                      return Padding(
+                                        padding:
+                                            const EdgeInsets.only(right: 8.0),
+                                        child: atsButton(
+                                            child: const Text(
+                                                'start empty workout'),
+                                            onPressed: () {
+                                              Navigator.push(
+                                                  context,
+                                                  MaterialPageRoute(
+                                                      builder: (context) => ActiveWorkout(
+                                                          workoutTemplate: Workout(
+                                                              name:
+                                                                  'empty workout',
+                                                              exercises: []))));
                                             }),
                                       );
                                     }
