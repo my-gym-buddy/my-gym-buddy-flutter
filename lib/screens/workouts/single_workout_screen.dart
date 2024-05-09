@@ -20,8 +20,6 @@ class SingleWorkoutScreen extends StatefulWidget {
 class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
   @override
   Widget build(BuildContext context) {
-    print(widget.workout.description);
-
     if (widget.workout.exercises == null) {
       DatabaseHelper.getWorkoutGivenID(widget.workout.id!).then((value) {
         setState(() {

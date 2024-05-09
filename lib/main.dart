@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/home.dart';
 
@@ -6,6 +7,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await DatabaseHelper.openLocalDatabase(newDatabase: false);
+
+  Config.loadConfig();
 
   runApp(const MyApp());
 }
