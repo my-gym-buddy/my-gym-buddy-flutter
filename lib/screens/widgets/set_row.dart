@@ -57,7 +57,26 @@ class SetRow extends StatelessWidget {
             children: [
               Expanded(child: Center(child: Text('${setIndex + 1}'))),
               Expanded(
-                  flex: 4, child: Center(child: Text(getPreviousWeight()))),
+                  flex: 4,
+                  child: Center(
+                      child: GestureDetector(
+                          onTap: () {
+                            if (selectedExercises[index].previousSets == null)
+                              return;
+                            if (setIndex >
+                                selectedExercises[index].previousSets!.length -
+                                    1) return;
+                            selectedExercises[index].sets[setIndex].weight =
+                                selectedExercises[index]
+                                    .previousSets![setIndex]
+                                    .weight;
+                            selectedExercises[index].sets[setIndex].reps =
+                                selectedExercises[index]
+                                    .previousSets![setIndex]
+                                    .reps;
+                            refresh!();
+                          },
+                          child: Text(getPreviousWeight())))),
               Expanded(
                 flex: 4,
                 child: Padding(
