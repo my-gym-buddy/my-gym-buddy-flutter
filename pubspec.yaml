@@ -34,17 +34,19 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  youtube_player_flutter: ^8.1.2
+  youtube_player_flutter: ^9.1.1
   searchfield: ^0.9.0
   search_page: ^2.3.0
   sqflite: ^2.3.2
   sqflite_common_ffi: ^2.3.2+1
   stop_watch_timer: ^3.1.1
   share_plus: ^7.2.2
-  file_picker: ^6.2.0
-  syncfusion_flutter_charts: ^25.1.35
+  file_picker: ^10.1.2
+  syncfusion_flutter_charts: ^29.1.37+1
   shared_preferences_riverpod: ^0.3.0
   shared_preferences: ^2.2.3
+  flutter_inappwebview: ^6.1.5
+
 
 dev_dependencies:
   flutter_test:
