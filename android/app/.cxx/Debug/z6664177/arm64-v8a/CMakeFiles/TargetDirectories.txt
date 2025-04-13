@@ -1,0 +1,2 @@
+C:/Users/levyn/OneDrive/Documents/GitHub/my-gym-buddy/android/app/.cxx/Debug/z6664177/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/levyn/OneDrive/Documents/GitHub/my-gym-buddy/android/app/.cxx/Debug/z6664177/arm64-v8a/CMakeFiles/rebuild_cache.dir
