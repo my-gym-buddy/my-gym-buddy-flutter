@@ -54,6 +54,16 @@ class _ExerciseFormState extends State<ExerciseForm> {
     setState(() {
       categories = loadedCategories;
       difficulties = loadedDifficulties;
+      
+      // Add selected category to the list if it exists and isn't already present
+      if (selectedCategory != null && !categories.contains(selectedCategory)) {
+        categories.add(selectedCategory!);
+      }
+      
+      // Add selected difficulty to the list if it exists and isn't already present
+      if (selectedDifficulty != null && !difficulties.contains(selectedDifficulty)) {
+        difficulties.add(selectedDifficulty!);
+      }
     });
   }
 
