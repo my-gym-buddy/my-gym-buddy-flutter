@@ -8,6 +8,7 @@ import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/sql_queries.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite/sqflite.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -76,6 +77,9 @@ class DatabaseHelper {
       'exercise_name': data['exercise_name'],
       'exercise_video': data['exercise_video'],
       'exercise_description': data['exercise_description'],
+      'exercise_category': data['exercise_category'],
+      'exercise_difficulty': data['exercise_difficulty'],
+      'images': json.encode(data['images']),
     };
 
     database!.insert(
@@ -145,6 +149,9 @@ class DatabaseHelper {
       'exercise_name': data['exercise_name'],
       'exercise_video': data['exercise_video'],
       'exercise_description': data['exercise_description'],
+      'exercise_category': data['exercise_category'],
+      'exercise_difficulty': data['exercise_difficulty'],
+      'images': json.encode(data['images']),
     };
 
     database!.update('exercises', safeData,
@@ -230,26 +237,22 @@ class DatabaseHelper {
       await openLocalDatabase();
     }
 
-    final records = await database!.query('exercises');
-
-    List<Exercise> exercises = [];
-    for (final record in records) {
-      if (kDebugMode) print(record);
-      exercises.add(Exercise.fromJson(record));
-
-      final previousRecord = await database!.query('workout_session_exercises',
-          where: 'exercise_id = ?',
-          whereArgs: [record['id']],
-          orderBy: 'id DESC',
-          limit: 1);
-
-      if (previousRecord.isNotEmpty) {
-        exercises.last.addPreviousSetsFromJson(
-            json.decode(previousRecord.first['rep_set'].toString()));
+    final List<Map<String, dynamic>> maps = await database!.query('exercises');
+    return List.generate(maps.length, (i) {
+      var map = Map<String, dynamic>.from(maps[i]); // Make a mutable copy
+      if (map['images'] != null) {
+        if (map['images'] is String) {
+          try {
+            map['images'] = json.decode(map['images']);
+            print('images: ${map['images']}');
+          } catch (e) {
+            print('Error parsing images JSON: $e');
+            map['images'] = [];
+          }
+        }
       }
-    }
-
-    return exercises;
+      return Exercise.fromJson(map);
+    });
   }
 
   static Future<dynamic> getWeeklyStatistics() async {
@@ -453,14 +456,15 @@ class DatabaseHelper {
           db.execute(query);
         }
       }, onUpgrade: (db, oldVersion, newVersion) {
-        if (oldVersion == 1 && newVersion == 2) {
-          if (kDebugMode) print('upgrading from v1 to v2');
-          for (final query in SqlQueries.databaseUpgradeV1toV2) {
-            db.execute(query);
-          }
-          if (kDebugMode) print('upgraded from v1 to v2');
+        if (oldVersion < 4) {
+          if (kDebugMode) print('upgrading database to v4');
+          db.execute(
+              'CREATE TABLE IF NOT EXISTS "categories" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )');
+          db.execute(
+              'CREATE TABLE IF NOT EXISTS "difficulties" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )');
+          if (kDebugMode) print('upgraded database to v4');
         }
-      }, version: 2);
+      }, version: 4);
       return database!;
     }
 
@@ -469,5 +473,69 @@ class DatabaseHelper {
 
   static void resetDatabase() async {
     await openLocalDatabase(newDatabase: true);
+  }
+
+  static Future<List<String>> getCategories() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    final result = await database!.query(
+      'categories',
+      columns: ['name'],
+      orderBy: 'name ASC',
+    );
+
+    return result.map((row) => row['name'] as String).toList();
+  }
+
+  static Future<List<String>> getDifficulties() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    final result = await database!.query(
+      'difficulties',
+      columns: ['name'],
+      orderBy: 'name ASC',
+    );
+
+    return result.map((row) => row['name'] as String).toList();
+  }
+
+  static Future<bool> addCategory(String category) async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    try {
+      await database!.insert(
+        'categories',
+        {'name': category},
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      return true;
+    } catch (e) {
+      if (kDebugMode) print('Error adding category: $e');
+      return false;
+    }
+  }
+
+  static Future<bool> addDifficulty(String difficulty) async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    try {
+      await database!.insert(
+        'difficulties',
+        {'name': difficulty},
+        conflictAlgorithm: ConflictAlgorithm.ignore,
+      );
+      return true;
+    } catch (e) {
+      if (kDebugMode) print('Error adding difficulty: $e');
+      return false;
+    }
   }
 }
