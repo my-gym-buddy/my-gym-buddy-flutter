@@ -23,8 +23,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   TextEditingController workoutNameTextController = TextEditingController();
   TextEditingController workoutDescriptionTextController =
       TextEditingController();
-
   Workout workout = Workout(name: "", exercises: []);
+  bool nameError = false;
+  bool descriptionError = false;
 
   @override
   void initState() {
@@ -65,11 +66,23 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
               atsTextField(
                 textEditingController: workoutNameTextController,
                 labelText: 'workout name',
+                error: nameError,
+                onChanged: (value) {
+                  setState(() {
+                    nameError = value.trim().isEmpty;
+                  });
+                },
               ),
               const SizedBox(height: 15),
               atsTextField(
                 textEditingController: workoutDescriptionTextController,
                 labelText: 'description',
+                error: descriptionError,
+                onChanged: (value) {
+                  setState(() {
+                    descriptionError = value.trim().isEmpty;
+                  });
+                },
               ),
               const SizedBox(height: 15),
               Text('days of the week',
@@ -164,10 +177,42 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                   ),
                   atsButton(
                       onPressed: () async {
+                        setState(() {
+                          nameError = workoutNameTextController.text.trim().isEmpty;
+                          descriptionError = workoutDescriptionTextController.text.trim().isEmpty;
+                        });
+
+                        if (nameError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('please enter a workout name'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (descriptionError) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('please enter a description'),
+                            ),
+                          );
+                          return;
+                        }
+
+                        if (workout.daysOfWeek == null || workout.daysOfWeek!.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('please select at least one day of the week'),
+                            ),
+                          );
+                          return;
+                        }
+
                         workout.exercises = workout.exercises!;
-                        workout.name = workoutNameTextController.text;
-                        workout.description =
-                            workoutDescriptionTextController.text;
+                        workout.name = workoutNameTextController.text.trim();
+                        workout.description = workoutDescriptionTextController.text.trim();
+                        
                         widget.workout != null
                             ? DatabaseHelper.updateWorkout(workout)
                             : await DatabaseHelper.saveWorkout(workout);
