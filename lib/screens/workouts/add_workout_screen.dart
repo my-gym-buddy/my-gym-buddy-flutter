@@ -23,10 +23,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   TextEditingController workoutNameTextController = TextEditingController();
   TextEditingController workoutDescriptionTextController =
       TextEditingController();
-
   Workout workout = Workout(name: "", exercises: []);
-
-  // Add these state variables
   bool nameError = false;
   bool descriptionError = false;
 
