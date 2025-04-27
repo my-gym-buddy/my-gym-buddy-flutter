@@ -139,6 +139,10 @@ class _ExerciseFormState extends State<ExerciseForm> {
               textEditingController: videoIDController,
               labelText: 'Video URL',
             ),
+            if (videoIDController.text.isNotEmpty) ...[
+              const SizedBox(height: 16),
+              _buildVideoPreview(videoIDController.text),
+            ],
             const SizedBox(height: 24),
             atsButton(
               onPressed: _handleSave,
@@ -176,39 +180,116 @@ class _ExerciseFormState extends State<ExerciseForm> {
           ],
         ),
         if (images.isNotEmpty) ...[
-          const SizedBox(height: 10),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: images.length,
-            itemBuilder: (context, index) {
-              return Card(
-                child: ListTile(
-                  leading: Image.network(
-                    images[index],
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.broken_image);
-                    },
-                  ),
-                  title: Text(images[index]),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      setState(() {
-                        images.removeAt(index);
-                      });
-                    },
-                  ),
-                ),
-              );
-            },
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: images.map((url) => _buildImageCard(url)).toList(),
           ),
         ],
       ],
     );
+  }
+
+  Widget _buildImageCard(String url) {
+    return Container(
+      width: 150,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
+            child: Image.network(
+              url,
+              height: 100,
+              width: double.infinity,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: 100,
+                   width: double.infinity,
+                  color: Colors.grey.shade200,
+                  child: const Icon(Icons.broken_image, color: Colors.grey),
+                );
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    url,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.delete, size: 20),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  onPressed: () {
+                    setState(() {
+                      images.remove(url);
+                    });
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildVideoPreview(String url) {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(
+          'https://img.youtube.com/vi/${_getYoutubeVideoId(url)}/0.jpg',
+          fit: BoxFit.cover,
+          errorBuilder: (context, error, stackTrace) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.video_library, size: 48, color: Colors.grey.shade400),
+                  const SizedBox(height: 8),
+                  Text('Invalid video URL', style: TextStyle(color: Colors.grey.shade600)),
+                ],
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  String? _getYoutubeVideoId(String url) {
+    // If the URL is already just a video ID (no slashes or dots), return it directly
+    if (!url.contains('/') && !url.contains('.')) {
+      return url;
+    }
+    
+    // Otherwise, try to extract from full URL
+    RegExp regExp = RegExp(
+      r'^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).?',
+    );
+    Match? match = regExp.firstMatch(url);
+    return match?[7];
   }
 
   Future<void> _showAddDialog({

@@ -452,19 +452,21 @@ class DatabaseHelper {
     if (database == null || reopen) {
       database =
           await openDatabase(await getDatabasePath(), onCreate: (db, version) {
-        for (final query in SqlQueries.databaseCreationV2) {
+        for (final query in SqlQueries.databaseCreationV3) {
           db.execute(query);
         }
-      }, onUpgrade: (db, oldVersion, newVersion) {
-        if (oldVersion < 4) {
-          if (kDebugMode) print('upgrading database to v4');
-          db.execute(
-              'CREATE TABLE IF NOT EXISTS "categories" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )');
-          db.execute(
-              'CREATE TABLE IF NOT EXISTS "difficulties" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )');
-          if (kDebugMode) print('upgraded database to v4');
+      }, onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          for (final query in SqlQueries.databaseUpgradeV1toV2) {
+            await db.execute(query);
+          }
         }
-      }, version: 4);
+        if (oldVersion < 3) {
+          for (final query in SqlQueries.databaseUpgradeV2toV3) {
+            await db.execute(query);
+          }
+        }
+      }, version: 3);
       return database!;
     }
 

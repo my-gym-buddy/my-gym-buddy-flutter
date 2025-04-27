@@ -8,9 +8,7 @@ class SqlQueries {
   ];
 
   static List<String> databaseCreationV2 = [
-    'CREATE TABLE "exercises" ( "id" INTEGER PRIMARY KEY, "exercise_name" TEXT, "exercise_video" TEXT, "exercise_description" TEXT, "exercise_category" TEXT, "exercise_difficulty" TEXT, "images" TEXT )',
-    'CREATE TABLE "categories" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )',
-    'CREATE TABLE "difficulties" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )',
+    'CREATE TABLE "exercises" ( "id" INTEGER PRIMARY KEY, "exercise_name" TEXT, "exercise_video" TEXT, "exercise_description" TEXT )',
     'CREATE TABLE "workout_session" ( "id" INTEGER PRIMARY KEY, "workout_template_id" INTEGER, "start_time" TEXT, "duration" INTEGER, "workout_session_name" TEXT, "workout_session_note" TEXT, FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
     'CREATE TABLE "workout_session_exercises" ( "id" INTEGER PRIMARY KEY, "workout_session_id" INTEGER, "exercise_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("workout_session_id") REFERENCES "workout_session"("id"), FOREIGN KEY("exercise_id") REFERENCES "exercises"("id") )',
     'CREATE TABLE "workout_template_exercises" ( "id" INTEGER PRIMARY KEY, "exercise_id" INTEGER, "workout_template_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("exercise_id") REFERENCES "exercises"("id"), FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
@@ -18,7 +16,7 @@ class SqlQueries {
   ];
 
   static List<String> databaseUpgradeV1toV2 = [
-    'CREATE TABLE IF NOT EXISTS "exercises_temp" ( "id" INTEGER PRIMARY KEY, "exercise_name" TEXT, "exercise_video" TEXT, "exercise_description" TEXT, "images" TEXT )',
+    'CREATE TABLE IF NOT EXISTS "exercises_temp" ( "id" INTEGER PRIMARY KEY, "exercise_name" TEXT, "exercise_video" TEXT, "exercise_description" TEXT )',
     'CREATE TABLE IF NOT EXISTS "workout_session_temp" ( "id" INTEGER PRIMARY KEY, "workout_template_id" INTEGER, "start_time" TEXT, "duration" INTEGER, "workout_session_name" TEXT, "workout_session_note" TEXT, FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
     'CREATE TABLE IF NOT EXISTS "workout_session_exercises_temp" ( "id" INTEGER PRIMARY KEY, "workout_session_id" INTEGER, "exercise_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("workout_session_id") REFERENCES "workout_session_temp"("id"), FOREIGN KEY("exercise_id") REFERENCES "exercises_temp"("id") )',
     'CREATE TABLE IF NOT EXISTS "workout_template_exercises_temp" ( "id" INTEGER PRIMARY KEY, "exercise_id" INTEGER, "workout_template_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("exercise_id") REFERENCES "exercises_temp"("id"), FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
@@ -37,7 +35,21 @@ class SqlQueries {
     'ALTER TABLE "workout_session_temp" RENAME TO "workout_session"',
     'ALTER TABLE "workout_session_exercises_temp" RENAME TO "workout_session_exercises"',
     'ALTER TABLE "workout_template_exercises_temp" RENAME TO "workout_template_exercises"',
-    'ALTER TABLE "workout_templates_temp" RENAME TO "workout_templates"',
+    'ALTER TABLE "workout_templates_temp" RENAME TO "workout_templates"'
+  ];
+
+
+  static List<String> databaseCreationV3 = [
+    'CREATE TABLE "exercises" ( "id" INTEGER PRIMARY KEY, "exercise_name" TEXT, "exercise_video" TEXT, "exercise_description" TEXT, "exercise_category" TEXT, "exercise_difficulty" TEXT, "images" TEXT )',
+    'CREATE TABLE "categories" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )',
+    'CREATE TABLE "difficulties" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )',
+    'CREATE TABLE "workout_session" ( "id" INTEGER PRIMARY KEY, "workout_template_id" INTEGER, "start_time" TEXT, "duration" INTEGER, "workout_session_name" TEXT, "workout_session_note" TEXT, FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
+    'CREATE TABLE "workout_session_exercises" ( "id" INTEGER PRIMARY KEY, "workout_session_id" INTEGER, "exercise_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("workout_session_id") REFERENCES "workout_session"("id"), FOREIGN KEY("exercise_id") REFERENCES "exercises"("id") )',
+    'CREATE TABLE "workout_template_exercises" ( "id" INTEGER PRIMARY KEY, "exercise_id" INTEGER, "workout_template_id" INTEGER, "rep_set" TEXT, "exercise_index" INTEGER, FOREIGN KEY("exercise_id") REFERENCES "exercises"("id"), FOREIGN KEY("workout_template_id") REFERENCES "workout_templates"("id") )',
+    'CREATE TABLE "workout_templates" ( "id" INTEGER PRIMARY KEY, "workout_name" TEXT, "workout_description" TEXT, "workout_day" TEXT )'
+  ];
+
+  static List<String> databaseUpgradeV2toV3 = [
     'ALTER TABLE "exercises" ADD COLUMN "exercise_category" TEXT',
     'ALTER TABLE "exercises" ADD COLUMN "exercise_difficulty" TEXT',
     'ALTER TABLE "exercises" ADD COLUMN "images" TEXT',
@@ -45,3 +57,8 @@ class SqlQueries {
     'CREATE TABLE IF NOT EXISTS "difficulties" ( "id" INTEGER PRIMARY KEY, "name" TEXT UNIQUE )'
   ];
 }
+
+
+
+
+

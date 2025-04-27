@@ -4,7 +4,7 @@ import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 
-import 'package:gym_buddy_app/screens/exercises/exercise_browser_screen.dart';
+import 'package:gym_buddy_app/screens/exercises/widgets/exercise_card.dart';
 import 'package:gym_buddy_app/screens/home.dart';
 
 class AllExercisesScreen extends StatefulWidget {
@@ -30,20 +30,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
                         builder: (context) => const Home()));
               }),
           actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 8.0),
-              child: atsIconButton(
-                onPressed: () async {
-                  await Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const ExerciseBrowserScreen()),
-                  );
-                  setState(() {});
-                },
-                icon: const Icon(Icons.fitness_center),
-              ),
-            ),
+          
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: atsIconButton(
