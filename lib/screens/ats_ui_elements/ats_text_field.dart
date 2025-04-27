@@ -13,7 +13,8 @@ class atsTextField extends StatefulWidget {
       this.textAlign = TextAlign.start,
       this.selectAllOnTap = false,
       this.minLines = 1,
-      this.maxLines = 1});
+      this.maxLines = 1,
+      this.error = false});
 
   final TextEditingController? textEditingController;
   final String labelText;
@@ -31,6 +32,8 @@ class atsTextField extends StatefulWidget {
   final int maxLines;
 
   TextAlign textAlign = TextAlign.start;
+
+  final bool error;
 
   @override
   State<atsTextField> createState() => _atsTextFieldState();
@@ -62,10 +65,28 @@ class _atsTextFieldState extends State<atsTextField> {
         },
         decoration: InputDecoration(
           floatingLabelAlignment: FloatingLabelAlignment.center,
-          border: const OutlineInputBorder(
+          border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderSide: BorderSide(
+              color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderSide: BorderSide(
+              color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.outline,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderSide: BorderSide(
+              color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
+            ),
           ),
           labelText: widget.labelText,
+          labelStyle: TextStyle(
+            color: widget.error ? Theme.of(context).colorScheme.error : null,
+          ),
         ));
   }
 }
