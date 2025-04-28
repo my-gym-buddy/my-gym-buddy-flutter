@@ -138,6 +138,9 @@ class _ExerciseFormState extends State<ExerciseForm> {
             atsTextField(
               textEditingController: videoIDController,
               labelText: 'Video URL',
+              onChanged: (value) {
+                setState(() {});
+              },
             ),
             if (videoIDController.text.isNotEmpty) ...[
               const SizedBox(height: 16),
