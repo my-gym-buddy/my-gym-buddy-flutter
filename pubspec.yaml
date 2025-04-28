@@ -45,7 +45,6 @@ dependencies:
   shared_preferences_riverpod: ^0.3.0
   shared_preferences: ^2.2.3
   flutter_inappwebview: ^6.1.5
-  path_provider: ^2.1.5
   youtube_player_flutter: ^9.1.1
 
 

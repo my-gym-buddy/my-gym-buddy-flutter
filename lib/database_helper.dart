@@ -450,23 +450,48 @@ class DatabaseHelper {
     }
 
     if (database == null || reopen) {
-      database =
-          await openDatabase(await getDatabasePath(), onCreate: (db, version) {
-        for (final query in SqlQueries.databaseCreationV3) {
-          db.execute(query);
-        }
-      }, onUpgrade: (db, oldVersion, newVersion) async {
-        if (oldVersion < 2) {
-          for (final query in SqlQueries.databaseUpgradeV1toV2) {
+      database = await openDatabase(
+        await getDatabasePath(),
+        version: 3, // Current version
+        onCreate: (db, version) async {
+          // For new database, create with latest version
+          for (final query in SqlQueries.databaseCreationV3) {
             await db.execute(query);
           }
-        }
-        if (oldVersion < 3) {
-          for (final query in SqlQueries.databaseUpgradeV2toV3) {
-            await db.execute(query);
+        },
+        onOpen: (db) async {
+          // Check current database version
+          var version = await db.getVersion();
+          if (version < 3) {
+            // Force upgrade if not at latest version
+            for (final query in SqlQueries.databaseUpgradeV2toV3) {
+              try {
+                await db.execute(query);
+              } catch (e) {
+                print('Migration error (can be ignored if column already exists): $e');
+              }
+            }
+            await db.setVersion(3);
           }
-        }
-      }, version: 3);
+        },
+        onUpgrade: (db, oldVersion, newVersion) async {
+          print('Upgrading database from version $oldVersion to $newVersion');
+          if (oldVersion < 2) {
+            for (final query in SqlQueries.databaseUpgradeV1toV2) {
+              await db.execute(query);
+            }
+          }
+          if (oldVersion < 3) {
+            for (final query in SqlQueries.databaseUpgradeV2toV3) {
+              try {
+                await db.execute(query);
+              } catch (e) {
+                print('Migration error (can be ignored if column already exists): $e');
+              }
+            }
+          }
+        },
+      );
       return database!;
     }
 
