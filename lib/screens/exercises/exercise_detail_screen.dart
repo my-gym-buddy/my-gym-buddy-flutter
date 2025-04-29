@@ -3,7 +3,6 @@ import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
@@ -59,8 +58,11 @@ class ExerciseDetailScreen extends StatelessWidget {
                             onSave: (updatedExercise) async {
                               try {
                                 await DatabaseHelper.updateExercise(updatedExercise);
-                                Navigator.pop(context);
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                }
                                 // Refresh the screen with updated exercise
+                                if (context.mounted) {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -70,10 +72,13 @@ class ExerciseDetailScreen extends StatelessWidget {
                                     ),
                                   ),
                                 );
+                                }
                               } catch (e) {
+                                if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(content: Text('Failed to update exercise')),
                                 );
+                                }
                               }
                             },
                           ),
@@ -271,17 +276,23 @@ class ExerciseDetailScreen extends StatelessWidget {
                             videoURL: '',
                           )).then((success) {
                             if (success) {
+                              if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content:
                                         Text('Exercise added to your library')),
                               );
-                              Navigator.pop(context);
+                              if (context.mounted) {
+                                  Navigator.pop(context);
+                                }
+                              }
                             } else {
+                              if (context.mounted) {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
                                     content: Text('Failed to add exercise')),
                               );
+                              }
                             }
                           });
                         },

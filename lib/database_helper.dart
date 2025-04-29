@@ -8,7 +8,7 @@ import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/sql_queries.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:sqflite/sqflite.dart';
+
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();

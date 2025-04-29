@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/widgets.dart';
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
@@ -8,7 +7,6 @@ import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
-import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
 import 'package:stop_watch_timer/stop_watch_timer.dart';
@@ -78,8 +76,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     children: [
                       atsButton(
                         onPressed: () {
+                          if (context.mounted) {
                           Navigator.pop(context);
                           Navigator.pop(context);
+                          }
                         },
                         backgroundColor:
                             Theme.of(context).colorScheme.errorContainer,
@@ -94,7 +94,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       ),
                       atsButton(
                         onPressed: () {
+                          if (context.mounted) {
                           Navigator.pop(context);
+                          }
                         },
                         child: const Text('continue workout'),
                       ),
@@ -321,12 +323,15 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                             widget.stopWatchTimer.onStopTimer();
 
                             await showEndWorkoutSummaryModal();
-
+                            if (context.mounted) {
                             Navigator.pop(context);
                             Navigator.pop(context);
+                            }
                           } else {
+                            if (context.mounted) {
                             Navigator.pop(context);
                             showEmptyWorkoutErrorMessage();
+                            }
                           }
                         },
                         backgroundColor:

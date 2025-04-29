@@ -151,7 +151,9 @@ class _AddWorkoutSessionScreenState extends State<AddWorkoutSessionScreen> {
                           onPressed: () async {
                             await DatabaseHelper.deleteWorkoutSession(
                                 widget.workout!);
+                            if (context.mounted) {
                             Navigator.pop(context);
+                            }
                             return null;
                           },
                           backgroundColor:

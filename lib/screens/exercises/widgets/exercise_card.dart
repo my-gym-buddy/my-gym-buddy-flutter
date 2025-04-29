@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
-import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
 import 'package:gym_buddy_app/screens/exercises/exercise_detail_screen.dart';
-import 'package:gym_buddy_app/services/exercise_service.dart';
+
 
 
 

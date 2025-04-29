@@ -6,7 +6,6 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/statistics/add_workout_session_screen.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row_display.dart';
-import 'package:gym_buddy_app/screens/workouts/add_workout_screen.dart';
 
 class SingleWorkoutStatsisticsScreen extends StatefulWidget {
   SingleWorkoutStatsisticsScreen({super.key, required this.workout});
@@ -56,7 +55,9 @@ class _SingleWorkoutStatsisticsScreenState
                       widget.workout = editedWorkout;
                     });
                   } else {
+                    if (context.mounted) {
                     Navigator.pop(context);
+                    }
                   }
                 }),
           )
