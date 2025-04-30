@@ -35,7 +35,7 @@ jobs:
         run: flutter pub get
 
       - name: Run tests with coverage
-        run: flutter test --coverage --test-directory=./tests
+        run: flutter test --coverage
 
       - name: Build APK
         run: flutter build apk --release
