@@ -75,7 +75,7 @@ void main() {
         ],
       );
 
-      final expected = 'Exercises:\nExercise 1\n10.00 kg x 5 reps\n\n';
+      const expected = 'Exercises:\nExercise 1\n10.00 kg x 5 reps\n\n';
       expect(Helper.workoutExercisesToText(workout), expected);
     });
   });
