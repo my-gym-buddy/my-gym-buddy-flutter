@@ -70,12 +70,6 @@ jobs:
           name: coverage-report
           path: coverage
 
-      - name: Debug coverage path
-        run: |
-          echo "Verifying coverage file path and content"
-          ls -lah coverage
-          cat coverage/lcov.info | head -n 20
-
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v5
         env:
@@ -85,3 +79,4 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
             -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
             -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info
