@@ -4,6 +4,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
+import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
@@ -12,14 +13,14 @@ class ExerciseDetailScreen extends StatelessWidget {
   final Exercise exercise;
   final bool editMode;
   TextEditingController nameController = TextEditingController();
-  
+
   ExerciseDetailScreen({
     super.key,
     required this.exercise,
     required this.editMode,
   });
 
-  @override 
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: _buildAppBar(context),
@@ -73,7 +74,6 @@ class ExerciseDetailScreen extends StatelessWidget {
   List<Widget> _buildEditActions(BuildContext context) {
     return [
       _buildEditButton(context),
-      _buildDeleteButton(context),
     ];
   }
 
@@ -84,13 +84,7 @@ class ExerciseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildDeleteButton(BuildContext context) {
-    return atsIconButton(
-      icon: const Icon(Icons.delete),
-      onPressed: () => _showDeleteConfirmation(context),
-    );
-  }
-
+ 
   Widget _buildImageSection(BuildContext context) {
     return SizedBox(
       height: 300,
@@ -209,7 +203,7 @@ class ExerciseDetailScreen extends StatelessWidget {
       'assets/exercises/${exercise.id}_0.jpg',
       'assets/exercises/${exercise.id}_1.jpg'
     ];
-    
+
     DatabaseHelper.saveExercise(Exercise(
       id: exercise.id,
       name: exercise.name,
@@ -227,7 +221,7 @@ class ExerciseDetailScreen extends StatelessWidget {
 
   void _handleSaveResponse(BuildContext context, bool success) {
     if (!context.mounted) return;
-    
+
     if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Exercise added to your library')),
@@ -244,9 +238,11 @@ class ExerciseDetailScreen extends StatelessWidget {
 
   Widget _buildExerciseImages(BuildContext context) {
     final videoId = getYoutubeVideoId(exercise.videoURL);
-    final hasVideo = exercise.videoURL != null && exercise.videoURL!.isNotEmpty && videoId != null;
+    final hasVideo = exercise.videoURL != null &&
+        exercise.videoURL!.isNotEmpty &&
+        videoId != null;
     final totalItems = (hasVideo ? 1 : 0) + (exercise.images?.length ?? 0);
-    
+
     return PageView.builder(
       itemCount: totalItems,
       itemBuilder: (context, index) {
@@ -261,11 +257,11 @@ class ExerciseDetailScreen extends StatelessWidget {
 
   String? getYoutubeVideoId(String? url) {
     if (url == null || url.isEmpty) return null;
-    
+
     RegExp regExp = RegExp(
       r'^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*',
     );
-    
+
     Match? match = regExp.firstMatch(url);
     return match?.group(1);
   }
@@ -324,7 +320,8 @@ class ExerciseDetailScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildErrorWidget(BuildContext context, Object error, StackTrace? stackTrace) {
+  Widget _buildErrorWidget(
+      BuildContext context, Object error, StackTrace? stackTrace) {
     return Container(
       color: Theme.of(context).colorScheme.primaryContainer,
       child: const Center(
@@ -389,7 +386,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   Widget _buildDatabaseImageThumbnail(BuildContext context, int index) {
     final imageSource = exercise.images![index];
     final isNetworkImage = imageSource.startsWith('http');
-    
+
     return GestureDetector(
       onTap: () => _showFullScreenImage(context, imageSource),
       child: Padding(
@@ -431,7 +428,9 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Color _getDifficultyColor(BuildContext context, String? difficulty) {
-    if (difficulty == null) return Theme.of(context).colorScheme.surfaceContainerHighest;
+    if (difficulty == null){
+      return Theme.of(context).colorScheme.surfaceContainerHighest;
+    }
 
     switch (difficulty.toLowerCase()) {
       case 'beginner':
@@ -495,10 +494,62 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   void _showEditForm(BuildContext context) {
-    // Implementation of _showEditForm method
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      builder: (BuildContext context) => _buildEditFormContent(context),
+    );
   }
 
-  void _showDeleteConfirmation(BuildContext context) {
-    // Implementation of _showDeleteConfirmation method
+  Widget _buildEditFormContent(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.75,
+        expand: false,
+        builder: (context, scrollController) => _buildExerciseFormWithPadding(context),
+      ),
+    );
   }
+
+  Widget _buildExerciseFormWithPadding(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: ExerciseForm(
+        exercise: exercise,
+        isModal: true,
+        onSave: (updatedExercise) => _handleExerciseUpdate(context, updatedExercise),
+      ),
+    );
+  }
+
+  Future<void> _handleExerciseUpdate(BuildContext context, Exercise updatedExercise) async {
+    try {
+      await DatabaseHelper.updateExercise(updatedExercise);
+      if (!context.mounted) return;
+      
+      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ExerciseDetailScreen(
+            exercise: updatedExercise,
+            editMode: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update exercise')),
+      );
+    }
+  }
+
+ 
 }
