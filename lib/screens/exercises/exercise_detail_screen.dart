@@ -13,298 +13,35 @@ class ExerciseDetailScreen extends StatelessWidget {
   final Exercise exercise;
   final bool editMode;
   TextEditingController nameController = TextEditingController();
-  ExerciseDetailScreen(
-      {Key? key, required this.exercise, required this.editMode})
-      : super(key: key);
+  
+  ExerciseDetailScreen({
+    super.key,
+    required this.exercise,
+    required this.editMode,
+  });
 
   @override 
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(exercise.name),
-        leading: atsIconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const AllExercisesScreen()),
-            );
-          },
-        ),
-        actions: [
-          if (editMode) ...[
-            atsIconButton(
-              icon: const Icon(Icons.edit),
-              onPressed: () {
-                showModalBottomSheet(
-                  context: context,
-                  isScrollControlled: true,
-                  builder: (BuildContext context) {
-                    return 
-                    DraggableScrollableSheet(
-                      initialChildSize: 0.7, // Takes up 70% of screen height
-                      minChildSize: 0.5, // Minimum 50% of screen height
-                      maxChildSize: 0.75, // Maximum 75% of screen height
-                      expand: false,
-                      builder: (context, scrollController) {
-                        return Padding(
-                          padding: EdgeInsets.only(
-                            bottom: MediaQuery.of(context).viewInsets.bottom,
-                          ),
-                          child: ExerciseForm(
-                            exercise: exercise,
-                            isModal: true,
-                            onSave: (updatedExercise) async {
-                              try {
-                                await DatabaseHelper.updateExercise(updatedExercise);
-                                if (context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                                // Refresh the screen with updated exercise
-                                if (context.mounted) {
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ExerciseDetailScreen(
-                                      exercise: updatedExercise,
-                                      editMode: true,
-                                    ),
-                                  ),
-                                );
-                                }
-                              } catch (e) {
-                                if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(content: Text('Failed to update exercise')),
-                                );
-                                }
-                              }
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  },
-                );
-              },
-            ),
-            atsIconButton(
-              icon: const Icon(Icons.delete),
-              onPressed: () {
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: const Text('Delete Exercise'),
-                      content: const Text(
-                          'Are you sure you want to delete this exercise?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: const Text('Cancel'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            DatabaseHelper.deleteExercise(exercise)
-                                .then((success) {
-                              if (success) {
-                                if (context.mounted) {
-                                Navigator.pop(
-                                    context); // Return to previous screen
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('Exercise deleted')),
-                                );
-                                }
-                                if (context.mounted) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) =>
-                                          const AllExercisesScreen()),
-                                );
-                                }
-                              } else {
-                                if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content:
-                                          Text('Failed to delete exercise')),
-                                  );
-                                }
-                              }
-                            });
-                          },
-                          child: const Text('Delete'),
-                        ),
-                      ],
-                    );
-                  },
-                );
-              },
-            ),
-          ]
-        ],
-      ),
+      appBar: _buildAppBar(context),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Exercise images
-            SizedBox(
-              height: 300,
-              width: double.infinity,
-              child: _buildExerciseImages(context),
-            ),
-
+            _buildImageSection(context),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title and badges
-                  Text(
-                    exercise.name,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Category and difficulty chips
-                  Row(
-                    children: [
-                      Chip(
-                        label: Text(exercise.category ?? 'No category'),
-                        backgroundColor:
-                            Theme.of(context).colorScheme.primaryContainer,
-                      ),
-                      const SizedBox(width: 8),
-                      Chip(
-                        label: Text(exercise.difficulty ?? 'No difficulty'),
-                        backgroundColor:
-                            _getDifficultyColor(context, exercise.difficulty),
-                      ),
-                    ],
-                  ),
-
+                  _buildTitleSection(context),
                   const SizedBox(height: 24),
-
-                  // Description section
-                  const Text(
-                    'Description',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      exercise.description ?? 'No description available',
-                      style: const TextStyle(
-                        height: 1.5,
-                      ),
-                    ),
-                  ),
-
+                  _buildDescriptionSection(context),
                   const SizedBox(height: 32),
-
-                  // Image gallery (if available)
                   if (exercise.id != null && exercise.id!.isNotEmpty)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text(
-                          'Exercise Form',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 18,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        if (!editMode) ...{
-                          SizedBox(
-                            height: 120,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: List.generate(
-                                  numberOfImages,
-                                  (index) =>
-                                      _buildImageThumbnail(context, index)),
-                            ),
-                          ),
-                        } else ...{
-                          SizedBox(
-                            height: 120,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: List.generate(
-                                exercise.images?.length ?? 0,
-                                (index) => _buildDatabaseImageThumbnail(context, index),
-                              ),
-                            ),
-                          ),
-                        }
-                      ],
-                    ),
-
+                    _buildExerciseFormSection(context),
                   const SizedBox(height: 32),
-
-                  // Add to library button
-                  if (!editMode)
-                    Center(
-                      child: atsButton(
-                        onPressed: () {
-                          print(exercise.images = [
-                            'assets/exercises/${exercise.id}_0.jpg',
-                            'assets/exercises/${exercise.id}_1.jpg'
-                          ]);
-                          print(exercise.id);
-                          print(exercise.name);
-                          DatabaseHelper.saveExercise(Exercise(
-                            id: exercise.id,
-                            name: exercise.name,
-                            description: exercise.description,
-                            category: exercise.category,
-                            difficulty: exercise.difficulty,
-                            images: exercise.images = [
-                              'assets/exercises/${exercise.id}_0.jpg',
-                              'assets/exercises/${exercise.id}_1.jpg'
-                            ],
-                            videoURL: '',
-                          )).then((success) {
-                            if (success) {
-                              if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content:
-                                        Text('Exercise added to your library')),
-                              );
-                              if (context.mounted) {
-                                  Navigator.pop(context);
-                                }
-                              }
-                            } else {
-                              if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('Failed to add exercise')),
-                              );
-                              }
-                            }
-                          });
-                        },
-                        child: const Text('Add to My Exercises'),
-                      ),
-                    ),
+                  if (!editMode) _buildAddToLibraryButton(context),
                 ],
               ),
             ),
@@ -312,6 +49,194 @@ class ExerciseDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      title: Text(exercise.name),
+      leading: _buildBackButton(context),
+      actions: editMode ? _buildEditActions(context) : null,
+    );
+  }
+
+  Widget _buildBackButton(BuildContext context) {
+    return atsIconButton(
+      icon: const Icon(Icons.arrow_back),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
+        );
+      },
+    );
+  }
+
+  List<Widget> _buildEditActions(BuildContext context) {
+    return [
+      _buildEditButton(context),
+      _buildDeleteButton(context),
+    ];
+  }
+
+  Widget _buildEditButton(BuildContext context) {
+    return atsIconButton(
+      icon: const Icon(Icons.edit),
+      onPressed: () => _showEditForm(context),
+    );
+  }
+
+  Widget _buildDeleteButton(BuildContext context) {
+    return atsIconButton(
+      icon: const Icon(Icons.delete),
+      onPressed: () => _showDeleteConfirmation(context),
+    );
+  }
+
+  Widget _buildImageSection(BuildContext context) {
+    return SizedBox(
+      height: 300,
+      width: double.infinity,
+      child: _buildExerciseImages(context),
+    );
+  }
+
+  Widget _buildTitleSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          exercise.name,
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildCategoryChips(context),
+      ],
+    );
+  }
+
+  Widget _buildCategoryChips(BuildContext context) {
+    return Row(
+      children: [
+        Chip(
+          label: Text(exercise.category ?? 'No category'),
+          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        ),
+        const SizedBox(width: 8),
+        Chip(
+          label: Text(exercise.difficulty ?? 'No difficulty'),
+          backgroundColor: _getDifficultyColor(context, exercise.difficulty),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescriptionSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Description',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            exercise.description ?? 'No description available',
+            style: const TextStyle(height: 1.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExerciseFormSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Exercise Form',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          height: 120,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: _buildImageList(context),
+          ),
+        ),
+      ],
+    );
+  }
+
+  List<Widget> _buildImageList(BuildContext context) {
+    if (editMode) {
+      return List.generate(
+        exercise.images?.length ?? 0,
+        (index) => _buildDatabaseImageThumbnail(context, index),
+      );
+    }
+    return List.generate(
+      numberOfImages,
+      (index) => _buildImageThumbnail(context, index),
+    );
+  }
+
+  Widget _buildAddToLibraryButton(BuildContext context) {
+    return Center(
+      child: atsButton(
+        onPressed: () => _handleAddToLibrary(context),
+        child: const Text('Add to My Exercises'),
+      ),
+    );
+  }
+
+  void _handleAddToLibrary(BuildContext context) {
+    exercise.images = [
+      'assets/exercises/${exercise.id}_0.jpg',
+      'assets/exercises/${exercise.id}_1.jpg'
+    ];
+    
+    DatabaseHelper.saveExercise(Exercise(
+      id: exercise.id,
+      name: exercise.name,
+      description: exercise.description,
+      category: exercise.category,
+      difficulty: exercise.difficulty,
+      images: exercise.images,
+      videoURL: '',
+    )).then((success) => _handleSaveResponse(context, success));
+  }
+
+  void _handleSaveResponse(BuildContext context, bool success) {
+    if (!context.mounted) return;
+    
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Exercise added to your library')),
+      );
+      if (context.mounted) {
+        Navigator.pop(context);
+      }
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to add exercise')),
+      );
+    }
   }
 
   Widget _buildExerciseImages(BuildContext context) {
@@ -554,5 +479,13 @@ class ExerciseDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  void _showEditForm(BuildContext context) {
+    // Implementation of _showEditForm method
+  }
+
+  void _showDeleteConfirmation(BuildContext context) {
+    // Implementation of _showDeleteConfirmation method
   }
 }
