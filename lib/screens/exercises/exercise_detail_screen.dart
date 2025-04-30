@@ -5,7 +5,6 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
-import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
   static const int numberOfImages = 2;
@@ -219,7 +218,11 @@ class ExerciseDetailScreen extends StatelessWidget {
       difficulty: exercise.difficulty,
       images: exercise.images,
       videoURL: '',
-    )).then((success) => _handleSaveResponse(context, success));
+    )).then((success) {
+      if (context.mounted) {
+        _handleSaveResponse(context, success);
+      }
+    });
   }
 
   void _handleSaveResponse(BuildContext context, bool success) {
@@ -240,109 +243,119 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Widget _buildExerciseImages(BuildContext context) {
-    // Extract video ID from URL
-    String? getYoutubeVideoId(String? url) {
-      if (url == null || url.isEmpty) return null;
-      
-      RegExp regExp = RegExp(
-        r'^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*',
-      );
-      
-      Match? match = regExp.firstMatch(url);
-      return match?.group(1);
-    }
-
-    final hasVideo = exercise.videoURL != null && exercise.videoURL!.isNotEmpty;
     final videoId = getYoutubeVideoId(exercise.videoURL);
-    final totalItems = ((hasVideo && videoId != null) ? 1 : 0) + (exercise.images?.length ?? 0);
+    final hasVideo = exercise.videoURL != null && exercise.videoURL!.isNotEmpty && videoId != null;
+    final totalItems = (hasVideo ? 1 : 0) + (exercise.images?.length ?? 0);
     
     return PageView.builder(
       itemCount: totalItems,
       itemBuilder: (context, index) {
-        // Show video as first item
-        if (hasVideo && videoId != null && index == 0) {
-          return GestureDetector(
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Scaffold(
-                    backgroundColor: Colors.black,
-                    appBar: AppBar(
-                      backgroundColor: Colors.black,
-                      iconTheme: const IconThemeData(color: Colors.white),
-                    ),
-                    body: Center(
-                      child: YoutubePlayer(
-                        controller: YoutubePlayerController(
-                          initialVideoId: videoId,  // Use extracted ID here
-                          flags: const YoutubePlayerFlags(
-                            autoPlay: true,
-                            mute: false,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                SizedBox(
-                  height: 300,
-                  child: YoutubePlayer(
-                    controller: YoutubePlayerController(
-                      initialVideoId: videoId,  // Use extracted ID here
-                      flags: const YoutubePlayerFlags(
-                        autoPlay: false,
-                        mute: true,
-                        hideControls: true,
-                      ),
-                    ),
-                  ),
-                ),
-                const Icon(Icons.play_circle_fill, size: 64, color: Colors.white),
-              ],
-            ),
-          );
+        if (hasVideo && index == 0) {
+          return _buildVideoPlayer(context, videoId!);
         } else {
-          // Show images after video
-          final imageIndex = hasVideo ? index - 1 : index;
-          final imageSource = exercise.images![imageIndex];
-          final isNetworkImage = imageSource.startsWith('http');
-
-          return GestureDetector(
-            onTap: () => _showFullScreenImage(context, imageSource),
-            child: isNetworkImage
-                ? Image.network(
-                    imageSource,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        child: const Center(
-                          child: Icon(Icons.fitness_center, size: 80),
-                        ),
-                      );
-                    },
-                  )
-                : Image.asset(
-                    imageSource,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Container(
-                        color: Theme.of(context).colorScheme.primaryContainer,
-                        child: const Center(
-                          child: Icon(Icons.fitness_center, size: 80),
-                        ),
-                      );
-                    },
-                  ),
-          );
+          return _buildImageView(context, index, hasVideo);
         }
       },
+    );
+  }
+
+  String? getYoutubeVideoId(String? url) {
+    if (url == null || url.isEmpty) return null;
+    
+    RegExp regExp = RegExp(
+      r'^.*(?:(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/)|(?:(?:watch)?\?v(?:i)?=|\&v(?:i)?=))([^#\&\?]*).*',
+    );
+    
+    Match? match = regExp.firstMatch(url);
+    return match?.group(1);
+  }
+
+  Widget _buildVideoPlayer(BuildContext context, String videoId) {
+    return GestureDetector(
+      onTap: () => _showFullScreenVideo(context, videoId),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          SizedBox(
+            height: 300,
+            child: YoutubePlayer(
+              controller: YoutubePlayerController(
+                initialVideoId: videoId,
+                flags: const YoutubePlayerFlags(
+                  autoPlay: false,
+                  mute: true,
+                  hideControls: true,
+                ),
+              ),
+            ),
+          ),
+          const Icon(Icons.play_circle_fill, size: 64, color: Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildImageView(BuildContext context, int index, bool hasVideo) {
+    final imageIndex = hasVideo ? index - 1 : index;
+    final imageSource = exercise.images![imageIndex];
+    final isNetworkImage = imageSource.startsWith('http');
+
+    return GestureDetector(
+      onTap: () => _showFullScreenImage(context, imageSource),
+      child: isNetworkImage
+          ? _buildNetworkImage(imageSource)
+          : _buildAssetImage(imageSource),
+    );
+  }
+
+  Widget _buildNetworkImage(String imageSource) {
+    return Image.network(
+      imageSource,
+      fit: BoxFit.cover,
+      errorBuilder: _buildErrorWidget,
+    );
+  }
+
+  Widget _buildAssetImage(String imageSource) {
+    return Image.asset(
+      imageSource,
+      fit: BoxFit.cover,
+      errorBuilder: _buildErrorWidget,
+    );
+  }
+
+  Widget _buildErrorWidget(BuildContext context, Object error, StackTrace? stackTrace) {
+    return Container(
+      color: Theme.of(context).colorScheme.primaryContainer,
+      child: const Center(
+        child: Icon(Icons.fitness_center, size: 80),
+      ),
+    );
+  }
+
+  void _showFullScreenVideo(BuildContext context, String videoId) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            iconTheme: const IconThemeData(color: Colors.white),
+          ),
+          body: Center(
+            child: YoutubePlayer(
+              controller: YoutubePlayerController(
+                initialVideoId: videoId,
+                flags: const YoutubePlayerFlags(
+                  autoPlay: true,
+                  mute: false,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -418,7 +431,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Color _getDifficultyColor(BuildContext context, String? difficulty) {
-    if (difficulty == null) return Theme.of(context).colorScheme.surfaceVariant;
+    if (difficulty == null) return Theme.of(context).colorScheme.surfaceContainerHighest;
 
     switch (difficulty.toLowerCase()) {
       case 'beginner':
@@ -428,7 +441,7 @@ class ExerciseDetailScreen extends StatelessWidget {
       case 'expert':
         return Colors.red[100]!;
       default:
-        return Theme.of(context).colorScheme.surfaceVariant;
+        return Theme.of(context).colorScheme.surfaceContainerHighest;
     }
   }
 

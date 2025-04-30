@@ -2,18 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/exercises/exercise_detail_screen.dart';
 
-
-
-
 class ExerciseCard extends StatelessWidget {
   final Exercise exercise;
   final bool editMode;
 
-  const ExerciseCard({Key? key, required this.exercise, required this.editMode}) : super(key: key);
+  const ExerciseCard(
+      {super.key, required this.exercise, required this.editMode});
 
   Color _getDifficultyColor(String? difficulty) {
     if (difficulty == null) return Colors.grey.shade200;
-    
+
     switch (difficulty.toLowerCase()) {
       case 'beginner':
         return Colors.green.shade100;
@@ -39,7 +37,8 @@ class ExerciseCard extends StatelessWidget {
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ExerciseDetailScreen(exercise: exercise, editMode: editMode),
+              builder: (context) =>
+                  ExerciseDetailScreen(exercise: exercise, editMode: editMode),
             ),
           );
         },
@@ -55,9 +54,10 @@ class ExerciseCard extends StatelessWidget {
                 itemBuilder: (context, index) {
                   final imageSource = exercise.images?[index] ?? '';
                   final isNetworkImage = imageSource.startsWith('http');
-                  
+
                   return ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
                     child: isNetworkImage
                         ? Image.network(
                             imageSource,
@@ -67,7 +67,8 @@ class ExerciseCard extends StatelessWidget {
                               return Container(
                                 color: Colors.grey[200],
                                 child: const Center(
-                                  child: Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+                                  child: Icon(Icons.image_not_supported,
+                                      size: 40, color: Colors.grey),
                                 ),
                               );
                             },
@@ -80,7 +81,8 @@ class ExerciseCard extends StatelessWidget {
                               return Container(
                                 color: Colors.grey[200],
                                 child: const Center(
-                                  child: Icon(Icons.image_not_supported, size: 40, color: Colors.grey),
+                                  child: Icon(Icons.image_not_supported,
+                                      size: 40, color: Colors.grey),
                                 ),
                               );
                             },
@@ -111,7 +113,8 @@ class ExerciseCard extends StatelessWidget {
                         ),
                       ),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
                           color: _getDifficultyColor(exercise.difficulty),
                           borderRadius: BorderRadius.circular(12),
@@ -130,7 +133,8 @@ class ExerciseCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Icon(Icons.fitness_center, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.fitness_center,
+                          size: 16, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         exercise.category ?? 'No category',
@@ -150,4 +154,3 @@ class ExerciseCard extends StatelessWidget {
     );
   }
 }
-

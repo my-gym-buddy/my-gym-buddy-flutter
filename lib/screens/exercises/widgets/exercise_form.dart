@@ -12,11 +12,11 @@ class ExerciseForm extends StatefulWidget {
   final Function(Exercise) onSave;
 
   const ExerciseForm({
-    Key? key,
+    super.key,
     this.exercise,
     required this.onSave,
     this.isModal = false,
-  }) : super(key: key);
+  });
 
   @override
   State<ExerciseForm> createState() => _ExerciseFormState();
@@ -27,7 +27,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
   TextEditingController descriptionController = TextEditingController();
   TextEditingController videoIDController = TextEditingController();
   TextEditingController imageUrlController = TextEditingController();
-  
+
   List<String> images = [];
   List<String> categories = [];
   List<String> difficulties = [];
@@ -54,14 +54,15 @@ class _ExerciseFormState extends State<ExerciseForm> {
     setState(() {
       categories = loadedCategories;
       difficulties = loadedDifficulties;
-      
+
       // Add selected category to the list if it exists and isn't already present
       if (selectedCategory != null && !categories.contains(selectedCategory)) {
         categories.add(selectedCategory!);
       }
-      
+
       // Add selected difficulty to the list if it exists and isn't already present
-      if (selectedDifficulty != null && !difficulties.contains(selectedDifficulty)) {
+      if (selectedDifficulty != null &&
+          !difficulties.contains(selectedDifficulty)) {
         difficulties.add(selectedDifficulty!);
       }
     });
@@ -214,7 +215,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
               errorBuilder: (context, error, stackTrace) {
                 return Container(
                   height: 100,
-                   width: double.infinity,
+                  width: double.infinity,
                   color: Colors.grey.shade200,
                   child: const Icon(Icons.broken_image, color: Colors.grey),
                 );
@@ -269,9 +270,11 @@ class _ExerciseFormState extends State<ExerciseForm> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.video_library, size: 48, color: Colors.grey.shade400),
+                  Icon(Icons.video_library,
+                      size: 48, color: Colors.grey.shade400),
                   const SizedBox(height: 8),
-                  Text('Invalid video URL', style: TextStyle(color: Colors.grey.shade600)),
+                  Text('Invalid video URL',
+                      style: TextStyle(color: Colors.grey.shade600)),
                 ],
               ),
             );
@@ -282,12 +285,12 @@ class _ExerciseFormState extends State<ExerciseForm> {
   }
 
   String? _getYoutubeVideoId(String url) {
-    // If the URL is already just a video ID (no slashes or dots), return it directly
+    // Direct video ID case
     if (!url.contains('/') && !url.contains('.')) {
       return url;
     }
-    
-    // Otherwise, try to extract from full URL
+
+    // Extract from full URL
     RegExp regExp = RegExp(
       r'^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).?',
     );
@@ -301,7 +304,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
     required Function(String) onAdd,
   }) async {
     final controller = TextEditingController();
-    
+
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -366,7 +369,8 @@ class _ExerciseFormState extends State<ExerciseForm> {
         ? _buildForm()
         : Scaffold(
             appBar: AppBar(
-              title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
+              title: Text(
+                  widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
               leading: atsIconButton(
                 icon: const Icon(Icons.arrow_back),
                 onPressed: () => Navigator.pop(context),
@@ -375,4 +379,4 @@ class _ExerciseFormState extends State<ExerciseForm> {
             body: _buildForm(),
           );
   }
-} 
+}
