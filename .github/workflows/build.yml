@@ -33,6 +33,11 @@ jobs:
       - name: Build APK
         run: flutter build apk --release
 
+      - name: Run tests with coverage
+        run: |
+          flutter test --coverage
+          flutter test --machine > test-results.json
+
   sonar_scan:
     name: SonarQube Scan
     runs-on: ubuntu-latest
@@ -64,3 +69,6 @@ jobs:
             -Dsonar.pullrequest.key=${{ github.event.pull_request.number }}
             -Dsonar.pullrequest.branch=${{ github.event.pull_request.head.ref }}
             -Dsonar.pullrequest.base=${{ github.event.pull_request.base.ref }}
+            -Dsonar.tests=test
+            -Dsonar.dart.coverage.reportPath=coverage/lcov.info
+            -Dsonar.testExecutionReportPaths=test-results.json
