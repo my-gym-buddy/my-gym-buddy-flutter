@@ -11,18 +11,13 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 
 class DatabaseHelper {
-  static DatabaseHelper _instance = DatabaseHelper._();
+  static final DatabaseHelper _instance = DatabaseHelper._internal();
 
-  // Private constructor
-  DatabaseHelper._();
+  factory DatabaseHelper() => _instance;
 
-  // Getter for the instance
+  DatabaseHelper._internal();
+
   static DatabaseHelper get instance => _instance;
-
-  // Setter for the instance (used in testing)
-  static set instance(DatabaseHelper newInstance) {
-    _instance = newInstance;
-  }
 
   static Database? database;
 
