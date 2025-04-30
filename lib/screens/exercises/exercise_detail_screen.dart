@@ -74,6 +74,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   List<Widget> _buildEditActions(BuildContext context) {
     return [
       _buildEditButton(context),
+      _buildDeleteButton(context),
     ];
   }
 
@@ -84,7 +85,13 @@ class ExerciseDetailScreen extends StatelessWidget {
     );
   }
 
- 
+  Widget _buildDeleteButton(BuildContext context) {
+    return atsIconButton(
+      icon: const Icon(Icons.delete),
+      onPressed: () => _showDeleteConfirmation(context),
+    );
+  }
+
   Widget _buildImageSection(BuildContext context) {
     return SizedBox(
       height: 300,
@@ -551,5 +558,48 @@ class ExerciseDetailScreen extends StatelessWidget {
     }
   }
 
- 
+  void _showDeleteConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Delete Exercise'),
+          content: const Text('Are you sure you want to delete this exercise?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => _handleDelete(context),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
+    final success = await DatabaseHelper.deleteExercise(exercise);
+    if (!context.mounted) return;
+
+    Navigator.pop(context); // Close dialog
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Exercise deleted')),
+      );
+      if (!context.mounted) return;
+      
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete exercise')),
+      );
+    }
+  }
 }
