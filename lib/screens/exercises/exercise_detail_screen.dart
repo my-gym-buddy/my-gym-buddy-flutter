@@ -428,8 +428,9 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Color _getDifficultyColor(BuildContext context, String? difficulty) {
-    if (difficulty == null)
+    if (difficulty == null){
       return Theme.of(context).colorScheme.surfaceContainerHighest;
+    }
 
     switch (difficulty.toLowerCase()) {
       case 'beginner':
@@ -497,56 +498,57 @@ class ExerciseDetailScreen extends StatelessWidget {
       context: context,
       isScrollControlled: true,
       isDismissible: false,
-      builder: (BuildContext context) {
-        return PopScope(
-          canPop: false,
-          child: DraggableScrollableSheet(
-            initialChildSize: 0.7,
-            minChildSize: 0.5,
-            maxChildSize: 0.75,
-            expand: false,
-            builder: (context, scrollController) {
-              return Padding(
-                padding: EdgeInsets.only(
-                  bottom: MediaQuery.of(context).viewInsets.bottom,
-                ),
-                child: ExerciseForm(
-                  exercise: exercise,
-                  isModal: true,
-                  onSave: (updatedExercise) async {
-                    try {
-                      await DatabaseHelper.updateExercise(updatedExercise);
-                      if (context.mounted) {
-                        Navigator.pop(context);
-                      }
-                      // Refresh the screen with updated exercise
-                      if (context.mounted) {
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => ExerciseDetailScreen(
-                              exercise: updatedExercise,
-                              editMode: true,
-                            ),
-                          ),
-                        );
-                      }
-                    } catch (e) {
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Failed to update exercise')),
-                        );
-                      }
-                    }
-                  },
-                ),
-              );
-            },
-          ),
-        );
-      },
+      builder: (BuildContext context) => _buildEditFormContent(context),
     );
+  }
+
+  Widget _buildEditFormContent(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      child: DraggableScrollableSheet(
+        initialChildSize: 0.7,
+        minChildSize: 0.5,
+        maxChildSize: 0.75,
+        expand: false,
+        builder: (context, scrollController) => _buildExerciseFormWithPadding(context),
+      ),
+    );
+  }
+
+  Widget _buildExerciseFormWithPadding(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: ExerciseForm(
+        exercise: exercise,
+        isModal: true,
+        onSave: (updatedExercise) => _handleExerciseUpdate(context, updatedExercise),
+      ),
+    );
+  }
+
+  Future<void> _handleExerciseUpdate(BuildContext context, Exercise updatedExercise) async {
+    try {
+      await DatabaseHelper.updateExercise(updatedExercise);
+      if (!context.mounted) return;
+      
+      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ExerciseDetailScreen(
+            exercise: updatedExercise,
+            editMode: true,
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to update exercise')),
+      );
+    }
   }
 
  
