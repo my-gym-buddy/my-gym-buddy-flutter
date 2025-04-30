@@ -109,24 +109,30 @@ class ExerciseDetailScreen extends StatelessWidget {
                             DatabaseHelper.deleteExercise(exercise)
                                 .then((success) {
                               if (success) {
+                                if (context.mounted) {
                                 Navigator.pop(
                                     context); // Return to previous screen
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content: Text('Exercise deleted')),
                                 );
+                                }
+                                if (context.mounted) {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                       builder: (context) =>
                                           const AllExercisesScreen()),
                                 );
+                                }
                               } else {
+                                if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
                                   const SnackBar(
                                       content:
                                           Text('Failed to delete exercise')),
-                                );
+                                  );
+                                }
                               }
                             });
                           },
