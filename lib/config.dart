@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Config {
@@ -27,5 +28,11 @@ class Config {
     }
 
     return 'kg';
+  }
+
+  // Add this method for testing purposes
+  @visibleForTesting
+  static void setUnitForTesting(String newUnit) {
+    unit = newUnit;
   }
 }

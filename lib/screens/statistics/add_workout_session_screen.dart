@@ -47,6 +47,80 @@ class _AddWorkoutSessionScreenState extends State<AddWorkoutSessionScreen> {
     });
   }
 
+  Widget _buildTimePickerButton(String label, DateTime time) {
+    return atsButton(
+      child: Text('choose $label (${time.toIso8601String().split('T')[1].split('.')[0]})'),
+      onPressed: () {
+        showTimePicker(
+          context: context,
+          initialTime: TimeOfDay(hour: time.hour, minute: time.minute),
+        ).then((value) {
+          if (value != null) {
+            setState(() {
+              workout.startTime = DateTime(
+                time.year,
+                time.month,
+                time.day,
+                value.hour,
+                value.minute);
+            });
+          }
+        });
+      }
+    );
+  }
+
+  Widget _buildDatePickerButton() {
+    return atsButton(
+      child: Text('choose start date  (${workout.startTime!.toIso8601String().split('T')[0]})'),
+      onPressed: () {
+        showDatePicker(
+          context: context,
+          initialDate: workout.startTime!,
+          firstDate: DateTime(2015),
+          lastDate: DateTime(2101),
+        ).then((value) {
+          if (value != null) {
+            setState(() {
+              workout.startTime = DateTime(
+                value.year,
+                value.month,
+                value.day,
+                workout.startTime!.hour,
+                workout.startTime!.minute);
+            });
+          }
+        });
+      }
+    );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        if (widget.workout != null)
+          atsButton(
+            onPressed: () async {
+              await DatabaseHelper.deleteWorkoutSession(widget.workout!);
+              if (context.mounted) {
+                Navigator.pop(context);
+              }
+              return null;
+            },
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+            child: Text('delete',
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onErrorContainer)),
+          ),
+        const SizedBox(width: 10),
+        _buildAddExerciseButton(),
+        const SizedBox(width: 10),
+        _buildSaveButton(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,151 +151,89 @@ class _AddWorkoutSessionScreenState extends State<AddWorkoutSessionScreen> {
                 labelText: 'description',
               ),
               const SizedBox(height: 15),
-              atsButton(
-                  child: Text(
-                      'choose duration (${Helper.prettyTime(workout.duration!)})'),
-                  onPressed: () {
-                    showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
-                          hour: workout.duration! ~/ 3600,
-                          minute: (workout.duration! % 3600) ~/ 60),
-                    ).then((value) {
-                      if (value != null) {
-                        setState(() {
-                          workout.duration =
-                              value.hour * 3600 + value.minute * 60;
-                        });
-                      }
-                    });
-                  }),
+              _buildDurationButton(),
               const SizedBox(height: 10),
-              atsButton(
-                  child: Text(
-                      'choose start date  (${workout.startTime!.toIso8601String().split('T')[0]})'),
-                  onPressed: () {
-                    showDatePicker(
-                      context: context,
-                      initialDate: workout.startTime!,
-                      firstDate: DateTime(2015),
-                      lastDate: DateTime(2101),
-                    ).then((value) {
-                      if (value != null) {
-                        setState(() {
-                          workout.startTime = DateTime(
-                              value.year,
-                              value.month,
-                              value.day,
-                              workout.startTime!.hour,
-                              workout.startTime!.minute);
-                        });
-                      }
-                    });
-                  }),
+              _buildDatePickerButton(),
               const SizedBox(height: 10),
-              atsButton(
-                  child: Text(
-                      'choose start time  (${workout.startTime!.toIso8601String().split('T')[1].split('.')[0]})'),
-                  onPressed: () {
-                    showTimePicker(
-                      context: context,
-                      initialTime: TimeOfDay(
-                          hour: workout.startTime!.hour,
-                          minute: workout.startTime!.minute),
-                    ).then((value) {
-                      if (value != null) {
-                        setState(() {
-                          workout.startTime = DateTime(
-                              workout.startTime!.year,
-                              workout.startTime!.month,
-                              workout.startTime!.day,
-                              value.hour,
-                              value.minute);
-                        });
-                      }
-                    });
-                  }),
+              _buildTimePickerButton('start time', workout.startTime!),
               const SizedBox(height: 20),
               ExercisesRepSetDisplay(workoutTemplate: workout),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  widget.workout != null
-                      ? atsButton(
-                          onPressed: () async {
-                            await DatabaseHelper.deleteWorkoutSession(
-                                widget.workout!);
-                            Navigator.pop(context);
-                            return null;
-                          },
-                          backgroundColor:
-                              Theme.of(context).colorScheme.errorContainer,
-                          child: Text('delete',
-                              style: TextStyle(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onErrorContainer)),
-                        )
-                      : const SizedBox(),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  atsButton(
-                      onPressed: () => showSearch(
-                          context: context,
-                          delegate: SearchPage<Exercise>(
-                              showItemsOnEmpty: true,
-                              items: allExercises,
-                              searchLabel: 'search exercises',
-                              failure: const Center(
-                                child: Text('no exercises found'),
-                              ),
-                              filter: (exercise) => [
-                                    exercise.name,
-                                  ],
-                              builder: (exercise) => ListTile(
-                                    title: Text(exercise.name.toLowerCase()),
-                                    onTap: () {
-                                      setState(() {
-                                        workout.exercises!.add(
-                                            Exercise.fromJson(
-                                                exercise.toJson()));
-                                      });
-                                      Navigator.pop(context);
-                                    },
-                                  ))),
-                      child: const Text('add exercise')),
-                  const SizedBox(
-                    width: 10,
-                  ),
-                  atsButton(
-                      onPressed: () async {
-                        workout.exercises = workout.exercises!;
-                        workout.name = workoutNameTextController.text;
-                        workout.description =
-                            workoutDescriptionTextController.text;
-
-                        widget.workout != null
-                            ? DatabaseHelper.updateWorkoutSession(workout)
-                            : await DatabaseHelper.saveWorkoutSession(
-                                workout, workout.duration!);
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(widget.workout != null
-                                ? 'workout updated'
-                                : 'workout added'),
-                          ),
-                        );
-                        Navigator.pop(context, widget.workout);
-                      },
-                      child: const Text("save")),
-                ],
-              )
+              _buildActionButtons(),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildDurationButton() {
+    return atsButton(
+      child: Text('choose duration (${Helper.prettyTime(workout.duration!)})'),
+      onPressed: () {
+        showTimePicker(
+          context: context,
+          initialTime: TimeOfDay(
+            hour: workout.duration! ~/ 3600,
+            minute: (workout.duration! % 3600) ~/ 60),
+        ).then((value) {
+          if (value != null) {
+            setState(() {
+              workout.duration = value.hour * 3600 + value.minute * 60;
+            });
+          }
+        });
+      }
+    );
+  }
+
+  Widget _buildAddExerciseButton() {
+    return atsButton(
+      onPressed: () => showSearch(
+        context: context,
+        delegate: SearchPage<Exercise>(
+          showItemsOnEmpty: true,
+          items: allExercises,
+          searchLabel: 'search exercises',
+          failure: const Center(
+            child: Text('no exercises found'),
+          ),
+          filter: (exercise) => [exercise.name],
+          builder: (exercise) => ListTile(
+            title: Text(exercise.name.toLowerCase()),
+            onTap: () {
+              setState(() {
+                workout.exercises!.add(Exercise.fromJson(exercise.toJson()));
+              });
+              Navigator.pop(context);
+            },
+          )
+        )
+      ),
+      child: const Text('add exercise')
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return atsButton(
+      onPressed: () async {
+        workout.exercises = workout.exercises!;
+        workout.name = workoutNameTextController.text;
+        workout.description = workoutDescriptionTextController.text;
+
+        widget.workout != null
+            ? DatabaseHelper.updateWorkoutSession(workout)
+            : await DatabaseHelper.saveWorkoutSession(workout, workout.duration!);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(widget.workout != null
+                ? 'workout updated'
+                : 'workout added'),
+          ),
+        );
+        Navigator.pop(context, widget.workout);
+      },
+      child: const Text("save")
     );
   }
 }

@@ -53,11 +53,11 @@ class _SingleExerciseScreenState extends State<SingleExerciseScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
-                YoutubePlayer.convertUrlToId(widget.exercise.videoID ?? '') !=
+                YoutubePlayer.convertUrlToId(widget.exercise.videoURL ?? '') !=
                         null
                     ? YoutubePlayer(
                         controller: YoutubePlayerController(
-                          initialVideoId: widget.exercise.videoID ?? '',
+                          initialVideoId: widget.exercise.videoURL ?? '',
                           flags: const YoutubePlayerFlags(
                             autoPlay: true,
                             mute: true,
