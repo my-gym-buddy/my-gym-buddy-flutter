@@ -3,10 +3,18 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/exercises/add_exercise_screen.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'mocks/mock_database_helper.dart';
 
-
 void main() {
+  // Initialize FFI
+  setUpAll(() {
+    // Initialize FFI
+    sqfliteFfiInit();
+    // Change the default factory
+    databaseFactory = databaseFactoryFfi;
+  });
+
   group('AddExerciseScreen', () {
     late MockDatabaseHelper mockDatabaseHelper;
 
