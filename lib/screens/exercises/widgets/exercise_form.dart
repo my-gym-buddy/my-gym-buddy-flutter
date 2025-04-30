@@ -365,18 +365,21 @@ class _ExerciseFormState extends State<ExerciseForm> {
 
   @override
   Widget build(BuildContext context) {
-    return widget.isModal
-        ? _buildForm()
-        : Scaffold(
-            appBar: AppBar(
-              title: Text(
-                  widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
-              leading: atsIconButton(
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ),
-            body: _buildForm(),
-          );
+    Widget content = _buildForm();
+    
+    if (!widget.isModal) {
+      return Scaffold(
+        appBar: AppBar(
+          title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
+          leading: atsIconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: content,
+      );
+    }
+    
+    return content;
   }
 }
