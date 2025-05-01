@@ -375,8 +375,7 @@ class DatabaseHelper {
 
     Exercise exercise = Exercise.fromJson(record.first);
     if (previousRecord.isNotEmpty) {
-      exercise.addPreviousSetsFromJson(
-          json.decode(previousRecord.first['rep_set'].toString()));
+      exercise.previousSets = json.decode(previousRecord.first['rep_set'].toString());
     }
 
     return exercise;
@@ -414,6 +413,7 @@ class DatabaseHelper {
         where: 'workout_template_id = ?', whereArgs: [id]);
 
     List<Exercise> exercises = [];
+ 
     for (final exercise in rawExercises) {
       final exerciseID = exercise['exercise_id'].toString();
       final exerciseRecord = await getExerciseGivenID(exerciseID);
