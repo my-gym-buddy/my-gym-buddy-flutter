@@ -64,21 +64,22 @@ class _atsTextFieldState extends State<atsTextField> {
           }
         },
         decoration: InputDecoration(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           floatingLabelAlignment: FloatingLabelAlignment.center,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderRadius: const BorderRadius.all(Radius.circular(50)),
             borderSide: BorderSide(
               color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.outline,
             ),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderRadius: const BorderRadius.all(Radius.circular(50)),
             borderSide: BorderSide(
               color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.outline,
             ),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.all(Radius.circular(50)),
+            borderRadius: const BorderRadius.all(Radius.circular(50)),
             borderSide: BorderSide(
               color: widget.error ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary,
             ),
