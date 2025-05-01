@@ -64,6 +64,7 @@ class _atsTextFieldState extends State<atsTextField> {
           }
         },
         decoration: InputDecoration(
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
           floatingLabelAlignment: FloatingLabelAlignment.center,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.all(Radius.circular(50)),
