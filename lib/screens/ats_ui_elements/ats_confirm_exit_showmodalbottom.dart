@@ -22,20 +22,19 @@ Future<bool> atsConfirmExitDialog(BuildContext context) async {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 atsButton(
-                  onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text(
-                    'Cancel',
-                  
-                  ),
-                ),
-                const SizedBox(width: 16),
-                atsButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   backgroundColor: Theme.of(context).colorScheme.errorContainer,
                   child: Text(
                     'Discard',
                     style: TextStyle(
                         color: Theme.of(context).colorScheme.onErrorContainer),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                atsButton(
+                  onPressed: () => Navigator.of(context).pop(false),
+                  child: const Text(
+                    'Cancel',
                   ),
                 ),
               ],
