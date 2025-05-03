@@ -168,12 +168,6 @@ class SetRow extends StatelessWidget {
                     selectedExercises[index].sets[setIndex].completed = value;
                     refresh!();
                   },
-                  onHold: isEditable != null
-                      ? () {
-                          selectedExercises[index].sets.removeAt(setIndex);
-                          refresh!();
-                        }
-                      : null,
                 )
               : const SizedBox(),
         )
