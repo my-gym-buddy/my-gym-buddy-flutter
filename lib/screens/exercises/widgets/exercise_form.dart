@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_dropdown.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_dialog.dart';
 
 class ExerciseForm extends StatefulWidget {
   final Exercise? exercise;
@@ -34,9 +35,22 @@ class _ExerciseFormState extends State<ExerciseForm> {
   String? selectedCategory;
   String? selectedDifficulty;
 
+  bool _hasChanges = false;
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
+    
+    void markAsChanged() {
+      if (!_hasChanges) setState(() => _hasChanges = true);
+    }
+
+    nameController.addListener(markAsChanged);
+    descriptionController.addListener(markAsChanged);
+    videoIDController.addListener(markAsChanged);
+    imageUrlController.addListener(markAsChanged);
+
     if (widget.exercise != null) {
       nameController.text = widget.exercise!.name;
       descriptionController.text = widget.exercise!.description ?? '';
@@ -351,6 +365,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
   }
 
   void _handleSave() {
+    setState(() => _isSubmitting = true);
     final exercise = Exercise(
       id: widget.exercise?.id,
       name: nameController.text,
@@ -367,13 +382,30 @@ class _ExerciseFormState extends State<ExerciseForm> {
   Widget build(BuildContext context) {
     Widget content = _buildForm();
     
+    content = PopScope(
+      canPop: !_hasChanges || _isSubmitting,
+      onPopInvoked: (didPop) async {
+        if (didPop) return;
+        
+        final shouldPop = await atsConfirmExitDialog(context);
+        if (shouldPop && context.mounted) {
+          Navigator.of(context).pop();
+        }
+      },
+      child: content,
+    );
+    
     if (!widget.isModal) {
       return Scaffold(
         appBar: AppBar(
           title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
           leading: atsIconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              if (!_hasChanges || await atsConfirmExitDialog(context)) {
+                if (context.mounted) Navigator.pop(context);
+              }
+            },
           ),
         ),
         body: content,
