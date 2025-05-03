@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_dropdown.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_showmodalbottom.dart';
 
 class ExerciseForm extends StatefulWidget {
   final Exercise? exercise;
@@ -34,9 +35,22 @@ class _ExerciseFormState extends State<ExerciseForm> {
   String? selectedCategory;
   String? selectedDifficulty;
 
+  bool _hasChanges = false;
+  bool _isSubmitting = false;
+
   @override
   void initState() {
     super.initState();
+
+    void markAsChanged() {
+      if (!_hasChanges) setState(() => _hasChanges = true);
+    }
+
+    nameController.addListener(markAsChanged);
+    descriptionController.addListener(markAsChanged);
+    videoIDController.addListener(markAsChanged);
+    imageUrlController.addListener(markAsChanged);
+
     if (widget.exercise != null) {
       nameController.text = widget.exercise!.name;
       descriptionController.text = widget.exercise!.description ?? '';
@@ -351,6 +365,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
   }
 
   void _handleSave() {
+    setState(() => _isSubmitting = true);
     final exercise = Exercise(
       id: widget.exercise?.id,
       name: nameController.text,
@@ -363,23 +378,43 @@ class _ExerciseFormState extends State<ExerciseForm> {
     widget.onSave(exercise);
   }
 
+  Widget _wrapWithPopScope(Widget content) {
+    return PopScope(
+      canPop: !_hasChanges || _isSubmitting,
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) return;
+        if (!mounted) return;
+        final shouldPop = await atsConfirmExitDialog(context);
+        if (shouldPop && mounted) {
+          Navigator.of(context).pop(result);
+        }
+      },
+      child: content,
+    );
+  }
+
+  Widget _buildScaffold(Widget content) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
+        leading: atsIconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            if (!_hasChanges || await atsConfirmExitDialog(context)) {
+              if (mounted) Navigator.pop(context);
+            }
+          },
+        ),
+      ),
+      body: content,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     Widget content = _buildForm();
-    
-    if (!widget.isModal) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
-          leading: atsIconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        body: content,
-      );
-    }
-    
-    return content;
+    content = _wrapWithPopScope(content);
+
+    return widget.isModal ? content : _buildScaffold(content);
   }
 }
