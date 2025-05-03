@@ -27,6 +27,7 @@ Future<bool> atsConfirmExitDialog(BuildContext context) async {
                 const SizedBox(width: 16),
                 atsButton(
                   onPressed: () => Navigator.of(context).pop(true),
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
                   child: const Text('Discard'),
                 ),
               ],
