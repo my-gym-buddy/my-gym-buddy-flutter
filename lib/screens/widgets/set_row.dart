@@ -66,6 +66,7 @@ class SetRow extends StatelessWidget {
                 selectedExercises[index].sets.removeAt(setIndex);
                 refresh!();
               },
+              borderRadius: BorderRadius.circular(40),
               backgroundColor:
                   Theme.of(context).colorScheme.errorContainer,
               foregroundColor:
