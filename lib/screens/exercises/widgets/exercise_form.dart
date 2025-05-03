@@ -5,7 +5,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_dropdown.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_dialog.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_showmodalbottom.dart';
 
 class ExerciseForm extends StatefulWidget {
   final Exercise? exercise;

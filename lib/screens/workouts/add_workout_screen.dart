@@ -8,7 +8,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_dialog.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_showmodalbottom.dart';
 
 class AddWorkoutScreen extends StatefulWidget {
   AddWorkoutScreen({super.key, this.workout});
@@ -63,7 +63,7 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !_hasChanges || _isSubmitting,
-     onPopInvokedWithResult: (bool didPop, Object? result) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
         if (!mounted) return;
         final shouldPop = await atsConfirmExitDialog(context);
@@ -130,8 +130,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                                 width: 100,
                                 height: 40,
                                 checked: workout.daysOfWeek!.contains(
-                                    Helper.daysInWeek.keys.firstWhere(
-                                        (key) => Helper.daysInWeek[key] == day)),
+                                    Helper.daysInWeek.keys.firstWhere((key) =>
+                                        Helper.daysInWeek[key] == day)),
                                 onChanged: (value) {
                                   setState(() {
                                     int dayIndex = Helper.daysInWeek.keys
@@ -159,7 +159,8 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                     widget.workout != null
                         ? atsButton(
                             onPressed: () async {
-                              await DatabaseHelper.deleteWorkout(widget.workout!);
+                              await DatabaseHelper.deleteWorkout(
+                                  widget.workout!);
                               Navigator.pop(context);
                               return null;
                             },
@@ -207,8 +208,12 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                         onPressed: () async {
                           setState(() => _isSubmitting = true);
                           setState(() {
-                            nameError = workoutNameTextController.text.trim().isEmpty;
-                            descriptionError = workoutDescriptionTextController.text.trim().isEmpty;
+                            nameError =
+                                workoutNameTextController.text.trim().isEmpty;
+                            descriptionError = workoutDescriptionTextController
+                                .text
+                                .trim()
+                                .isEmpty;
                           });
 
                           if (nameError) {
@@ -229,10 +234,12 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                             return;
                           }
 
-                          if (workout.daysOfWeek == null || workout.daysOfWeek!.isEmpty) {
+                          if (workout.daysOfWeek == null ||
+                              workout.daysOfWeek!.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text('please select at least one day of the week'),
+                                content: Text(
+                                    'please select at least one day of the week'),
                               ),
                             );
                             return;
@@ -240,8 +247,9 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
 
                           workout.exercises = workout.exercises!;
                           workout.name = workoutNameTextController.text.trim();
-                          workout.description = workoutDescriptionTextController.text.trim();
-                          
+                          workout.description =
+                              workoutDescriptionTextController.text.trim();
+
                           widget.workout != null
                               ? DatabaseHelper.updateWorkout(workout)
                               : await DatabaseHelper.saveWorkout(workout);
