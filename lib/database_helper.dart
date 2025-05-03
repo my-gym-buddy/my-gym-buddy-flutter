@@ -9,7 +9,6 @@ import 'package:gym_buddy_app/sql_queries.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
 
@@ -375,7 +374,10 @@ class DatabaseHelper {
 
     Exercise exercise = Exercise.fromJson(record.first);
     if (previousRecord.isNotEmpty) {
-      exercise.previousSets = json.decode(previousRecord.first['rep_set'].toString());
+      var decodedJson = json.decode(previousRecord.first['rep_set'].toString());
+      List<dynamic> setsJson = decodedJson['sets'];
+      exercise.previousSets =
+          setsJson.map((set) => RepSet.fromJson(set)).toList();
     }
 
     return exercise;
@@ -413,7 +415,7 @@ class DatabaseHelper {
         where: 'workout_template_id = ?', whereArgs: [id]);
 
     List<Exercise> exercises = [];
- 
+
     for (final exercise in rawExercises) {
       final exerciseID = exercise['exercise_id'].toString();
       final exerciseRecord = await getExerciseGivenID(exerciseID);
@@ -468,7 +470,8 @@ class DatabaseHelper {
               try {
                 await db.execute(query);
               } catch (e) {
-                print('Migration error (can be ignored if column already exists): $e');
+                print(
+                    'Migration error (can be ignored if column already exists): $e');
               }
             }
             await db.setVersion(3);
@@ -486,7 +489,8 @@ class DatabaseHelper {
               try {
                 await db.execute(query);
               } catch (e) {
-                print('Migration error (can be ignored if column already exists): $e');
+                print(
+                    'Migration error (can be ignored if column already exists): $e');
               }
             }
           }
