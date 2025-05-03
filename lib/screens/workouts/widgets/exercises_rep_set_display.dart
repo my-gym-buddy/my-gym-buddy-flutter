@@ -3,6 +3,7 @@ import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_showmodalbottom.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
 
@@ -81,10 +82,13 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                   Theme.of(context).colorScheme.errorContainer,
               foregroundColor:
                   Theme.of(context).colorScheme.onErrorContainer,
-              onPressed: () {
-                setState(() {
-                  widget.workoutTemplate.exercises!.removeAt(index);
-                });
+              onPressed: () async {
+                final bool confirm = await atsConfirmExitDialog(context);
+                if (confirm) {
+                  setState(() {
+                    widget.workoutTemplate.exercises!.removeAt(index);
+                  });
+                }
               },
               icon: const Icon(Icons.delete),
             )
