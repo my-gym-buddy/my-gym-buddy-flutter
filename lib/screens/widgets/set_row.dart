@@ -3,7 +3,6 @@ import 'package:flutter_slidable/flutter_slidable.dart'; // Add this import
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
@@ -39,43 +38,49 @@ class SetRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return setIndex == -1
-        ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Expanded(child: Center(child: Text('set'))),
-              const Expanded(flex: 4, child: Center(child: Text('previous'))),
-              Expanded(
-                  flex: 4,
-                  child:
-                      Center(child: Text('+${Config.getUnitAbbreviation()}'))),
-              const Expanded(flex: 4, child: Center(child: Text('reps'))),
-              const Expanded(flex: 2, child: Center(child: Text(''))),
-            ],
-          )
-        : isEditable != null
-            ? Slidable(
-                // Only enable slidable when editable
-                endActionPane: ActionPane(
-                  motion: const ScrollMotion(),
-                  children: [
-                    SlidableAction(
-                      onPressed: (context) {
-                        selectedExercises[index].sets.removeAt(setIndex);
-                        refresh!();
-                      },
-                      backgroundColor:
-                          Theme.of(context).colorScheme.errorContainer,
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onErrorContainer,
-                      icon: Icons.delete,
-                      label: 'Delete',
-                    ),
-                  ],
-                ),
-                child: _buildSetRow(context),
-              )
-            : _buildSetRow(context);
+    // Handle header row case
+    if (setIndex == -1) {
+      return Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Expanded(child: Center(child: Text('set'))),
+          const Expanded(flex: 4, child: Center(child: Text('previous'))),
+          Expanded(
+              flex: 4,
+              child:
+                  Center(child: Text('+${Config.getUnitAbbreviation()}'))),
+          const Expanded(flex: 4, child: Center(child: Text('reps'))),
+          const Expanded(flex: 2, child: Center(child: Text(''))),
+        ],
+      );
+    }
+    
+    // Handle editable set row with Slidable
+    if (isEditable != null) {
+      return Slidable(
+        endActionPane: ActionPane(
+          motion: const ScrollMotion(),
+          children: [
+            SlidableAction(
+              onPressed: (context) {
+                selectedExercises[index].sets.removeAt(setIndex);
+                refresh!();
+              },
+              backgroundColor:
+                  Theme.of(context).colorScheme.errorContainer,
+              foregroundColor:
+                  Theme.of(context).colorScheme.onErrorContainer,
+              icon: Icons.delete,
+              label: 'Delete',
+            ),
+          ],
+        ),
+        child: _buildSetRow(context),
+      );
+    }
+    
+    // Handle non-editable set row
+    return _buildSetRow(context);
   }
 
   // Extract the row content to a separate method
