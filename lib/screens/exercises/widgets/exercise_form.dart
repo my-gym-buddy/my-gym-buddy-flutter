@@ -41,7 +41,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
   @override
   void initState() {
     super.initState();
-    
+
     void markAsChanged() {
       if (!_hasChanges) setState(() => _hasChanges = true);
     }
@@ -378,40 +378,43 @@ class _ExerciseFormState extends State<ExerciseForm> {
     widget.onSave(exercise);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    Widget content = _buildForm();
-    
-    content = PopScope(
+  Widget _wrapWithPopScope(Widget content) {
+    return PopScope(
       canPop: !_hasChanges || _isSubmitting,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
-        
+        if (!mounted) return;
         final shouldPop = await atsConfirmExitDialog(context);
-        if (shouldPop && context.mounted) {
-          Navigator.of(context).pop();
+        if (shouldPop && mounted) {
+          Navigator.of(context).pop(result);
         }
       },
       child: content,
     );
-    
-    if (!widget.isModal) {
-      return Scaffold(
-        appBar: AppBar(
-          title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
-          leading: atsIconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () async {
-              if (!_hasChanges || await atsConfirmExitDialog(context)) {
-                if (context.mounted) Navigator.pop(context);
-              }
-            },
-          ),
+  }
+
+  Widget _buildScaffold(Widget content) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(widget.exercise == null ? 'Add Exercise' : 'Edit Exercise'),
+        leading: atsIconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () async {
+            if (!_hasChanges || await atsConfirmExitDialog(context)) {
+              if (mounted) Navigator.pop(context);
+            }
+          },
         ),
-        body: content,
-      );
-    }
-    
-    return content;
+      ),
+      body: content,
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Widget content = _buildForm();
+    content = _wrapWithPopScope(content);
+
+    return widget.isModal ? content : _buildScaffold(content);
   }
 }

@@ -27,6 +27,9 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
   List<Exercise> allExercises = [];
+  
+  static const String cancelWorkoutText = 'cancel workout';
+  static const String continueWorkoutText = 'continue workout';
 
   @override
   void initState() {
@@ -51,8 +54,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       context: context,
       title: 'empty workout',
       message: 'you cannot end a workout with no exercises. Please add exercises to the workout before ending it.',
-      primaryButtonText: 'cancel workout',
-      secondaryButtonText: 'continue workout',
+      primaryButtonText: cancelWorkoutText,
+      secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () {
         if (context.mounted) {
           Navigator.pop(context);
@@ -73,8 +76,8 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       context: context,
       title: 'cancel workout session?',
       message: 'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',
-      primaryButtonText: 'cancel workout',
-      secondaryButtonText: 'continue workout',
+      primaryButtonText: cancelWorkoutText,
+      secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () {
         Navigator.pop(context);
         Navigator.pop(context);
@@ -142,7 +145,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       title: 'end workout session?',
       message: 'are you sure you want to end the workout session? This will end the current workout and save all the data.',
       primaryButtonText: 'end & save',
-      secondaryButtonText: 'continue workout',
+      secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () async {
         List<Exercise> exerciseToRemove = [];
         for (final exercise in widget.workoutTemplate.exercises!) {
@@ -171,7 +174,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           widget.stopWatchTimer.onStopTimer();
 
           await showEndWorkoutSummaryModal();
-          if (context.mounted) {
+          if (mounted) {
             Navigator.pop(context);
             Navigator.pop(context);
           }
@@ -193,7 +196,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (status) {
+      onPopInvokedWithResult : (status, result) {
         showEndWorkoutConfirmationModal();
       },
       child: Scaffold(
@@ -280,7 +283,7 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       },
                       backgroundColor:
                           Theme.of(context).colorScheme.errorContainer,
-                      child: Text('cancel workout',
+                      child: Text(cancelWorkoutText,
                           style: Theme.of(context)
                               .textTheme
                               .titleSmall!
@@ -293,13 +296,13 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                       onPressed: () {
                         showEndWorkoutConfirmationModal();
                       },
-                      child: Text(
+                      child: const Text(
                         'end workout',
                       ),
                     ),
                   ],
                 ),
-                SizedBox(height: 20)
+                const SizedBox(height: 20)
               ],
             ),
           ),
