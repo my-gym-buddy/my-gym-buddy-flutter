@@ -15,20 +15,28 @@ Future<bool> atsConfirmExitDialog(BuildContext context) async {
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            const Text('You have unsaved changes. Are you sure you want to leave?'),
+            const Text(
+                'You have unsaved changes. Are you sure you want to leave?'),
             const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                TextButton(
+                atsButton(
                   onPressed: () => Navigator.of(context).pop(false),
-                  child: const Text('Cancel'),
+                  child: const Text(
+                    'Cancel',
+                  
+                  ),
                 ),
                 const SizedBox(width: 16),
                 atsButton(
                   onPressed: () => Navigator.of(context).pop(true),
                   backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  child: const Text('Discard'),
+                  child: Text(
+                    'Discard',
+                    style: TextStyle(
+                        color: Theme.of(context).colorScheme.onErrorContainer),
+                  ),
                 ),
               ],
             ),
