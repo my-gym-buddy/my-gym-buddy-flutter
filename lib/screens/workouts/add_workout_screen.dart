@@ -63,12 +63,12 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: !_hasChanges || _isSubmitting,
-      onPopInvoked: (didPop) async {
+     onPopInvokedWithResult: (bool didPop, Object? result) async {
         if (didPop) return;
-        
+        if (!mounted) return;
         final shouldPop = await atsConfirmExitDialog(context);
         if (shouldPop && context.mounted) {
-          Navigator.of(context).pop();
+          Navigator.of(context).pop(result);
         }
       },
       child: Scaffold(
