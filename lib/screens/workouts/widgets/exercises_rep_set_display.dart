@@ -13,11 +13,13 @@ class ExercisesRepSetDisplay extends StatefulWidget {
       required this.workoutTemplate,
       this.physics = const ScrollPhysics(),
       this.isActiveWorkout = false,
+      this.isEditMode = false,
       this.onChanged});
 
   Workout workoutTemplate;
   final VoidCallback? onChanged;
   bool isActiveWorkout;
+  bool isEditMode; // Add this parameter to control edit functionality
   ScrollPhysics physics;
 
   @override
@@ -80,37 +82,39 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(width: 10),
-                atsIconButton(
-                  size: 35,
-                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
-                  foregroundColor:
-                      Theme.of(context).colorScheme.onErrorContainer,
-                  onPressed: () {
-                    setState(() {
-                      widget.workoutTemplate.exercises!.removeAt(index);
-                    });
-                  },
-                  icon: const Icon(Icons.delete),
-                ),
+                if (widget.isEditMode) // Only show delete button in edit mode
+                  atsIconButton(
+                    size: 35,
+                    backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                    foregroundColor:
+                        Theme.of(context).colorScheme.onErrorContainer,
+                    onPressed: () {
+                      setState(() {
+                        widget.workoutTemplate.exercises!.removeAt(index);
+                      });
+                    },
+                    icon: const Icon(Icons.delete),
+                  ),
               ],
             ),
 
-            // Timer button on far right
-            atsIconButton(
-              size: 35,
-              backgroundColor: exercise.restBetweenSets != null ||
-                      exercise.restAfterSet != null
-                  ? Theme.of(context).colorScheme.tertiaryFixed
-                  : Theme.of(context).colorScheme.errorContainer,
-              foregroundColor: exercise.restBetweenSets != null ||
-                      exercise.restAfterSet != null
-                  ? Colors.white
-                  : Theme.of(context).colorScheme.onErrorContainer,
-              onPressed: () {
-                _showRestTimeModal(exercise);
-              },
-              icon: const Icon(Icons.timelapse_outlined),
-            ),
+            // Timer button only in edit mode
+            if (widget.isEditMode)
+              atsIconButton(
+                size: 35,
+                backgroundColor: exercise.restBetweenSets != null ||
+                        exercise.restAfterSet != null
+                    ? Theme.of(context).colorScheme.tertiaryFixed
+                    : Theme.of(context).colorScheme.errorContainer,
+                foregroundColor: exercise.restBetweenSets != null ||
+                        exercise.restAfterSet != null
+                    ? Colors.white
+                    : Theme.of(context).colorScheme.onErrorContainer,
+                onPressed: () {
+                  _showRestTimeModal(exercise);
+                },
+                icon: const Icon(Icons.timelapse_outlined),
+              ),
           ],
         ),
 
@@ -195,22 +199,24 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
             ),
           ),
 
-        atsButton(
-            onPressed: () {
-              RepSet? lastRepSet;
+        // Keep the "add set" button only in edit mode
+        if (widget.isEditMode)
+          atsButton(
+              onPressed: () {
+                RepSet? lastRepSet;
 
-              if (widget.workoutTemplate.exercises![index].sets.isNotEmpty) {
-                lastRepSet = widget.workoutTemplate.exercises![index].sets.last;
-              }
+                if (widget.workoutTemplate.exercises![index].sets.isNotEmpty) {
+                  lastRepSet = widget.workoutTemplate.exercises![index].sets.last;
+                }
 
-              setState(() {
-                widget.workoutTemplate.exercises![index].sets.add(RepSet(
-                    reps: lastRepSet != null ? lastRepSet.reps : 0,
-                    weight: lastRepSet != null ? lastRepSet.weight : 0,
-                    note: null));
-              });
-            },
-            child: const Text('add set')),
+                setState(() {
+                  widget.workoutTemplate.exercises![index].sets.add(RepSet(
+                      reps: lastRepSet != null ? lastRepSet.reps : 0,
+                      weight: lastRepSet != null ? lastRepSet.weight : 0,
+                      note: null));
+                });
+              },
+              child: const Text('add set')),
       ],
     );
   }

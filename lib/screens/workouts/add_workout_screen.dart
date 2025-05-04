@@ -152,7 +152,10 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 ),
 
                 const SizedBox(height: 20),
-                ExercisesRepSetDisplay(workoutTemplate: workout),
+                ExercisesRepSetDisplay(
+                  workoutTemplate: workout,
+                  isEditMode: true, // Set to true in add/edit workout screen
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
