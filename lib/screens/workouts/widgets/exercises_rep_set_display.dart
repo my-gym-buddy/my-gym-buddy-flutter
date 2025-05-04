@@ -83,7 +83,7 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
               foregroundColor:
                   Theme.of(context).colorScheme.onErrorContainer,
               onPressed: () async {
-                final bool confirm = await atsConfirmExitDialog(context);
+                final bool confirm = await atsConfirmExitDialog(context,title: "Remove exercise?", description: "Are you sure you want to remove exercise-name from this workout session?", confirmButtonText: "Remove",cancelButtonText: "Cancel");
                 if (confirm) {
                   setState(() {
                     widget.workoutTemplate.exercises!.removeAt(index);
