@@ -9,6 +9,8 @@ class Exercise {
   String? category;
   String? difficulty;
   List<String>? images;
+  int? restBetweenSets; // in seconds
+  int? restAfterSet; // in seconds
 
   List<RepSet> sets = [];
   List<RepSet>? previousSets;
@@ -23,6 +25,8 @@ class Exercise {
     this.images,
     this.sets = const [],
     this.previousSets,
+    this.restBetweenSets,
+    this.restAfterSet,
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -36,6 +40,8 @@ class Exercise {
       images: _parseImages(json['images']),
       sets: (json['sets'] as List?)?.map((e) => RepSet.fromJson(e)).toList() ?? [],
       previousSets: (json['previousSets'] as List?)?.map((e) => RepSet.fromJson(e)).toList(),
+      restBetweenSets: json['restBetweenSets'],
+      restAfterSet: json['restAfterSet'],
     );
   }
 
@@ -49,6 +55,8 @@ class Exercise {
         'images': images,
         'sets': sets.map((e) => e.toJson()).toList(),
         'previousSets': previousSets?.map((e) => e.toJson()).toList(),
+        'restBetweenSets': restBetweenSets,
+        'restAfterSet': restAfterSet,
       };
 
   void addSetFromJson(Map<String, dynamic> json) {

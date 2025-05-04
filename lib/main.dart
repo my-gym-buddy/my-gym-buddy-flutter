@@ -23,7 +23,10 @@ class MyApp extends StatelessWidget {
         title: 'Gym Buddy',
         theme: ThemeData(
           fontFamily: 'Montserrat',
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+            colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.green,
+            tertiaryFixed: Colors.amber.shade800,
+            ),
           useMaterial3: true,
         ),
         debugShowCheckedModeBanner: false,
