@@ -104,18 +104,27 @@ class DatabaseHelper {
     int index = 0;
     for (final exercise in workout.exercises!) {
       var repSet = {
-        'sets': <Map<String, dynamic>>[],
-        'restBetweenSets': exercise.restBetweenSets,
-        'restAfterSet': exercise.restAfterSet
+        'sets': <Map<String, dynamic>>[]
+        // Remove the top-level rest time fields
       };
 
-      for (final set in exercise.sets) {
-        (repSet['sets'] as List).add({
+      // Add rest times to individual sets
+      for (int i = 0; i < exercise.sets.length; i++) {
+        final set = exercise.sets[i];
+        final isLastSet = i == exercise.sets.length - 1;
+        
+        var setData = {
           'reps': set.reps,
           'weight': set.weight,
           'note': set.note,
-          'completed': set.completed
-        });
+          'completed': set.completed,
+          // Only add restBetweenSets to sets that aren't the last one
+          if (!isLastSet) 'restBetweenSets': exercise.restBetweenSets,
+          // Only add restAfterSet to the last set
+          if (isLastSet) 'restAfterSet': exercise.restAfterSet
+        };
+        
+        (repSet['sets'] as List).add(setData);
       }
 
       final workoutSessionExercise = <String, dynamic>{
@@ -125,8 +134,7 @@ class DatabaseHelper {
         "exercise_index": index,
       };
 
-      await database!
-          .insert('workout_session_exercises', workoutSessionExercise);
+      await database!.insert('workout_session_exercises', workoutSessionExercise);
       index++;
     }
 
@@ -219,8 +227,8 @@ class DatabaseHelper {
     for (final exercise in workout.exercises!) {
       var repSet = {
         'sets': <Map<String, dynamic>>[],
-        'restAfterSet': exercise.restAfterSet, // At exercise level
-        'restBetweenSets': exercise.restBetweenSets
+        'restBetweenSets': exercise.restBetweenSets,
+        'restAfterSet': exercise.restAfterSet // At exercise level
       };
 
       for (final set in exercise.sets) {

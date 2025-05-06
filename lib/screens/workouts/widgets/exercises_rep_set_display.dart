@@ -10,8 +10,8 @@ import 'package:gym_buddy_app/screens/workouts/widgets/rest_timer_widget.dart';
 
 class ExercisesRepSetDisplay extends StatefulWidget {
   // Add these properties
-  final VoidCallback? pauseWorkoutTimer;
-  final VoidCallback? resumeWorkoutTimer;
+  // final VoidCallback? pauseWorkoutTimer;
+  // final VoidCallback? resumeWorkoutTimer;
 
   ExercisesRepSetDisplay({
     super.key,
@@ -20,8 +20,8 @@ class ExercisesRepSetDisplay extends StatefulWidget {
     this.isActiveWorkout = false,
     this.isEditMode = false,
     this.onChanged,
-    this.pauseWorkoutTimer, // Add these parameters
-    this.resumeWorkoutTimer,
+    // this.pauseWorkoutTimer, // Add these parameters
+    // this.resumeWorkoutTimer,
   });
 
   Workout workoutTemplate;
@@ -208,13 +208,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                             if (isTimerActive && widget.isActiveWorkout)
                               RestTimerWidget(
                                 restDuration: widget.workoutTemplate.exercises![index].restBetweenSets!,
-                                pauseWorkoutTimer:
-                                    widget.pauseWorkoutTimer ?? () {},
-                                resumeWorkoutTimer: widget.resumeWorkoutTimer ??
-                                    () {}, // Add the missing parameter
+                                exercise: widget.workoutTemplate.exercises![index],
+                                isBetweenSets: true,
+                                setIndex: setIndex,
                                 onComplete: () {
                                   setStateLocal(() {
-                                    // Keep as is but maybe show notification
+                                    // Force update rest time values when saving
+                                    if (widget.onChanged != null) {
+                                      // This will trigger saving to the database with current values
+                                      widget.onChanged!();
+                                    }
                                   });
                                 },
                               ),
@@ -229,27 +232,58 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
 
         // Add the "Rest after set" display here
         if (exercise.restAfterSet != null)
-          Padding(
-            padding: EdgeInsets.fromLTRB(0, 0, paddingForMinRest, 0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                Icon(
-                  Icons.timer,
-                  size: 14,
-                  color: Theme.of(context).colorScheme.tertiaryFixed,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  'After completion: ${_formatRestTimeSimple(exercise.restAfterSet!)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.tertiaryFixed,
-                  ),
-                ),
-              ],
-            ),
+          StatefulBuilder(
+            builder: (context, setStateLocal) {
+              // Check if all sets in this exercise are completed
+              bool allSetsCompleted = exercise.sets.isNotEmpty && 
+                                      exercise.sets.every((set) => set.completed == true);
+              
+              return Column(
+                children: [
+                  // Display rest time text ONLY in edit mode
+                  if (widget.isEditMode)
+                    Padding(
+                      padding: EdgeInsets.fromLTRB(0, 0, paddingForMinRest, 0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          Icon(
+                            Icons.timer,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.tertiaryFixed,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            _formatRestTimeSimple(exercise.restAfterSet!),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).colorScheme.tertiaryFixed,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+
+                  // Only show timer progress bar if all sets are completed in active workout mode
+                  if (allSetsCompleted && widget.isActiveWorkout)
+                    RestTimerWidget(
+                      restDuration: exercise.restAfterSet!,
+                      exercise: exercise,
+                      isBetweenSets: false, // This is rest AFTER set
+                      setIndex: exercise.sets.length - 1, // Last set
+                      onComplete: () {
+                        setStateLocal(() {
+                          // Force update rest time values when saving
+                          if (widget.onChanged != null) {
+                            widget.onChanged!();
+                          }
+                        });
+                      },
+                    ),
+                ],
+              );
+            },
           ),
 
         // Keep the "add set" button only in edit mode

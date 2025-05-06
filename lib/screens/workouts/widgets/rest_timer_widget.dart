@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/models/exercise.dart';
 
 // Timer manager to coordinate between multiple timers
 class RestTimerManager {
@@ -22,16 +23,18 @@ class RestTimerManager {
 
 class RestTimerWidget extends StatefulWidget {
   final int restDuration; // in seconds
-  final VoidCallback onComplete;
-  final VoidCallback pauseWorkoutTimer;
-  final VoidCallback resumeWorkoutTimer;
+  final VoidCallback? onComplete;
+  final Exercise? exercise;
+  final bool isBetweenSets; // true for between sets, false for after set
+  final int setIndex;
 
   const RestTimerWidget({
     Key? key,
     required this.restDuration,
-    required this.onComplete,
-    required this.pauseWorkoutTimer,
-    required this.resumeWorkoutTimer,
+    this.onComplete,
+    this.exercise,
+    this.isBetweenSets = true,
+    this.setIndex = 0,
   }) : super(key: key);
 
   @override
@@ -51,7 +54,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     // Schedule timer registration after the current build completes
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Pause the main workout timer when rest timer starts
-      widget.pauseWorkoutTimer();
+      // widget.pauseWorkoutTimer();
       // Register as the active timer
       _timerManager.setActiveTimer(this);
     });
@@ -67,8 +70,8 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
           
           // Only trigger onComplete once when we first reach the duration
           if (_elapsedSeconds == widget.restDuration) {
-            widget.resumeWorkoutTimer();
-            widget.onComplete();
+            // widget.resumeWorkoutTimer();
+            _onTimerComplete();
             // Timer continues running after completion
           }
         }
@@ -76,9 +79,31 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     });
   }
 
+  // Add this method to expose current timer value
+  void updateRestTimeWithCurrentValue() {
+    if (widget.exercise != null) {
+      final int actualRestTime = _elapsedSeconds;
+      
+      if (widget.isBetweenSets) {
+        widget.exercise!.restBetweenSets = actualRestTime;
+        if (widget.setIndex < widget.exercise!.sets.length) {
+          widget.exercise!.sets[widget.setIndex].restBetweenSets = actualRestTime;
+        }
+      } else {
+        widget.exercise!.restAfterSet = actualRestTime;
+        if (widget.exercise!.sets.isNotEmpty) {
+          widget.exercise!.sets.last.restAfterSet = actualRestTime;
+        }
+      }
+    }
+  }
+  
+  // Modify _pauseTimer to update rest time values when paused
   void _pauseTimer() {
     setState(() {
       _isRunning = false;
+      // Update rest time values when paused
+      updateRestTimeWithCurrentValue();
     });
   }
 
@@ -88,6 +113,32 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
       // Make this the active timer when manually resumed
       _timerManager.setActiveTimer(this);
     });
+  }
+
+  void _onTimerComplete() {
+    if (widget.exercise != null) {
+      final int actualRestTime = _elapsedSeconds; // Get the actual elapsed time
+      
+      if (widget.isBetweenSets) {
+        // Update the exercise-level rest time between sets
+        widget.exercise!.restBetweenSets = actualRestTime;
+        // Also update the current set's rest time
+        if (widget.setIndex < widget.exercise!.sets.length) {
+          widget.exercise!.sets[widget.setIndex].restBetweenSets = actualRestTime;
+        }
+      } else {
+        // Update the exercise-level rest time after set
+        widget.exercise!.restAfterSet = actualRestTime;
+        // Also update the last set's after-set rest time
+        if (widget.exercise!.sets.isNotEmpty) {
+          widget.exercise!.sets.last.restAfterSet = actualRestTime;
+        }
+      }
+    }
+    
+    if (widget.onComplete != null) {
+      widget.onComplete!();
+    }
   }
 
   @override

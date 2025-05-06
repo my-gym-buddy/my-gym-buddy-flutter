@@ -242,12 +242,12 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                   isActiveWorkout: true,
                   physics: const NeverScrollableScrollPhysics(),
                   workoutTemplate: widget.workoutTemplate,
-                  pauseWorkoutTimer: () {
-                    widget.stopWatchTimer.onStopTimer();
-                  },
-                  resumeWorkoutTimer: () {
-                    widget.stopWatchTimer.onStartTimer();
-                  },
+                  // pauseWorkoutTimer: () {
+                  //   widget.stopWatchTimer.onStopTimer();
+                  // },
+                  // resumeWorkoutTimer: () {
+                  //   widget.stopWatchTimer.onStartTimer();
+                  // },
                 ),
                 const SizedBox(height: 20),
                 Center(
