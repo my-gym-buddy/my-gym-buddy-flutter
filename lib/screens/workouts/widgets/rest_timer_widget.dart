@@ -241,8 +241,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
               children: [
                 // Show waiting indicator or play/pause button
                 isPending
-                  //place waiting 
-                  ? const Text("", 
+                  ? const Text("Waiting...", 
                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))
                   : IconButton(
                       iconSize: 22,

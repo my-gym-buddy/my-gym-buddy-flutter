@@ -480,10 +480,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
                     TextButton(
+                      style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                      ),
                       onPressed: () => Navigator.pop(context),
                       child: const Text('Cancel'),
                     ),
-                    ElevatedButton(
+                    TextButton(
+                      style: TextButton.styleFrom(
+                      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+                      ),
                       onPressed: () {
                         final int betweenSetsTotal = hasMultipleSets
                             ? (betweenSetsMinutes * 60 + betweenSetsSeconds)
