@@ -176,7 +176,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
           FractionallySizedBox(
             widthFactor: progress > 1.0 ? 1.0 : progress,
             child: Container(
-              color: isOvertime ? Colors.amber : Colors.green,
+              color: isOvertime ? Theme.of(context).colorScheme.tertiaryFixed : Theme.of(context).colorScheme.inversePrimary,
             ),
           ),
 
@@ -186,26 +186,24 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 // Play/pause button
-                Container(
-                  child: IconButton(
-                    iconSize: 22,
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(
-                      minHeight: 32,
-                      minWidth: 32,
-                    ),
-                    icon: Icon(
-                      _isRunning ? Icons.pause : Icons.play_arrow,
-                      color: Colors.black,
-                    ),
-                    onPressed: () {
-                      if (_isRunning) {
-                        _pauseTimer();
-                      } else {
-                        _resumeTimer();
-                      }
-                    },
+                IconButton(
+                  iconSize: 22,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minHeight: 32,
+                    minWidth: 32,
                   ),
+                  icon: Icon(
+                    _isRunning ? Icons.pause : Icons.play_arrow,
+                    color: Colors.black,
+                  ),
+                  onPressed: () {
+                    if (_isRunning) {
+                      _pauseTimer();
+                    } else {
+                      _resumeTimer();
+                    }
+                  },
                 ),
               ],
             ),
