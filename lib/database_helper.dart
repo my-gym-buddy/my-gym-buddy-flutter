@@ -103,15 +103,18 @@ class DatabaseHelper {
 
     int index = 0;
     for (final exercise in workout.exercises!) {
-      var repSet = {'sets': []};
+      var repSet = {
+        'sets': <Map<String, dynamic>>[],
+        'restBetweenSets': exercise.restBetweenSets,
+        'restAfterSet': exercise.restAfterSet
+      };
 
       for (final set in exercise.sets) {
-        repSet['sets']!.add({
+        (repSet['sets'] as List).add({
           'reps': set.reps,
           'weight': set.weight,
           'note': set.note,
-          'restBetweenSets': set.restBetweenSets,
-          'restAfterSet': set.restAfterSet
+          'completed': set.completed
         });
       }
 
@@ -216,7 +219,8 @@ class DatabaseHelper {
     for (final exercise in workout.exercises!) {
       var repSet = {
         'sets': <Map<String, dynamic>>[],
-        'restAfterSet': exercise.restAfterSet // At exercise level
+        'restAfterSet': exercise.restAfterSet, // At exercise level
+        'restBetweenSets': exercise.restBetweenSets
       };
 
       for (final set in exercise.sets) {
@@ -224,7 +228,6 @@ class DatabaseHelper {
           'reps': set.reps,
           'weight': set.weight,
           'note': set.note,
-          'restBetweenSets': set.restBetweenSets // Only this at set level
         });
       }
 
@@ -436,6 +439,9 @@ class DatabaseHelper {
       // convert rep_set to list of rep_set
       final repSet = exercise['rep_set'];
       final repSetMap = json.decode(repSet.toString());
+
+      exerciseObject.restBetweenSets = repSetMap['restBetweenSets'];
+      exerciseObject.restAfterSet = repSetMap['restAfterSet'];
 
       for (final set in repSetMap['sets']) {
         exerciseObject.sets.add(RepSet.fromJson(set));

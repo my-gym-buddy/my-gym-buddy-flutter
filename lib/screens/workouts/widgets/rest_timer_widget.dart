@@ -1,6 +1,25 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 
+// Timer manager to coordinate between multiple timers
+class RestTimerManager {
+  static final RestTimerManager _instance = RestTimerManager._internal();
+  factory RestTimerManager() => _instance;
+  RestTimerManager._internal();
+
+  _RestTimerWidgetState? activeTimerState;
+
+  void setActiveTimer(_RestTimerWidgetState timerState) {
+    // Schedule state changes to happen after the current build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (activeTimerState != null && activeTimerState != timerState) {
+        activeTimerState!._pauseTimer();
+      }
+      activeTimerState = timerState;
+    });
+  }
+}
+
 class RestTimerWidget extends StatefulWidget {
   final int restDuration; // in seconds
   final VoidCallback onComplete;
@@ -23,12 +42,20 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   late Timer _timer;
   bool _isRunning = true;
   int _elapsedSeconds = 0;
+  final _timerManager = RestTimerManager();
 
   @override
   void initState() {
     super.initState();
-    // Pause the main workout timer when rest timer starts
-    widget.pauseWorkoutTimer();
+    
+    // Schedule timer registration after the current build completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Pause the main workout timer when rest timer starts
+      widget.pauseWorkoutTimer();
+      // Register as the active timer
+      _timerManager.setActiveTimer(this);
+    });
+    
     _startTimer();
   }
 
@@ -38,11 +65,11 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         if (_isRunning) {
           _elapsedSeconds++;
           
-          // Only check completion when running
-          if (_elapsedSeconds >= widget.restDuration) {
-            // Timer completed - resume workout timer
+          // Only trigger onComplete once when we first reach the duration
+          if (_elapsedSeconds == widget.restDuration) {
             widget.resumeWorkoutTimer();
             widget.onComplete();
+            // Timer continues running after completion
           }
         }
       });
@@ -58,12 +85,18 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   void _resumeTimer() {
     setState(() {
       _isRunning = true;
+      // Make this the active timer when manually resumed
+      _timerManager.setActiveTimer(this);
     });
   }
 
   @override
   void dispose() {
     _timer.cancel();
+    // Clear as active timer if being disposed
+    if (_timerManager.activeTimerState == this) {
+      _timerManager.activeTimerState = null;
+    }
     super.dispose();
   }
 
@@ -72,10 +105,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     double progress = _elapsedSeconds / widget.restDuration;
     bool isOvertime = progress >= 1.0;
 
-    // Calculate remaining time
-    int remainingTime = widget.restDuration - _elapsedSeconds;
-    if (remainingTime < 0) remainingTime = 0;
-
+    // Show elapsed time instead of remaining time
     return Container(
       height: 40,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
@@ -135,7 +165,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
             bottom: 0,
             child: Center(
               child: Text(
-                formatTime(remainingTime),
+                formatTime(_elapsedSeconds), // Changed from remainingTime to _elapsedSeconds
                 style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.bold,

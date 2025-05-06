@@ -20,7 +20,7 @@ class ExercisesRepSetDisplay extends StatefulWidget {
     this.isActiveWorkout = false,
     this.isEditMode = false,
     this.onChanged,
-    this.pauseWorkoutTimer,  // Add these parameters
+    this.pauseWorkoutTimer, // Add these parameters
     this.resumeWorkoutTimer,
   });
 
@@ -35,6 +35,18 @@ class ExercisesRepSetDisplay extends StatefulWidget {
 }
 
 class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
+  // Add this logging function at the top of your class
+  void _logRestTimeValues(Exercise exercise, int setIndex) {
+    print('---------- REST TIME DEBUG ----------');
+    print('Exercise: ${exercise.name}');
+    print('Exercise-level restBetweenSets: ${exercise.restBetweenSets}');
+    print('Exercise-level restAfterSet: ${exercise.restAfterSet}');
+    if (setIndex >= 0 && setIndex < exercise.sets.length) {
+      print('Set $setIndex restBetweenSets: ${exercise.sets[setIndex].restBetweenSets}');
+    }
+    print('-------------------------------------');
+  }
+
   @override
   Widget build(BuildContext context) {
     if (widget.workoutTemplate.exercises == null ||
@@ -74,6 +86,7 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
   // Extract column building to a separate method
   Widget _buildExerciseColumn(int index) {
     final exercise = widget.workoutTemplate.exercises![index];
+    _logRestTimeValues(exercise, -1); // Log overall exercise values
     double paddingForMinRest = 9;
     return Column(
       key: ValueKey('exercise_${exercise.name}_$index'),
@@ -153,47 +166,52 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                       setIndex <
                           widget.workoutTemplate.exercises![index].sets.length -
                               1 &&
-                      widget.workoutTemplate.exercises![index].sets[setIndex]
-                              .restBetweenSets !=
+                      widget.workoutTemplate.exercises![index].restBetweenSets !=
                           null)
                     StatefulBuilder(
                       builder: (context, setStateLocal) {
-                        final set = widget.workoutTemplate.exercises![index].sets[setIndex];
-                        
+                        final set = widget
+                            .workoutTemplate.exercises![index].sets[setIndex];
+
                         // Check if set is completed and show timer based on that
                         bool isTimerActive = set.completed ?? false;
-                        
+
                         return Column(
                           children: [
                             // Display rest time text ONLY in edit mode
-                            if (widget.isEditMode) 
+                            if (widget.isEditMode)
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.end,
                                 children: [
                                   Icon(
                                     Icons.timer_outlined,
                                     size: 14,
-                                    color: Theme.of(context).colorScheme.tertiaryFixed,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .tertiaryFixed,
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    _formatRestTimeSimple(set.restBetweenSets!),
+                                    _formatRestTimeSimple(widget.workoutTemplate.exercises![index].restBetweenSets!),
                                     style: TextStyle(
                                       fontSize: 12,
                                       fontWeight: FontWeight.bold,
-                                      color: Theme.of(context).colorScheme.tertiaryFixed,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .tertiaryFixed,
                                     ),
                                   ),
                                 ],
                               ),
-                            
-                            // Remove the time-only display for active workout
+
                             // Only show timer progress bar if set is completed in active workout mode
                             if (isTimerActive && widget.isActiveWorkout)
                               RestTimerWidget(
-                                restDuration: set.restBetweenSets!,
-                                pauseWorkoutTimer: widget.pauseWorkoutTimer ?? () {},
-                                resumeWorkoutTimer: widget.resumeWorkoutTimer ?? () {}, // Add the missing parameter
+                                restDuration: widget.workoutTemplate.exercises![index].restBetweenSets!,
+                                pauseWorkoutTimer:
+                                    widget.pauseWorkoutTimer ?? () {},
+                                resumeWorkoutTimer: widget.resumeWorkoutTimer ??
+                                    () {}, // Add the missing parameter
                                 onComplete: () {
                                   setStateLocal(() {
                                     // Keep as is but maybe show notification
@@ -204,7 +222,6 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                         );
                       },
                     ),
-
                 ],
               ),
           ],
@@ -236,26 +253,25 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
           ),
 
         // Keep the "add set" button only in edit mode
-        if (widget.isEditMode)
+      
           atsButton(
-              onPressed: () {
-                RepSet? lastRepSet;
+            onPressed: () {
+              RepSet? lastRepSet;
 
-                if (widget.workoutTemplate.exercises![index].sets.isNotEmpty) {
-                  lastRepSet =
-                      widget.workoutTemplate.exercises![index].sets.last;
-                }
+              if (widget.workoutTemplate.exercises![index].sets.isNotEmpty) {
+                lastRepSet = widget.workoutTemplate.exercises![index].sets.last;
+              }
 
-                setState(() {
-                  widget.workoutTemplate.exercises![index].sets.add(RepSet(
-                      reps: lastRepSet != null ? lastRepSet.reps : 0,
-                      weight: lastRepSet != null ? lastRepSet.weight : 0,
-                      note: null,
-                      restBetweenSets: exercise.restBetweenSets,
-                      restAfterSet: exercise.restAfterSet));
-                });
-              },
-              child: const Text('add set')),
+              setState(() {
+                widget.workoutTemplate.exercises![index].sets.add(RepSet(
+                  reps: lastRepSet != null ? lastRepSet.reps : 0,
+                  weight: lastRepSet != null ? lastRepSet.weight : 0,
+                  note: null,
+                  restBetweenSets: exercise.restBetweenSets,
+                  restAfterSet: exercise.restAfterSet));
+              });
+            },
+            child: const Text('add set')),
       ],
     );
   }
@@ -276,6 +292,11 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
   }
 
   void _showRestTimeModal(Exercise exercise) {
+    print('---------- REST TIME MODAL DEBUG ----------');
+    print('Before setting: Exercise ${exercise.name}');
+    print('restBetweenSets: ${exercise.restBetweenSets}');
+    print('restAfterSet: ${exercise.restAfterSet}');
+
     final bool hasMultipleSets = exercise.sets.length > 1;
 
     int betweenSetsMinutes = 0;
@@ -437,6 +458,10 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                         final int afterSetTotal =
                             afterSetMinutes * 60 + afterSetSeconds;
 
+                        print('New values being set:');
+                        print('betweenSetsTotal: $betweenSetsTotal');
+                        print('afterSetTotal: $afterSetTotal');
+
                         setState(() {
                           // Store the rest time at exercise level for future sets
                           exercise.restBetweenSets =
@@ -447,12 +472,17 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
                           // Update all existing sets with the new rest time
                           for (var set in exercise.sets) {
                             set.restBetweenSets = exercise.restBetweenSets;
-                            set.restAfterSet = exercise.restAfterSet;  // Add this line
+                            set.restAfterSet =
+                                exercise.restAfterSet; // Add this line
                           }
 
                           // Store after-set rest time
                           exercise.restAfterSet =
                               afterSetTotal > 0 ? afterSetTotal : null;
+
+                          print('After setting: Exercise ${exercise.name}');
+                          print('restBetweenSets: ${exercise.restBetweenSets}');
+                          print('restAfterSet: ${exercise.restAfterSet}');
 
                           if (widget.onChanged != null) {
                             widget.onChanged!();
@@ -473,5 +503,3 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
     );
   }
 }
-
-
