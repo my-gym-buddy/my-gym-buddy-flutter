@@ -2,21 +2,49 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 
-// Timer manager to coordinate between multiple timers
+// Replace the existing RestTimerManager class with this enhanced version:
 class RestTimerManager {
   static final RestTimerManager _instance = RestTimerManager._internal();
   factory RestTimerManager() => _instance;
   RestTimerManager._internal();
 
   _RestTimerWidgetState? activeTimerState;
+  final List<_RestTimerWidgetState> _pendingTimers = [];
+  bool _isProcessingQueue = false;
 
   void setActiveTimer(_RestTimerWidgetState timerState) {
-    // Schedule state changes to happen after the current build completes
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (activeTimerState != null && activeTimerState != timerState) {
-        activeTimerState!._pauseTimer();
-      }
+    // If no active timer, make this the active timer
+    if (activeTimerState == null) {
       activeTimerState = timerState;
+      // Start this timer
+      timerState._startTimerIfNotStarted();
+    } else {
+      // Already have an active timer, add this one to the queue
+      _pendingTimers.add(timerState);
+      // Don't start this timer yet - it's in a waiting state
+    }
+  }
+
+  void timerCompleted(_RestTimerWidgetState timerState) {
+    if (activeTimerState == timerState) {
+      activeTimerState = null;
+      _processNextTimerInQueue();
+    }
+  }
+
+  void _processNextTimerInQueue() {
+    if (_pendingTimers.isEmpty || _isProcessingQueue) return;
+    
+    _isProcessingQueue = true;
+    
+    // Slight delay to avoid UI jank
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_pendingTimers.isNotEmpty) {
+        final nextTimer = _pendingTimers.removeAt(0);
+        activeTimerState = nextTimer;
+        nextTimer._startTimerIfNotStarted();
+      }
+      _isProcessingQueue = false;
     });
   }
 }
@@ -43,22 +71,27 @@ class RestTimerWidget extends StatefulWidget {
 
 class _RestTimerWidgetState extends State<RestTimerWidget> {
   late Timer _timer;
-  bool _isRunning = true;
+  bool _isRunning = false; // Start paused to wait for activation
   int _elapsedSeconds = 0;
   final _timerManager = RestTimerManager();
+  bool _timerStarted = false;
 
   @override
   void initState() {
     super.initState();
     
-    // Schedule timer registration after the current build completes
+    // Register with timer manager but don't start yet
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Pause the main workout timer when rest timer starts
-      // widget.pauseWorkoutTimer();
-      // Register as the active timer
       _timerManager.setActiveTimer(this);
     });
+  }
+
+  // New method to start timer when activated from queue
+  void _startTimerIfNotStarted() {
+    if (_timerStarted) return;
     
+    _timerStarted = true;
+    _isRunning = true;
     _startTimer();
   }
 
@@ -68,11 +101,9 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         if (_isRunning) {
           _elapsedSeconds++;
           
-          // Only trigger onComplete once when we first reach the duration
+          // When timer reaches its intended duration
           if (_elapsedSeconds == widget.restDuration) {
-            // widget.resumeWorkoutTimer();
             _onTimerComplete();
-            // Timer continues running after completion
           }
         }
       });
@@ -115,26 +146,29 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     });
   }
 
+  // Modify _onTimerComplete to notify the manager
   void _onTimerComplete() {
     if (widget.exercise != null) {
-      final int actualRestTime = _elapsedSeconds; // Get the actual elapsed time
+      final int actualRestTime = _elapsedSeconds;
       
+      // Update rest times as before
       if (widget.isBetweenSets) {
-        // Update the exercise-level rest time between sets
         widget.exercise!.restBetweenSets = actualRestTime;
-        // Also update the current set's rest time
         if (widget.setIndex < widget.exercise!.sets.length) {
           widget.exercise!.sets[widget.setIndex].restBetweenSets = actualRestTime;
         }
       } else {
-        // Update the exercise-level rest time after set
         widget.exercise!.restAfterSet = actualRestTime;
-        // Also update the last set's after-set rest time
         if (widget.exercise!.sets.isNotEmpty) {
           widget.exercise!.sets.last.restAfterSet = actualRestTime;
         }
       }
     }
+    
+    // Play a sound or vibrate here if desired
+    
+    // Tell the manager this timer is complete
+    _timerManager.timerCompleted(this);
     
     if (widget.onComplete != null) {
       widget.onComplete!();
@@ -143,20 +177,29 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_timerStarted) {
+      _timer.cancel();
+    }
+    
+    // Remove from queue if being disposed
+    _timerManager._pendingTimers.remove(this);
+    
     // Clear as active timer if being disposed
     if (_timerManager.activeTimerState == this) {
       _timerManager.activeTimerState = null;
+      _timerManager._processNextTimerInQueue();
     }
+    
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    double progress = _elapsedSeconds / widget.restDuration;
+    // Calculate progress only if timer has started
+    double progress = _timerStarted ? (_elapsedSeconds / widget.restDuration) : 0.0;
     bool isOvertime = progress >= 1.0;
+    bool isPending = !_timerStarted;
 
-    // Show elapsed time instead of remaining time
     return Container(
       height: 40,
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 2),
@@ -168,61 +211,66 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
       child: Stack(
         children: [
           // Progress bar background
-          Container(
-            width: double.infinity,
-          ),
+          Container(width: double.infinity),
 
           // Progress bar fill
           FractionallySizedBox(
             widthFactor: progress > 1.0 ? 1.0 : progress,
             child: Container(
-              color: isOvertime ? Theme.of(context).colorScheme.tertiaryFixed : Theme.of(context).colorScheme.inversePrimary,
+              color: isOvertime 
+                ? Theme.of(context).colorScheme.tertiaryFixed 
+                : Theme.of(context).colorScheme.inversePrimary,
             ),
           ),
 
-          // Center controls with black text for visibility
+          // Center controls
           Center(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Play/pause button
-                IconButton(
-                  iconSize: 22,
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(
-                    minHeight: 32,
-                    minWidth: 32,
-                  ),
-                  icon: Icon(
-                    _isRunning ? Icons.pause : Icons.play_arrow,
-                    color: Colors.black,
-                  ),
-                  onPressed: () {
-                    if (_isRunning) {
-                      _pauseTimer();
-                    } else {
-                      _resumeTimer();
-                    }
-                  },
-                ),
+                // Show waiting indicator or play/pause button
+                isPending
+                  ? const Text("Waiting...", 
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))
+                  : IconButton(
+                      iconSize: 22,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minHeight: 32, minWidth: 32,
+                      ),
+                      icon: Icon(
+                        _isRunning ? Icons.pause : Icons.play_arrow,
+                        color: Colors.black,
+                      ),
+                      onPressed: () {
+                        if (_isRunning) {
+                          _pauseTimer();
+                        } else {
+                          _resumeTimer();
+                        }
+                      },
+                    ),
               ],
             ),
           ),
-          Positioned(
-            right: 10,
-            top: 0,
-            bottom: 0,
-            child: Center(
-              child: Text(
-                formatTime(_elapsedSeconds), // Changed from remainingTime to _elapsedSeconds
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+          
+          // Timer display
+          if (_timerStarted)
+            Positioned(
+              right: 10,
+              top: 0,
+              bottom: 0,
+              child: Center(
+                child: Text(
+                  formatTime(_elapsedSeconds),
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
+                  ),
                 ),
               ),
             ),
-          ),
         ],
       ),
     );
