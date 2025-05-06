@@ -25,10 +25,17 @@ class RestTimerManager {
     }
   }
 
+  // Update the timerCompleted method in RestTimerManager:
   void timerCompleted(_RestTimerWidgetState timerState) {
     if (activeTimerState == timerState) {
+      // Make sure the current timer is fully stopped
       activeTimerState = null;
-      _processNextTimerInQueue();
+      
+      // Add a slight delay before processing the next timer
+      // This ensures the UI has time to update
+      Future.delayed(const Duration(milliseconds: 50), () {
+        _processNextTimerInQueue();
+      });
     }
   }
 
@@ -146,8 +153,12 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     });
   }
 
-  // Modify _onTimerComplete to notify the manager
+  // Update the _onTimerComplete method to properly cancel the timer:
   void _onTimerComplete() {
+    // First cancel the current timer to stop it from continuing
+    _timer.cancel();
+    _isRunning = false;
+    
     if (widget.exercise != null) {
       final int actualRestTime = _elapsedSeconds;
       
