@@ -164,10 +164,15 @@ class SetRow extends StatelessWidget {
           flex: 2,
           child: isActiveWorkout == true
               ? atsCheckbox(
-                  checked: selectedExercises[index].sets[setIndex].completed,
+                  checked: selectedExercises[index].sets[setIndex].completed ?? false,
                   onChanged: (value) {
+                    // Update completion status
                     selectedExercises[index].sets[setIndex].completed = value;
-                    refresh!();
+                    
+                    // Call refresh to update the UI and show/hide timer
+                    if (refresh != null) {
+                      refresh!();
+                    }
                   },
                 )
               : const SizedBox(),

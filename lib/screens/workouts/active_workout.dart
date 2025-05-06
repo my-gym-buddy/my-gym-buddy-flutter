@@ -239,9 +239,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
                     : const SizedBox(),
                 const SizedBox(height: 20),
                 ExercisesRepSetDisplay(
-                    isActiveWorkout: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    workoutTemplate: widget.workoutTemplate),
+                  isActiveWorkout: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  workoutTemplate: widget.workoutTemplate,
+                  pauseWorkoutTimer: () {
+                    widget.stopWatchTimer.onStopTimer();
+                  },
+                  resumeWorkoutTimer: () {
+                    widget.stopWatchTimer.onStartTimer();
+                  },
+                ),
                 const SizedBox(height: 20),
                 Center(
                   child: atsButton(

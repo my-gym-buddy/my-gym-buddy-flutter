@@ -106,8 +106,13 @@ class DatabaseHelper {
       var repSet = {'sets': []};
 
       for (final set in exercise.sets) {
-        repSet['sets']!
-            .add({'reps': set.reps, 'weight': set.weight, 'note': set.note});
+        repSet['sets']!.add({
+          'reps': set.reps,
+          'weight': set.weight,
+          'note': set.note,
+          'restBetweenSets': set.restBetweenSets,
+          'restAfterSet': set.restAfterSet
+        });
       }
 
       final workoutSessionExercise = <String, dynamic>{
@@ -209,11 +214,18 @@ class DatabaseHelper {
 
     int index = 0;
     for (final exercise in workout.exercises!) {
-      var repSet = {'sets': []};
+      var repSet = {
+        'sets': <Map<String, dynamic>>[],
+        'restAfterSet': exercise.restAfterSet // At exercise level
+      };
 
       for (final set in exercise.sets) {
-        repSet['sets']!
-            .add({'reps': set.reps, 'weight': set.weight, 'note': set.note});
+        (repSet['sets'] as List).add({
+          'reps': set.reps,
+          'weight': set.weight,
+          'note': set.note,
+          'restBetweenSets': set.restBetweenSets // Only this at set level
+        });
       }
 
       final workoutTemplateExercise = <String, dynamic>{

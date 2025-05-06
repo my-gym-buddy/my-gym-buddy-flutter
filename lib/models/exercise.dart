@@ -25,8 +25,8 @@ class Exercise {
     this.images,
     this.sets = const [],
     this.previousSets,
-    this.restBetweenSets,
-    this.restAfterSet,
+    this.restBetweenSets,  // Add this
+    this.restAfterSet,     // Add this
   });
 
   factory Exercise.fromJson(Map<String, dynamic> json) {
@@ -40,8 +40,8 @@ class Exercise {
       images: _parseImages(json['images']),
       sets: (json['sets'] as List?)?.map((e) => RepSet.fromJson(e)).toList() ?? [],
       previousSets: (json['previousSets'] as List?)?.map((e) => RepSet.fromJson(e)).toList(),
-      restBetweenSets: json['restBetweenSets'],
-      restAfterSet: json['restAfterSet'],
+      restBetweenSets: json['restBetweenSets'] != null ? int.parse(json['restBetweenSets'].toString()) : null,
+      restAfterSet: json['restAfterSet'] != null ? int.parse(json['restAfterSet'].toString()) : null,
     );
   }
 

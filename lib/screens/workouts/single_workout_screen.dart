@@ -64,7 +64,9 @@ class _SingleWorkoutScreenState extends State<SingleWorkoutScreen> {
                                 )));
 
                     if (editedWorkout == null) {
-                      Navigator.pop(context);
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                      }
                       return;
                     } else {
                       setState(() {
