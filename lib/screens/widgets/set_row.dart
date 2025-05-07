@@ -170,9 +170,7 @@ class SetRow extends StatelessWidget {
                     selectedExercises[index].sets[setIndex].completed = value;
                     
                     // Call refresh to update the UI and show/hide timer
-                    if (refresh != null) {
-                      refresh!();
-                    }
+                      refresh?.call();
                   },
                 )
               : const SizedBox(),

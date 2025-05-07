@@ -2,20 +2,21 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 
-// Replace the existing RestTimerManager class with this enhanced version:
 class RestTimerManager {
   static final RestTimerManager _instance = RestTimerManager._internal();
   factory RestTimerManager() => _instance;
   RestTimerManager._internal();
 
-  _RestTimerWidgetState? activeTimerState;
+  // Make these fields private since they use a private type
+  _RestTimerWidgetState? _activeTimerState;
   final List<_RestTimerWidgetState> _pendingTimers = [];
   bool _isProcessingQueue = false;
 
-  void setActiveTimer(_RestTimerWidgetState timerState) {
+  // Make methods that use private types also private
+  void _setActiveTimer(_RestTimerWidgetState timerState) {
     // If no active timer, make this the active timer
-    if (activeTimerState == null) {
-      activeTimerState = timerState;
+    if (_activeTimerState == null) {
+      _activeTimerState = timerState;
       // Start this timer
       timerState._startTimerIfNotStarted();
     } else {
@@ -25,12 +26,12 @@ class RestTimerManager {
     }
   }
 
-  // Update the timerCompleted method in RestTimerManager:
-  void timerCompleted(_RestTimerWidgetState timerState) {
-    if (activeTimerState == timerState) {
+  // Make this method private too
+  void _timerCompleted(_RestTimerWidgetState timerState) {
+    if (_activeTimerState == timerState) {
       // Make sure the current timer is fully stopped
-      activeTimerState = null;
-      
+      _activeTimerState = null;
+
       // Add a slight delay before processing the next timer
       // This ensures the UI has time to update
       Future.delayed(const Duration(milliseconds: 50), () {
@@ -41,14 +42,14 @@ class RestTimerManager {
 
   void _processNextTimerInQueue() {
     if (_pendingTimers.isEmpty || _isProcessingQueue) return;
-    
+
     _isProcessingQueue = true;
-    
+
     // Slight delay to avoid UI jank
     Future.delayed(const Duration(milliseconds: 100), () {
       if (_pendingTimers.isNotEmpty) {
         final nextTimer = _pendingTimers.removeAt(0);
-        activeTimerState = nextTimer;
+        _activeTimerState = nextTimer;
         nextTimer._startTimerIfNotStarted();
       }
       _isProcessingQueue = false;
@@ -64,13 +65,13 @@ class RestTimerWidget extends StatefulWidget {
   final int setIndex;
 
   const RestTimerWidget({
-    Key? key,
+    super.key,
     required this.restDuration,
     this.onComplete,
     this.exercise,
     this.isBetweenSets = true,
     this.setIndex = 0,
-  }) : super(key: key);
+  });
 
   @override
   State<RestTimerWidget> createState() => _RestTimerWidgetState();
@@ -86,17 +87,17 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   @override
   void initState() {
     super.initState();
-    
+
     // Register with timer manager but don't start yet
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _timerManager.setActiveTimer(this);
+      _timerManager._setActiveTimer(this);
     });
   }
 
   // New method to start timer when activated from queue
   void _startTimerIfNotStarted() {
     if (_timerStarted) return;
-    
+
     _timerStarted = true;
     _isRunning = true;
     _startTimer();
@@ -107,7 +108,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
       setState(() {
         if (_isRunning) {
           _elapsedSeconds++;
-          
+
           // When timer reaches its intended duration
           if (_elapsedSeconds == widget.restDuration) {
             _onTimerComplete();
@@ -121,11 +122,12 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   void updateRestTimeWithCurrentValue() {
     if (widget.exercise != null) {
       final int actualRestTime = _elapsedSeconds;
-      
+
       if (widget.isBetweenSets) {
         widget.exercise!.restBetweenSets = actualRestTime;
         if (widget.setIndex < widget.exercise!.sets.length) {
-          widget.exercise!.sets[widget.setIndex].restBetweenSets = actualRestTime;
+          widget.exercise!.sets[widget.setIndex].restBetweenSets =
+              actualRestTime;
         }
       } else {
         widget.exercise!.restAfterSet = actualRestTime;
@@ -135,7 +137,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
       }
     }
   }
-  
+
   // Modify _pauseTimer to update rest time values when paused
   void _pauseTimer() {
     setState(() {
@@ -149,7 +151,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     setState(() {
       _isRunning = true;
       // Make this the active timer when manually resumed
-      _timerManager.setActiveTimer(this);
+      _timerManager._setActiveTimer(this);
     });
   }
 
@@ -158,15 +160,16 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     // First cancel the current timer to stop it from continuing
     _timer.cancel();
     _isRunning = false;
-    
+
     if (widget.exercise != null) {
       final int actualRestTime = _elapsedSeconds;
-      
+
       // Update rest times as before
       if (widget.isBetweenSets) {
         widget.exercise!.restBetweenSets = actualRestTime;
         if (widget.setIndex < widget.exercise!.sets.length) {
-          widget.exercise!.sets[widget.setIndex].restBetweenSets = actualRestTime;
+          widget.exercise!.sets[widget.setIndex].restBetweenSets =
+              actualRestTime;
         }
       } else {
         widget.exercise!.restAfterSet = actualRestTime;
@@ -175,15 +178,12 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         }
       }
     }
-    
+
     // Play a sound or vibrate here if desired
-    
+
     // Tell the manager this timer is complete
-    _timerManager.timerCompleted(this);
-    
-    if (widget.onComplete != null) {
-      widget.onComplete!();
-    }
+    _timerManager._timerCompleted(this);
+    widget.onComplete?.call();
   }
 
   @override
@@ -191,23 +191,24 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     if (_timerStarted) {
       _timer.cancel();
     }
-    
+
     // Remove from queue if being disposed
     _timerManager._pendingTimers.remove(this);
-    
+
     // Clear as active timer if being disposed
-    if (_timerManager.activeTimerState == this) {
-      _timerManager.activeTimerState = null;
+    if (_timerManager._activeTimerState == this) {
+      _timerManager._activeTimerState = null;
       _timerManager._processNextTimerInQueue();
     }
-    
+
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     // Calculate progress only if timer has started
-    double progress = _timerStarted ? (_elapsedSeconds / widget.restDuration) : 0.0;
+    double progress =
+        _timerStarted ? (_elapsedSeconds / widget.restDuration) : 0.0;
     bool isOvertime = progress >= 1.0;
     bool isPending = !_timerStarted;
 
@@ -228,9 +229,9 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
           FractionallySizedBox(
             widthFactor: progress > 1.0 ? 1.0 : progress,
             child: Container(
-              color: isOvertime 
-                ? Theme.of(context).colorScheme.tertiaryFixed 
-                : Theme.of(context).colorScheme.inversePrimary,
+              color: isOvertime
+                  ? Theme.of(context).colorScheme.tertiaryFixed
+                  : Theme.of(context).colorScheme.inversePrimary,
             ),
           ),
 
@@ -239,32 +240,11 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // Show waiting indicator or play/pause button
-                isPending
-                  ? const Text("Waiting...", 
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold))
-                  : IconButton(
-                      iconSize: 22,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(
-                        minHeight: 32, minWidth: 32,
-                      ),
-                      icon: Icon(
-                        _isRunning ? Icons.pause : Icons.play_arrow,
-                        color: Colors.black,
-                      ),
-                      onPressed: () {
-                        if (_isRunning) {
-                          _pauseTimer();
-                        } else {
-                          _resumeTimer();
-                        }
-                      },
-                    ),
+                _buildCenterControl(isPending),
               ],
             ),
           ),
-          
+
           // Timer display
           if (_timerStarted)
             Positioned(
@@ -285,6 +265,35 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         ],
       ),
     );
+  }
+
+  Widget _buildCenterControl(bool isPending) {
+    if (isPending) {
+      return const Text(
+        "Waiting...",
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)
+      );
+    } else {
+      return IconButton(
+        iconSize: 22,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(
+          minHeight: 32,
+          minWidth: 32,
+        ),
+        icon: Icon(
+          _isRunning ? Icons.pause : Icons.play_arrow,
+          color: Colors.black,
+        ),
+        onPressed: () {
+          if (_isRunning) {
+            _pauseTimer();
+          } else {
+            _resumeTimer();
+          }
+        },
+      );
+    }
   }
 
   String formatTime(int seconds) {
