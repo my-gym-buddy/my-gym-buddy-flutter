@@ -336,25 +336,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
     print('restAfterSet: ${exercise.restAfterSet}');
 
     final bool hasMultipleSets = exercise.sets.length > 1;
-
-    int betweenSetsMinutes = 0;
-    int betweenSetsSeconds = 0;
-    int afterSetMinutes = 0;
-    int afterSetSeconds = 0;
-
-    // Initialize with existing values if any
-    if (exercise.restBetweenSets != null) {
-      betweenSetsMinutes = exercise.restBetweenSets! ~/ 60;
-      betweenSetsSeconds = exercise.restBetweenSets! % 60;
-    }
-
-    if (exercise.restAfterSet != null) {
-      afterSetMinutes = exercise.restAfterSet! ~/ 60;
-      afterSetSeconds = exercise.restAfterSet! % 60;
-    }
+    
+    // Extract time initialization to a separate method
+    final timeValues = _initializeRestTimes(exercise);
+    int betweenSetsMinutes = timeValues[0];
+    int betweenSetsSeconds = timeValues[1];
+    int afterSetMinutes = timeValues[2];
+    int afterSetSeconds = timeValues[3];
 
     showModalBottomSheet(
-      context: context, // Use the class context
+      context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
@@ -368,182 +359,254 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Center(
-                  child: Text(
-                    exercise.name,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
+                _buildModalHeader(exercise.name),
                 const SizedBox(height: 20),
-
-                // Only show rest between sets for multiple sets
-                if (hasMultipleSets) ...[
-                  const Text(
-                    'Rest between each sets',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.red,
-                    ),
+                
+                // Extract each section to separate methods
+                if (hasMultipleSets)
+                  _buildRestBetweenSetsSection(
+                    setModalState, 
+                    betweenSetsMinutes, 
+                    betweenSetsSeconds
                   ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    height: 100,
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            onSelectedItemChanged: (index) {
-                              setModalState(() {
-                                betweenSetsMinutes = index;
-                              });
-                            },
-                            scrollController: FixedExtentScrollController(
-                              initialItem: betweenSetsMinutes,
-                            ),
-                            children: List.generate(60, (index) {
-                              return Center(child: Text('$index min'));
-                            }),
-                          ),
-                        ),
-                        Expanded(
-                          child: CupertinoPicker(
-                            itemExtent: 32,
-                            onSelectedItemChanged: (index) {
-                              setModalState(() {
-                                betweenSetsSeconds = index;
-                              });
-                            },
-                            scrollController: FixedExtentScrollController(
-                              initialItem: betweenSetsSeconds,
-                            ),
-                            children: List.generate(60, (index) {
-                              return Center(child: Text('$index sec'));
-                            }),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                ],
-
-                const Text(
-                  'Rest after whole set',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.red,
-                  ),
+                  
+                _buildRestAfterSetSection(
+                  setModalState, 
+                  afterSetMinutes, 
+                  afterSetSeconds
                 ),
-                const SizedBox(height: 10),
-                SizedBox(
-                  height: 100,
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: CupertinoPicker(
-                          itemExtent: 32,
-                          onSelectedItemChanged: (index) {
-                            setModalState(() {
-                              afterSetMinutes = index;
-                            });
-                          },
-                          scrollController: FixedExtentScrollController(
-                            initialItem: afterSetMinutes,
-                          ),
-                          children: List.generate(60, (index) {
-                            return Center(child: Text('$index min'));
-                          }),
-                        ),
-                      ),
-                      Expanded(
-                        child: CupertinoPicker(
-                          itemExtent: 32,
-                          onSelectedItemChanged: (index) {
-                            setModalState(() {
-                              afterSetSeconds = index;
-                            });
-                          },
-                          scrollController: FixedExtentScrollController(
-                            initialItem: afterSetSeconds,
-                          ),
-                          children: List.generate(60, (index) {
-                            return Center(child: Text('$index sec'));
-                          }),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
+                
                 const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.errorContainer,
-                      ),
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Cancel'),
-                    ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor:
-                            Theme.of(context).colorScheme.inversePrimary,
-                      ),
-                      onPressed: () {
-                        final int betweenSetsTotal = hasMultipleSets
-                            ? (betweenSetsMinutes * 60 + betweenSetsSeconds)
-                            : 0;
-
-                        final int afterSetTotal =
-                            afterSetMinutes * 60 + afterSetSeconds;
-
-                        print('New values being set:');
-                        print('betweenSetsTotal: $betweenSetsTotal');
-                        print('afterSetTotal: $afterSetTotal');
-
-                        setState(() {
-                          // Store the rest time at exercise level for future sets
-                          exercise.restBetweenSets =
-                              hasMultipleSets && betweenSetsTotal > 0
-                                  ? betweenSetsTotal
-                                  : null;
-
-                          // Update all existing sets with the new rest time
-                          for (var set in exercise.sets) {
-                            set.restBetweenSets = exercise.restBetweenSets;
-                            set.restAfterSet =
-                                exercise.restAfterSet; // Add this line
-                          }
-
-                          // Store after-set rest time
-                          exercise.restAfterSet =
-                              afterSetTotal > 0 ? afterSetTotal : null;
-
-                          print('After setting: Exercise ${exercise.name}');
-                          print('restBetweenSets: ${exercise.restBetweenSets}');
-                          print('restAfterSet: ${exercise.restAfterSet}');
-
-                          widget.onChanged?.call();
-                        });
-
-                        Navigator.pop(context);
-                      },
-                      child: const Text('Save'),
-                    ),
-                  ],
-                )
+                
+                _buildActionButtons(
+                  context,
+                  exercise,
+                  hasMultipleSets,
+                  betweenSetsMinutes,
+                  betweenSetsSeconds,
+                  afterSetMinutes,
+                  afterSetSeconds
+                ),
               ],
             ),
           );
         },
       ),
     );
+  }
+
+  // Initialize time values from the exercise
+  List<int> _initializeRestTimes(Exercise exercise) {
+    int betweenSetsMinutes = 0;
+    int betweenSetsSeconds = 0;
+    int afterSetMinutes = 0;
+    int afterSetSeconds = 0;
+
+    if (exercise.restBetweenSets != null) {
+      betweenSetsMinutes = exercise.restBetweenSets! ~/ 60;
+      betweenSetsSeconds = exercise.restBetweenSets! % 60;
+    }
+
+    if (exercise.restAfterSet != null) {
+      afterSetMinutes = exercise.restAfterSet! ~/ 60;
+      afterSetSeconds = exercise.restAfterSet! % 60;
+    }
+    
+    return [betweenSetsMinutes, betweenSetsSeconds, afterSetMinutes, afterSetSeconds];
+  }
+
+  // Build the modal header with the exercise name
+  Widget _buildModalHeader(String title) {
+    return Center(
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  // Build the rest between sets section
+  Widget _buildRestBetweenSetsSection(
+    StateSetter setModalState,
+    int betweenSetsMinutes,
+    int betweenSetsSeconds,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Rest between each sets',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.red,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 100,
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildTimePicker(
+                  betweenSetsMinutes,
+                  (index) => setModalState(() => betweenSetsMinutes = index),
+                  'min'
+                ),
+              ),
+              Expanded(
+                child: _buildTimePicker(
+                  betweenSetsSeconds,
+                  (index) => setModalState(() => betweenSetsSeconds = index),
+                  'sec'
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
+      ],
+    );
+  }
+
+  // Build the rest after set section
+  Widget _buildRestAfterSetSection(
+    StateSetter setModalState,
+    int afterSetMinutes,
+    int afterSetSeconds,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Rest after whole set',
+          style: TextStyle(
+            fontSize: 16,
+            color: Colors.red,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SizedBox(
+          height: 100,
+          child: Row(
+            children: [
+              Expanded(
+                child: _buildTimePicker(
+                  afterSetMinutes,
+                  (index) => setModalState(() => afterSetMinutes = index),
+                  'min'
+                ),
+              ),
+              Expanded(
+                child: _buildTimePicker(
+                  afterSetSeconds,
+                  (index) => setModalState(() => afterSetSeconds = index),
+                  'sec'
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Build a time picker widget
+  Widget _buildTimePicker(int initialValue, Function(int) onChanged, String suffix) {
+    return CupertinoPicker(
+      itemExtent: 32,
+      onSelectedItemChanged: onChanged,
+      scrollController: FixedExtentScrollController(
+        initialItem: initialValue,
+      ),
+      children: List.generate(60, (index) {
+        return Center(child: Text('$index $suffix'));
+      }),
+    );
+  }
+
+  // Build the action buttons row
+  Widget _buildActionButtons(
+    BuildContext context,
+    Exercise exercise,
+    bool hasMultipleSets,
+    int betweenSetsMinutes,
+    int betweenSetsSeconds,
+    int afterSetMinutes,
+    int afterSetSeconds,
+  ) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: [
+        TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.errorContainer,
+          ),
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          style: TextButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+          ),
+          onPressed: () => _saveRestTimes(
+            context,
+            exercise,
+            hasMultipleSets,
+            betweenSetsMinutes,
+            betweenSetsSeconds,
+            afterSetMinutes,
+            afterSetSeconds,
+          ),
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  // Handle saving the rest times
+  void _saveRestTimes(
+    BuildContext context,
+    Exercise exercise,
+    bool hasMultipleSets,
+    int betweenSetsMinutes,
+    int betweenSetsSeconds,
+    int afterSetMinutes,
+    int afterSetSeconds,
+  ) {
+    final int betweenSetsTotal = hasMultipleSets
+        ? (betweenSetsMinutes * 60 + betweenSetsSeconds)
+        : 0;
+
+    final int afterSetTotal = afterSetMinutes * 60 + afterSetSeconds;
+
+    print('New values being set:');
+    print('betweenSetsTotal: $betweenSetsTotal');
+    print('afterSetTotal: $afterSetTotal');
+
+    setState(() {
+      // Store the rest time at exercise level for future sets
+      exercise.restBetweenSets =
+          hasMultipleSets && betweenSetsTotal > 0 ? betweenSetsTotal : null;
+
+      // Update all existing sets with the new rest time
+      for (var set in exercise.sets) {
+        set.restBetweenSets = exercise.restBetweenSets;
+        set.restAfterSet = exercise.restAfterSet;
+      }
+
+      // Store after-set rest time
+      exercise.restAfterSet = afterSetTotal > 0 ? afterSetTotal : null;
+
+      print('After setting: Exercise ${exercise.name}');
+      print('restBetweenSets: ${exercise.restBetweenSets}');
+      print('restAfterSet: ${exercise.restAfterSet}');
+
+      widget.onChanged?.call();
+    });
+
+    Navigator.pop(context);
   }
 }
