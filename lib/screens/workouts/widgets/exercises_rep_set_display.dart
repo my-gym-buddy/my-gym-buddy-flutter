@@ -5,7 +5,6 @@ import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/widgets/set_row.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:gym_buddy_app/screens/workouts/modals/rest_timer_settings_modal.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/rest_timer_widget.dart';
 
