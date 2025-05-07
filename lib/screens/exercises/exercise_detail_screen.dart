@@ -683,7 +683,7 @@ class ExerciseDetailScreen extends StatelessWidget {
                               'Set ${idx + 1}: ${set.weight} ${Config.getUnitAbbreviation()} × ${set.reps} reps',
                             ),
                           );
-                        }).toList(),
+                        })
                       ],
                     ),
                   ),
