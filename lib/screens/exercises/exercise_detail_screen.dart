@@ -3,6 +3,7 @@ import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_modal.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
@@ -435,7 +436,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Color _getDifficultyColor(BuildContext context, String? difficulty) {
-    if (difficulty == null){
+    if (difficulty == null) {
       return Theme.of(context).colorScheme.surfaceContainerHighest;
     }
 
@@ -517,7 +518,8 @@ class ExerciseDetailScreen extends StatelessWidget {
         minChildSize: 0.5,
         maxChildSize: 0.75,
         expand: false,
-        builder: (context, scrollController) => _buildExerciseFormWithPadding(context),
+        builder: (context, scrollController) =>
+            _buildExerciseFormWithPadding(context),
       ),
     );
   }
@@ -530,16 +532,18 @@ class ExerciseDetailScreen extends StatelessWidget {
       child: ExerciseForm(
         exercise: exercise,
         isModal: true,
-        onSave: (updatedExercise) => _handleExerciseUpdate(context, updatedExercise),
+        onSave: (updatedExercise) =>
+            _handleExerciseUpdate(context, updatedExercise),
       ),
     );
   }
 
-  Future<void> _handleExerciseUpdate(BuildContext context, Exercise updatedExercise) async {
+  Future<void> _handleExerciseUpdate(
+      BuildContext context, Exercise updatedExercise) async {
     try {
       await DatabaseHelper.updateExercise(updatedExercise);
       if (!context.mounted) return;
-      
+
       Navigator.pop(context);
       Navigator.pushReplacement(
         context,
@@ -559,24 +563,15 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
+    AtsModal.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Exercise'),
-          content: const Text('Are you sure you want to delete this exercise?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => _handleDelete(context),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
+      title: 'Delete Exercise',
+      message: 'Are you sure you want to delete this exercise?',
+      primaryButtonText: 'Delete',
+      secondaryButtonText: 'Cancel',
+      onPrimaryButtonPressed: () => _handleDelete(context),
+      onSecondaryButtonPressed: () => Navigator.pop(context),
+      primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
 
@@ -591,7 +586,7 @@ class ExerciseDetailScreen extends StatelessWidget {
         const SnackBar(content: Text('Exercise deleted')),
       );
       if (!context.mounted) return;
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
