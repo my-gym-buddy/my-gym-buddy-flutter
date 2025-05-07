@@ -24,10 +24,30 @@ class ExerciseCard extends StatelessWidget {
     }
   }
 
+  IconData _getCategoryIcon(String? category) {
+    if (category == null) return Icons.fitness_center;
+
+    switch (category.toLowerCase()) {
+      case 'cardio':
+        return Icons.directions_run;
+      case 'strength':
+        return Icons.fitness_center;
+      case 'flexibility':
+        return Icons.accessibility_new;
+      case 'balance':
+        return Icons.balance;
+      default:
+        return Icons.fitness_center;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final difficultyColor = _getDifficultyColor(exercise.difficulty);
+    final categoryIcon = _getCategoryIcon(exercise.category);
+
     return Card(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 1),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
@@ -43,99 +63,73 @@ class ExerciseCard extends StatelessWidget {
           );
         },
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Gallery
-            SizedBox(
-              height: 180,
-              child: PageView.builder(
-                itemCount: exercise.images?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final imageSource = exercise.images?[index] ?? '';
-                  final isNetworkImage = imageSource.startsWith('http');
-
-                  return ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: isNetworkImage
-                        ? Image.network(
-                            imageSource,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading image: $imageSource');
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported,
-                                      size: 40, color: Colors.grey),
-                                ),
-                              );
-                            },
-                          )
-                        : Image.asset(
-                            imageSource,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading image: $imageSource');
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported,
-                                      size: 40, color: Colors.grey),
-                                ),
-                              );
-                            },
-                          ),
-                  );
-                },
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            border: Border(
+              left: BorderSide(
+                color: difficultyColor,
+                width: 6,
               ),
             ),
-
-            // Exercise Details
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          exercise.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _getDifficultyColor(exercise.difficulty),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          exercise.difficulty?.toLowerCase() ?? 'beginner',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                // Category Icon
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[100],
+                    borderRadius: BorderRadius.circular(12),
                   ),
-                  const SizedBox(height: 8),
-                  Row(
+                  child: Icon(
+                    categoryIcon,
+                    size: 28,
+                    color: Colors.grey[700],
+                  ),
+                ),
+                const SizedBox(width: 16),
+
+                // Exercise Details
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.fitness_center,
-                          size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              exercise.name,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 12, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: difficultyColor,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              exercise.difficulty?.toLowerCase() ?? 'beginner',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[800],
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
                       Text(
                         exercise.category ?? 'No category',
                         style: TextStyle(
@@ -145,10 +139,10 @@ class ExerciseCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
       ),
     );
