@@ -13,12 +13,14 @@ class RestTimerManager {
   bool _isProcessingQueue = false;
 
   void _registerTimer(_RestTimerWidgetState timerState) {
-    if (_activeTimerState == null) {
-      _activeTimerState = timerState;
-      timerState._startTimerIfNotStarted();
-    } else {
-      _pendingTimers.add(timerState);
+    // If there's an active timer, finish it immediately
+    if (_activeTimerState != null) {
+      _activeTimerState!._forceComplete();
     }
+    
+    // Make the new timer active
+    _activeTimerState = timerState;
+    timerState._startTimerIfNotStarted();
   }
 
   void _timerCompleted(_RestTimerWidgetState timerState) {
@@ -151,6 +153,15 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     _updateRestTimeValues();
     _timerManager._timerCompleted(this);
     widget.onComplete?.call();
+  }
+
+  void _forceComplete() {
+    if (_timerStarted) {
+      _timer.cancel();
+      _updateRestTimeValues();
+      _timerManager._timerCompleted(this);
+      widget.onComplete?.call();
+    }
   }
 
   @override
