@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/screens/workouts/widgets/rest_timer_settings_modal.dart';
+import 'package:gym_buddy_app/screens/workouts/modals/rest_timer_settings_modal.dart';
 
 class RestTimerButton extends StatefulWidget {
   final Exercise exercise;

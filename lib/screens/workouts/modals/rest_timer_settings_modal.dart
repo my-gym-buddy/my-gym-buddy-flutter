@@ -66,7 +66,7 @@ class _RestTimerSettingsModalState extends State<RestTimerSettingsModal> {
   @override
   void initState() {
     super.initState();
-    hasMultipleSets = widget.exercise.sets != null && widget.exercise.sets!.length > 1;
+    hasMultipleSets = widget.exercise.sets.length > 1;
     
     // Initialize time values
     final timeValues = RestTimerSettingsModal._initializeTimeValues(widget.exercise);
