@@ -569,4 +569,40 @@ class DatabaseHelper {
       return false;
     }
   }
+
+  static Future<List<Map<String, dynamic>>> getExerciseHistory(String exerciseId) async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+
+    // Get all workout sessions containing this exercise
+    final List<Map<String, dynamic>> sessionExercises = await database!.rawQuery('''
+      SELECT 
+        ws.id as session_id, 
+        ws.start_time, 
+        ws.workout_session_name, 
+        wse.rep_set
+      FROM workout_session ws
+      JOIN workout_session_exercises wse ON ws.id = wse.workout_session_id
+      WHERE wse.exercise_id = ?
+      ORDER BY ws.start_time DESC
+    ''', [exerciseId]);
+
+    // Format the data for display
+    List<Map<String, dynamic>> history = [];
+    
+    for (var item in sessionExercises) {
+      final repSetMap = json.decode(item['rep_set']);
+      final sets = repSetMap['sets'] as List;
+      
+      history.add({
+        'sessionId': item['session_id'],
+        'date': DateTime.parse(item['start_time']),
+        'workoutName': item['workout_session_name'] ?? 'Unnamed Workout',
+        'sets': sets.map((set) => RepSet.fromJson(set)).toList(),
+      });
+    }
+    
+    return history;
+  }
 }

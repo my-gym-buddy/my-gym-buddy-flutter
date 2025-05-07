@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
@@ -40,6 +42,9 @@ class ExerciseDetailScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   if (exercise.id != null && exercise.id!.isNotEmpty)
                     _buildExerciseFormSection(context),
+                  const SizedBox(height: 32),
+                  if (exercise.id != null && exercise.id!.isNotEmpty)
+                    _buildExerciseHistorySection(context),
                   const SizedBox(height: 32),
                   if (!editMode) _buildAddToLibraryButton(context),
                 ],
@@ -601,5 +606,97 @@ class ExerciseDetailScreen extends StatelessWidget {
         const SnackBar(content: Text('Failed to delete exercise')),
       );
     }
+  }
+
+  Widget _buildExerciseHistorySection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Exercise History',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
+        const SizedBox(height: 8),
+        FutureBuilder<List<Map<String, dynamic>>>(
+          future: DatabaseHelper.getExerciseHistory(exercise.id ?? ''),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            }
+
+            final history = snapshot.data ?? [];
+
+            if (history.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: Text('No history found for this exercise'),
+              );
+            }
+
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: history.length,
+              itemBuilder: (context, index) {
+                final session = history[index];
+                final sets = session['sets'] as List<RepSet>;
+
+                return Card(
+                  margin: const EdgeInsets.symmetric(vertical: 8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              session['workoutName'],
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              _formatDate(session['date']),
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const Divider(),
+                        ...sets.asMap().entries.map((entry) {
+                          final idx = entry.key;
+                          final set = entry.value;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4),
+                            child: Text(
+                              'Set ${idx + 1}: ${set.weight} ${Config.getUnitAbbreviation()} × ${set.reps} reps',
+                            ),
+                          );
+                        }).toList(),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.year}/${date.month.toString().padLeft(2, '0')}/${date.day.toString().padLeft(2, '0')}';
   }
 }
