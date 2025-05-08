@@ -187,8 +187,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
   Widget _buildRestBetweenSets(Exercise exercise, int setIndex) {
     final bool isLastSet = setIndex >= exercise.sets.length - 1;
     final bool hasRestBetweenSets = exercise.restBetweenSets != null;
+    final bool hasRestAfterSet = exercise.restAfterSet != null;
 
-    if (setIndex < 0 || isLastSet || !hasRestBetweenSets) {
+    // Skip if this is header row or if no rest time is configured
+    if (setIndex < 0 || (!hasRestBetweenSets && !(isLastSet && hasRestAfterSet))) {
+      return const SizedBox.shrink();
+    }
+
+    // For last set, either show nothing (if rest after exercise will handle it)
+    // or show the between sets rest timer
+    if (isLastSet && hasRestAfterSet) {
       return const SizedBox.shrink();
     }
 
@@ -220,15 +228,16 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
 
     return StatefulBuilder(
       builder: (context, setStateLocal) {
-        final bool allSetsCompleted = exercise.sets.isNotEmpty &&
-            exercise.sets.every((set) => set.completed == true);
+        // Check if the last set is completed (not necessarily all sets)
+        final bool lastSetCompleted = exercise.sets.isNotEmpty && 
+            (exercise.sets.last.completed ?? false);
 
         return Column(
           children: [
             _buildRestTimeLabel(exercise.restAfterSet!, Icons.timer,
                 padding: 9),
             _buildRestTimer(
-              isActive: allSetsCompleted && widget.isActiveWorkout,
+              isActive: lastSetCompleted && widget.isActiveWorkout,
               exercise: exercise,
               duration: exercise.restAfterSet!,
               isBetweenSets: false,
