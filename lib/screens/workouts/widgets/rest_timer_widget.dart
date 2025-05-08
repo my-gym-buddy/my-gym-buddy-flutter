@@ -34,13 +34,14 @@ class RestTimerManager {
     if (_pendingTimers.isEmpty || _isProcessingQueue) return;
 
     _isProcessingQueue = true;
-    // Remove unnecessary delay
-    if (_pendingTimers.isNotEmpty) {
-      final nextTimer = _pendingTimers.removeAt(0);
-      _activeTimerState = nextTimer;
-      nextTimer._startTimerIfNotStarted();
-    }
-    _isProcessingQueue = false;
+    Future.delayed(const Duration(milliseconds: 100), () {
+      if (_pendingTimers.isNotEmpty) {
+        final nextTimer = _pendingTimers.removeAt(0);
+        _activeTimerState = nextTimer;
+        nextTimer._startTimerIfNotStarted();
+      }
+      _isProcessingQueue = false;
+    });
   }
   
   void _removeTimer(_RestTimerWidgetState timerState) {
@@ -147,35 +148,19 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     _timer.cancel();
     setState(() {
       _isRunning = false;
-      _elapsedSeconds = widget.restDuration; // Force to exact duration for proper display
     });
     
     _updateRestTimeValues();
-    
-    // Add a delay to ensure UI updates before proceeding to next timer
-    Future.delayed(const Duration(milliseconds: 300), () {
-      _timerManager._timerCompleted(this);
-      widget.onComplete?.call();
-    });
+    _timerManager._timerCompleted(this);
+    widget.onComplete?.call();
   }
 
   void _forceComplete() {
     if (_timerStarted) {
       _timer.cancel();
-      
-      // Ensure we update the UI state before proceeding
-      setState(() {
-        _isRunning = false;
-        _elapsedSeconds = widget.restDuration; // Force elapsed time to match duration
-      });
-      
       _updateRestTimeValues();
-      
-      // Add delay to ensure UI updates before proceeding
-      Future.delayed(const Duration(milliseconds: 200), () {
-        _timerManager._timerCompleted(this);
-        widget.onComplete?.call();
-      });
+      _timerManager._timerCompleted(this);
+      widget.onComplete?.call();
     }
   }
 
@@ -192,8 +177,6 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   @override
   Widget build(BuildContext context) {
     double progress = _timerStarted ? (_elapsedSeconds / widget.restDuration) : 0.0;
-    // Ensure progress is never negative
-    progress = progress < 0.0 ? 0.0 : progress;
     bool isOvertime = progress >= 1.0;
     bool isPending = !_timerStarted;
 
@@ -211,7 +194,7 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
           
           // Progress bar
           FractionallySizedBox(
-            widthFactor: progress > 1.0 ? 1.0 : (progress < 0.0 ? 0.0 : progress),
+            widthFactor: progress > 1.0 ? 1.0 : progress,
             child: Container(
               color: isOvertime
                   ? Theme.of(context).colorScheme.tertiaryFixed
