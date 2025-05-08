@@ -158,19 +158,18 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   }
 
   void _onTimerComplete() {
+    _timer.cancel();
     setState(() {
-      // We still want to update the rest time values
-      _updateRestTimeValues();
+      _isRunning = false;
+      _elapsedSeconds = widget.restDuration; // Force to exact duration for proper display
     });
     
-    // Notify manager timer has completed, but don't stop running
+    _updateRestTimeValues();
+    
+    // Add a delay to ensure UI updates before proceeding to next timer
     Future.delayed(const Duration(milliseconds: 300), () {
       _timerManager._timerCompleted(this);
-      
-      // Only call onComplete if this is not the "rest after set" timer (which would affect the next set)
-      if (widget.isBetweenSets || widget.exercise == null) {
-        widget.onComplete?.call();
-      }
+      widget.onComplete?.call();
     });
   }
 
