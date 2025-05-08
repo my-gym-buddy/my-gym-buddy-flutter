@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/rep_set.dart';
+import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
+import 'package:gym_buddy_app/screens/statistics/single_workout_statistics_screen.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class ExerciseDetailScreen extends StatelessWidget {
@@ -648,43 +650,65 @@ class ExerciseDetailScreen extends StatelessWidget {
                 final session = history[index];
                 final sets = session['sets'] as List<RepSet>;
 
-                return Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              session['workoutName'],
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text(
-                              _formatDate(session['date']),
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                return GestureDetector(
+                  onTap: () async {
+                    final sessionId = session['sessionId'].toString();
+                    // Get all sessions and find the one matching this ID
+                    final allSessions = await DatabaseHelper.getAllWorkoutSessions();
+                    final targetWorkout = allSessions.firstWhere(
+                      (workout) => workout.id == sessionId,
+                      orElse: () => Workout(id: sessionId, name: session['workoutName'], exercises: []),
+                    );
+                    
+                    if (context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SingleWorkoutStatsisticsScreen(
+                            workout: targetWorkout,
+                          ),
                         ),
-                        const Divider(),
-                        ...sets.asMap().entries.map((entry) {
-                          final idx = entry.key;
-                          final set = entry.value;
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 4),
-                            child: Text(
-                              'Set ${idx + 1}: ${set.weight} ${Config.getUnitAbbreviation()} × ${set.reps} reps',
-                            ),
-                          );
-                        })
-                      ],
+                      );
+                    }
+                  },
+                  child: Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                session['workoutName'],
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text(
+                                _formatDate(session['date']),
+                                style: TextStyle(
+                                  color: Colors.grey[600],
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const Divider(),
+                          ...sets.asMap().entries.map((entry) {
+                            final idx = entry.key;
+                            final set = entry.value;
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: Text(
+                                'Set ${idx + 1}: ${set.weight} ${Config.getUnitAbbreviation()} × ${set.reps} reps',
+                              ),
+                            );
+                          })
+                        ],
+                      ),
                     ),
                   ),
                 );
