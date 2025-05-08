@@ -130,6 +130,9 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
   }
 
   void _pauseTimer() {
+    // Cancel the timer when pausing
+    _timer.cancel();
+    
     setState(() {
       _isRunning = false;
       _updateRestTimeValues();
@@ -140,7 +143,18 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
     setState(() {
       _isRunning = true;
     });
-    _timerManager._registerTimer(this);
+    
+    // Always create a new timer when resuming
+    _startTimer();
+    
+    // Don't register as a new timer, just make this the active timer
+    if (_timerManager._activeTimerState != this) {
+      // If there's another active timer, force complete it
+      if (_timerManager._activeTimerState != null) {
+        _timerManager._activeTimerState!._forceComplete();
+      }
+      _timerManager._activeTimerState = this;
+    }
   }
 
   void _onTimerComplete() {
