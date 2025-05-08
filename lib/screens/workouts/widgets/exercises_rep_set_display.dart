@@ -190,8 +190,7 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
     final bool hasRestAfterSet = exercise.restAfterSet != null;
 
     // Skip if this is header row or if no rest time is configured
-    if (setIndex < 0 ||
-        (!hasRestBetweenSets && !(isLastSet && hasRestAfterSet))) {
+    if (setIndex < 0 || (!hasRestBetweenSets && !(isLastSet && hasRestAfterSet))) {
       return const SizedBox.shrink();
     }
 
@@ -204,7 +203,7 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
     return StatefulBuilder(
       builder: (context, setStateLocal) {
         final set = exercise.sets[setIndex];
-        final bool isTimerActive = set.completed;
+        final bool isTimerActive = set.completed ?? false;
 
         return Column(
           children: [
@@ -230,8 +229,8 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
     return StatefulBuilder(
       builder: (context, setStateLocal) {
         // Check if the last set is completed (not necessarily all sets)
-        final bool lastSetCompleted =
-            exercise.sets.isNotEmpty && (exercise.sets.last.completed);
+        final bool lastSetCompleted = exercise.sets.isNotEmpty && 
+            (exercise.sets.last.completed ?? false);
 
         return Column(
           children: [
@@ -294,6 +293,11 @@ class _ExercisesRepSetDisplayState extends State<ExercisesRepSetDisplay> {
       exercise: exercise,
       isBetweenSets: isBetweenSets,
       setIndex: setIndex,
+      onComplete: () {
+        setStateLocal(() {
+          widget.onChanged?.call();
+        });
+      },
     );
   }
 
