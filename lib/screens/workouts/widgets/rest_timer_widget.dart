@@ -103,7 +103,10 @@ class _RestTimerWidgetState extends State<RestTimerWidget> {
         if (_isRunning) {
           _elapsedSeconds++;
           if (_elapsedSeconds == widget.restDuration) {
-            _onTimerComplete();
+            // Instead of stopping the timer, just update values
+            _updateRestTimeValues();
+            widget.onComplete?.call();
+            // Don't call _onTimerComplete() here
           }
         }
       });
