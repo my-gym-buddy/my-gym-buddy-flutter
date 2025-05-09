@@ -27,6 +27,7 @@ class SetRow extends StatelessWidget {
   final int index;
 
   final List<Exercise> selectedExercises;
+
   String getPreviousWeight() {
     // Safely check if the index is valid
     if (index >= selectedExercises.length) return "-";
@@ -59,6 +60,11 @@ class SetRow extends StatelessWidget {
       );
     }
     
+    // Safety check for invalid index
+    if (index >= selectedExercises.length) {
+      return const SizedBox(); // Return empty widget if index is invalid
+    }
+    
     // Handle editable set row with Slidable
     if (isEditable != null) {
       return Slidable(
@@ -67,8 +73,12 @@ class SetRow extends StatelessWidget {
           children: [
             SlidableAction(
               onPressed: (context) {
-                selectedExercises[index].sets.removeAt(setIndex);
-                refresh!();
+                // Safety check before removing
+                if (index < selectedExercises.length && 
+                    setIndex < selectedExercises[index].sets.length) {
+                  selectedExercises[index].sets.removeAt(setIndex);
+                  refresh!();
+                }
               },
               borderRadius: BorderRadius.circular(40),
               backgroundColor:
@@ -90,6 +100,16 @@ class SetRow extends StatelessWidget {
 
   // Extract the row content to a separate method
   Widget _buildSetRow(BuildContext context) {
+    // Safety check for invalid index
+    if (index >= selectedExercises.length) {
+      return const SizedBox(); // Return empty widget if index is invalid
+    }
+    
+    // Safety check for invalid setIndex
+    if (setIndex >= selectedExercises[index].sets.length) {
+      return const SizedBox(); // Return empty widget if setIndex is invalid
+    }
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -165,24 +185,23 @@ class SetRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 2,          child: isActiveWorkout == true ? atsCheckbox(
-                  checked: index < selectedExercises.length && 
-                           setIndex < selectedExercises[index].sets.length ? 
-                           selectedExercises[index].sets[setIndex].completed : false,
+          flex: 2,
+          child: isActiveWorkout == true 
+              ? atsCheckbox(
+                  checked: selectedExercises[index].sets[setIndex].completed,
                   onChanged: (value) {
-                    // Check if the index and setIndex are valid to prevent range errors
-                    if (index < selectedExercises.length && 
-                        setIndex < selectedExercises[index].sets.length) {
-                      selectedExercises[index].sets[setIndex].completed = value;
-                      refresh!();
-                      // Save workout data to temporary table for recovery
-                      if (isActiveWorkout == true && selectedExercises.isNotEmpty) {
-                        // Create a workout object from the current exercises
-                        Workout currentWorkout = Workout(                          name: selectedExercises.isNotEmpty ? selectedExercises[0].name : "Workout",  // Use the first exercise name as fallback or default name
-                          id: "temp_workout", // Set an ID for the temporary workout
-                          exercises: selectedExercises,
-                          startTime: DateTime.now(),
-                        );
+                    selectedExercises[index].sets[setIndex].completed = value;
+                    refresh!();
+                    
+                    // Save workout data to temporary table for recovery
+                    if (isActiveWorkout == true) {
+                      // Create a workout object from the current exercises
+                      Workout currentWorkout = Workout(
+                        name: selectedExercises.isNotEmpty ? selectedExercises[0].name : "Workout",
+                        id: "temp_workout", // Set an ID for the temporary workout
+                        exercises: selectedExercises,
+                        startTime: DateTime.now(),
+                      );
                       
                       // Print additional debug info
                       if (kDebugMode) {
@@ -208,10 +227,9 @@ class SetRow extends StatelessWidget {
                         workoutDuration
                       ).then((success) {
                         if (kDebugMode) {
-                            print('Temporary workout saved: $success with duration: ${workoutDuration}s');
-                          }
-                        });
-                      }
+                          print('Temporary workout saved: $success with duration: ${workoutDuration}s');
+                        }
+                      });
                     }
                   },
                 )

@@ -62,16 +62,21 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       title: 'empty workout',
       message: 'you cannot end a workout with no exercises. Please add exercises to the workout before ending it.',
       primaryButtonText: cancelWorkoutText,
-      secondaryButtonText: continueWorkoutText,
-      onPrimaryButtonPressed: () {
+      secondaryButtonText: continueWorkoutText,      onPrimaryButtonPressed: () {
         if (context.mounted) {
-          Navigator.pop(context);
-          Navigator.pop(context);
+          // Use Future.delayed to avoid Navigator lock issues
+          Future.delayed(Duration.zero, () {
+            Navigator.of(context).pop();
+            Navigator.of(context).pop();
+          });
         }
       },
       onSecondaryButtonPressed: () {
         if (context.mounted) {
-          Navigator.pop(context);
+          // Use Future.delayed to avoid Navigator lock issues
+          Future.delayed(Duration.zero, () {
+            Navigator.of(context).pop();
+          });
         }
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
@@ -83,25 +88,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       context: context,
       title: 'cancel workout session?',
       message: 'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',      primaryButtonText: cancelWorkoutText,
-      secondaryButtonText: continueWorkoutText,
-      onPrimaryButtonPressed: () {
+      secondaryButtonText: continueWorkoutText,      onPrimaryButtonPressed: () {
         // Clear temporary workout data when canceling
         DatabaseHelper.clearTemporaryWorkout().then((_) {
           if (context.mounted) {
-            Navigator.pop(context);
-            Navigator.pop(context);
+            // Use Future.delayed to avoid Navigator lock issues
+            Future.delayed(Duration.zero, () {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            });
           }
         });
       },
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        // Use Future.delayed to avoid Navigator lock issues
+        Future.delayed(Duration.zero, () {
+          Navigator.of(context).pop();
+        });
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
-
   Future<void> showEndWorkoutSummaryModal() async {
-    await AtsModal.show(
+    return AtsModal.show(
       context: context,
       title: 'workout summary',
       message: 'duration: ${StopWatchTimer.getDisplayTime(widget.stopWatchTimer.rawTime.value, milliSecond: false)}\ntotal weight lifted: ${Helper.getWeightInCorrectUnit(Helper.calculateTotalWeightLifted(widget.workoutTemplate)).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}',
@@ -113,9 +122,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
             widget.stopWatchTimer.secondTime.value);
       },
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        Navigator.of(context).pop();
       },
-      customContent: Expanded(
+      customContent: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.4,
         child: Center(
           child: SingleChildScrollView(
             child: Column(children: [
@@ -149,57 +159,68 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ),
     );
   }
+  void showEndWorkoutConfirmationModal() {
+    // Store the logic to be executed after confirming
+    confirmEndWorkout() async {
+      List<Exercise> exerciseToRemove = [];
+      for (final exercise in widget.workoutTemplate.exercises!) {
+        List<RepSet> repSetToRemove = [];
+        for (final repSet in exercise.sets) {
+          if (repSet.completed == false) {
+            repSetToRemove.add(repSet);
+          }
+        }
+        for (final repSet in repSetToRemove) {
+          exercise.sets.remove(repSet);
+        }
+        if (exercise.sets.isEmpty) {
+          exerciseToRemove.add(exercise);
+        }
+      }
+      for (final exercise in exerciseToRemove) {
+        widget.workoutTemplate.exercises!.remove(exercise);
+      }
 
-  void showEndWorkoutConfirmationModal() async {
+      if (widget.workoutTemplate.exercises!.isNotEmpty) {
+        DatabaseHelper.saveWorkoutSession(
+            widget.workoutTemplate,
+            widget.stopWatchTimer.secondTime.value);
+
+        widget.stopWatchTimer.onStopTimer();
+        
+        // Clear temporary workout data after successful save
+        await DatabaseHelper.clearTemporaryWorkout();
+        
+        if (mounted) {
+          Navigator.of(context).pop(); // Pop the confirmation modal
+          // Show the summary in a separate step after the pop completes
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showEndWorkoutSummaryModal().then((_) {
+              if (mounted) {
+                Navigator.of(context).pop(); // Pop back to previous screen after summary
+              }
+            });
+          });
+        }
+      } else {
+        if (context.mounted) {
+          Navigator.of(context).pop(); // Pop the confirmation modal
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            showEmptyWorkoutErrorMessage();
+          });
+        }
+      }
+    }
+
     AtsModal.show(
       context: context,
       title: 'end workout session?',
       message: 'are you sure you want to end the workout session? This will end the current workout and save all the data.',
       primaryButtonText: 'end & save',
       secondaryButtonText: continueWorkoutText,
-      onPrimaryButtonPressed: () async {
-        List<Exercise> exerciseToRemove = [];
-        for (final exercise in widget.workoutTemplate.exercises!) {
-          List<RepSet> repSetToRemove = [];
-          for (final repSet in exercise.sets) {
-            if (repSet.completed == false) {
-              repSetToRemove.add(repSet);
-            }
-          }
-          for (final repSet in repSetToRemove) {
-            exercise.sets.remove(repSet);
-          }
-          if (exercise.sets.isEmpty) {
-            exerciseToRemove.add(exercise);
-          }
-        }
-        for (final exercise in exerciseToRemove) {
-          widget.workoutTemplate.exercises!.remove(exercise);
-        }
-
-        if (widget.workoutTemplate.exercises!.isNotEmpty) {          DatabaseHelper.saveWorkoutSession(
-              widget.workoutTemplate,
-              widget.stopWatchTimer.secondTime.value);
-
-          widget.stopWatchTimer.onStopTimer();
-          
-          // Clear temporary workout data after successful save
-          DatabaseHelper.clearTemporaryWorkout();
-
-          await showEndWorkoutSummaryModal();
-          if (mounted) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-          }
-        } else {
-          if (context.mounted) {
-            Navigator.pop(context);
-            showEmptyWorkoutErrorMessage();
-          }
-        }
-      },
+      onPrimaryButtonPressed: confirmEndWorkout,
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        Navigator.of(context).pop();
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
