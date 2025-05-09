@@ -27,14 +27,21 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
   List<Exercise> allExercises = [];
-  
-  static const String cancelWorkoutText = 'cancel workout';
+    static const String cancelWorkoutText = 'cancel workout';
   static const String continueWorkoutText = 'continue workout';
 
   @override
   void initState() {
     super.initState();
+    
+    // Set start time if not already set
+    if (widget.workoutTemplate.startTime == null) {
+      widget.workoutTemplate.startTime = DateTime.now();
+    }
+    
     widget.stopWatchTimer.onStartTimer();
+      // We're no longer doing automatic periodic saving here
+    // The saving is triggered only when a checkbox is clicked in SetRow
 
     DatabaseHelper.getExercises().then((value) {
       setState(() {
@@ -75,12 +82,16 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     AtsModal.show(
       context: context,
       title: 'cancel workout session?',
-      message: 'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',
-      primaryButtonText: cancelWorkoutText,
+      message: 'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',      primaryButtonText: cancelWorkoutText,
       secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () {
-        Navigator.pop(context);
-        Navigator.pop(context);
+        // Clear temporary workout data when canceling
+        DatabaseHelper.clearTemporaryWorkout().then((_) {
+          if (context.mounted) {
+            Navigator.pop(context);
+            Navigator.pop(context);
+          }
+        });
       },
       onSecondaryButtonPressed: () {
         Navigator.pop(context);
@@ -166,12 +177,14 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           widget.workoutTemplate.exercises!.remove(exercise);
         }
 
-        if (widget.workoutTemplate.exercises!.isNotEmpty) {
-          DatabaseHelper.saveWorkoutSession(
+        if (widget.workoutTemplate.exercises!.isNotEmpty) {          DatabaseHelper.saveWorkoutSession(
               widget.workoutTemplate,
               widget.stopWatchTimer.secondTime.value);
 
           widget.stopWatchTimer.onStopTimer();
+          
+          // Clear temporary workout data after successful save
+          DatabaseHelper.clearTemporaryWorkout();
 
           await showEndWorkoutSummaryModal();
           if (mounted) {

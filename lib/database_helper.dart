@@ -605,4 +605,145 @@ class DatabaseHelper {
     
     return history;
   }
+  static Future<bool> saveTemporaryWorkout(Workout workout, int duration) async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction to avoid database locking issues
+      return await database!.transaction((txn) async {
+        // First, clear any existing temporary workout
+        await txn.delete('temporary_workout');
+        
+        // Convert the workout to JSON format
+        var workoutJson = workout.toJson();
+        
+        if (kDebugMode) {
+          print('Saving temporary workout: ${json.encode(workoutJson)}');
+          print('Duration: $duration');
+        }
+        
+        // Insert the new temporary workout
+        await txn.insert('temporary_workout', {
+          'workout_template_id': workout.id != null ? workout.id : null,
+          'workout_data': json.encode(workoutJson),
+          'start_time': workout.startTime != null 
+              ? workout.startTime!.toIso8601String() 
+              : DateTime.now().toIso8601String(),
+          'duration': duration,
+        });
+        
+        if (kDebugMode) {
+          print('Temporary workout saved with duration: $duration');
+        }
+        
+        return true;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving temporary workout: $e');
+      }
+      return false;
+    }
+  }
+    static Future<bool> clearTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction for database operations
+      return await database!.transaction((txn) async {
+        await txn.delete('temporary_workout');
+        return true;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing temporary workout: $e');
+      }
+      return false;
+    }
+  }
+    static Future<bool> hasTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction for database operations
+      return await database!.transaction((txn) async {
+        final result = await txn.query('temporary_workout');
+        return result.isNotEmpty;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking for temporary workout: $e');
+      }
+      return false;
+    }
+  }
+  
+  static Future<Workout?> getTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction for reading the database
+      return await database!.transaction((txn) async {
+        final result = await txn.query('temporary_workout');
+        
+        if (result.isEmpty) {
+          return null;
+        }
+        
+        final workoutData = result.first;
+        final workoutJson = json.decode(workoutData['workout_data'] as String);
+        
+        final workout = Workout.fromJson(workoutJson);
+        workout.startTime = DateTime.parse(workoutData['start_time'] as String);
+        workout.duration = workoutData['duration'] as int;
+        
+        // Need to reload exercises from JSON because fromJson might not populate them correctly
+        if (workoutJson['exercises'] != null) {
+          List<Exercise> exercises = [];
+          for (var exercise in workoutJson['exercises']) {
+            Exercise loadedExercise = Exercise.fromJson(exercise);
+            
+            // Explicitly load sets with their completed state
+            if (exercise['sets'] != null) {
+              loadedExercise.sets = [];
+              for (var setData in exercise['sets']) {
+                RepSet set = RepSet.fromJson(setData);
+                loadedExercise.sets.add(set);
+              }
+            }
+            
+            exercises.add(loadedExercise);
+          }
+          workout.exercises = exercises;
+        }
+        
+        if (kDebugMode) {
+          print('Recovered workout: ${workout.name} with ${workout.exercises?.length ?? 0} exercises');
+          if (workout.exercises != null) {
+            for (var ex in workout.exercises!) {
+              print('  Exercise: ${ex.name} with ${ex.sets.length} sets');
+              for (var set in ex.sets) {
+                print('    Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+              }
+            }
+          }
+        }
+        
+        return workout;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error retrieving temporary workout: $e');
+      }
+      return null;
+    }
+  }
 }

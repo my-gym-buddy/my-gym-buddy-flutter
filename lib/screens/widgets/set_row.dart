@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_slidable/flutter_slidable.dart'; // Add this import
 import 'package:gym_buddy_app/config.dart';
+import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
@@ -20,11 +23,10 @@ class SetRow extends StatelessWidget {
   final Function? refresh;
 
   final bool? isActiveWorkout;
-
   final int setIndex;
   final int index;
 
-  List<Exercise> selectedExercises;
+  final List<Exercise> selectedExercises;
 
   String getPreviousWeight() {
     if (selectedExercises[index].previousSets == null) return "-";
@@ -162,12 +164,49 @@ class SetRow extends StatelessWidget {
         ),
         Expanded(
           flex: 2,
-          child: isActiveWorkout == true
-              ? atsCheckbox(
+          child: isActiveWorkout == true              ? atsCheckbox(
                   checked: selectedExercises[index].sets[setIndex].completed,
                   onChanged: (value) {
                     selectedExercises[index].sets[setIndex].completed = value;
                     refresh!();
+                      // Save workout data to temporary table for recovery
+                    if (isActiveWorkout == true) {
+                      // Create a workout object from the current exercises
+                      Workout currentWorkout = Workout(
+                        name: selectedExercises[0].name,  // Use the first exercise name as fallback
+                        id: "temp_workout", // Set an ID for the temporary workout
+                        exercises: selectedExercises,
+                        startTime: DateTime.now(),
+                      );
+                      
+                      // Print additional debug info
+                      if (kDebugMode) {
+                        print('Saving workout with ${selectedExercises.length} exercises');
+                        for (var ex in selectedExercises) {
+                          print('Exercise: ${ex.name} with ${ex.sets.length} sets');
+                          for (var set in ex.sets) {
+                            print('  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+                          }
+                        }
+                      }
+                      
+                      // Get the current workout duration in seconds
+                      // Using the current DateTime minus the startTime or default to 0 if not possible
+                      int workoutDuration = 0;
+                      if (currentWorkout.startTime != null) {
+                        workoutDuration = DateTime.now().difference(currentWorkout.startTime!).inSeconds;
+                      }
+                      
+                      // Save to temporary storage
+                      DatabaseHelper.saveTemporaryWorkout(
+                        currentWorkout, 
+                        workoutDuration
+                      ).then((success) {
+                        if (kDebugMode) {
+                          print('Temporary workout saved: $success with duration: ${workoutDuration}s');
+                        }
+                      });
+                    }
                   },
                 )
               : const SizedBox(),
