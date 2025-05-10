@@ -1,3 +1,6 @@
+// DUPLICATE FILE: This file appears to be a duplicate of set_row.dart and is not being imported anywhere in the project.
+// Consider deleting this file after verifying that set_row.dart has all necessary functionality.
+
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_slidable/flutter_slidable.dart'; // Add this import
@@ -236,9 +239,10 @@ class SetRow extends StatelessWidget {
       }
     });
   }
-
   // Handle checkbox state changes
   void _handleCheckboxChanged(bool value) {
+    if (!_areIndicesValid()) return;
+    
     selectedExercises[index].sets[setIndex].completed = value;
     refresh!();
 
@@ -248,13 +252,14 @@ class SetRow extends StatelessWidget {
       _saveWorkout(workout);
     }
   }
-
   // Build the completion checkbox
   Widget _buildCompletionCheckbox() {
     if (isActiveWorkout != true) return const SizedBox();
 
     return atsCheckbox(
-      checked: selectedExercises[index].sets[setIndex].completed,
+      checked: _areIndicesValid() 
+          ? selectedExercises[index].sets[setIndex].completed
+          : false,
       onChanged: _handleCheckboxChanged,
     );
   }

@@ -229,8 +229,7 @@ class SetRow extends StatelessWidget {
             'Temporary workout saved: $success with duration: ${workoutDuration}s');
       }
     });
-  }
-  // Handle checkbox state changes
+  }  // Handle checkbox state changes
   void _handleCheckboxChanged(bool value) {
     if (!_areIndicesValid()) return;
     
@@ -242,8 +241,7 @@ class SetRow extends StatelessWidget {
       _logWorkoutDebugInfo(workout);
       _saveWorkout(workout);
     }
-  }
-  // Build the completion checkbox
+  }  // Build the completion checkbox
   Widget _buildCompletionCheckbox() {
     if (isActiveWorkout != true) return const SizedBox();
 
