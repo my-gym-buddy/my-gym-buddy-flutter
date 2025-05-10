@@ -43,112 +43,75 @@ class ExerciseCard extends StatelessWidget {
           );
         },
         borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image Gallery
-            SizedBox(
-              height: 180,
-              child: PageView.builder(
-                itemCount: exercise.images?.length ?? 0,
-                itemBuilder: (context, index) {
-                  final imageSource = exercise.images?[index] ?? '';
-                  final isNetworkImage = imageSource.startsWith('http');
-
-                  return ClipRRect(
-                    borderRadius:
-                        const BorderRadius.vertical(top: Radius.circular(16)),
-                    child: isNetworkImage
-                        ? Image.network(
-                            imageSource,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading image: $imageSource');
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported,
-                                      size: 40, color: Colors.grey),
-                                ),
-                              );
-                            },
-                          )
-                        : Image.asset(
-                            imageSource,
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) {
-                              print('Error loading image: $imageSource');
-                              return Container(
-                                color: Colors.grey[200],
-                                child: const Center(
-                                  child: Icon(Icons.image_not_supported,
-                                      size: 40, color: Colors.grey),
-                                ),
-                              );
-                            },
-                          ),
-                  );
-                },
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            children: [
+              // Category Icon with background
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: _getDifficultyColor(exercise.difficulty).withOpacity(0.7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(
+                  Icons.fitness_center,
+                  color: Colors.grey[800],
+                  size: 24,
+                ),
               ),
-            ),
-
-            // Exercise Details
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Text(
-                          exercise.name,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: _getDifficultyColor(exercise.difficulty),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          exercise.difficulty?.toLowerCase() ?? 'beginner',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[800],
-                            fontWeight: FontWeight.w500,
+              const SizedBox(width: 16),
+              // Exercise Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            exercise.name,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.fitness_center,
-                          size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 4),
-                      Text(
-                        exercise.category ?? 'No category',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 14,
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: _getDifficultyColor(exercise.difficulty),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            exercise.difficulty?.toLowerCase() ?? 'beginner',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[800],
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
                         ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      exercise.category ?? 'No category',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
