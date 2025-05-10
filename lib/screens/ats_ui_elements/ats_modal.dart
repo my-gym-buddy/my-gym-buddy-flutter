@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 
 /// A reusable modal dialog component that follows the app's design pattern.
-/// 
+///
 /// This component can be used to display confirmation dialogs, alerts, or any
 /// other modal content with consistent styling across the app.
 class AtsModal extends StatelessWidget {
@@ -27,7 +27,9 @@ class AtsModal extends StatelessWidget {
     this.primaryButtonColor,
     this.secondaryButtonColor,
     this.customContent,
-  });  /// Shows a modal dialog with the specified parameters.
+  });
+
+  /// Shows a modal dialog with the specified parameters.
   static Future<void> show({
     required BuildContext context,
     required String title,
@@ -76,23 +78,31 @@ class AtsModal extends StatelessWidget {
   static Future<void> showUnsavedChangesDialog({
     required BuildContext context,
     VoidCallback? onDiscard,
-    VoidCallback? onContinue,  }) async {
+    VoidCallback? onContinue,
+  }) async {
     return show(
       context: context,
       title: 'unsaved changes',
-      message: 'you have unsaved changes. are you sure you want to leave without saving?',
+      message:
+          'you have unsaved changes. are you sure you want to leave without saving?',
       primaryButtonText: 'discard changes',
       secondaryButtonText: 'continue editing',
-      onPrimaryButtonPressed: onDiscard ?? () {
-        Future.delayed(Duration.zero, () {
-          Navigator.of(context).pop(true);
-        });
-      },
-      onSecondaryButtonPressed: onContinue ?? () {
-        Future.delayed(Duration.zero, () {
-          Navigator.of(context).pop(false);
-        });
-      },
+      onPrimaryButtonPressed: onDiscard ??
+          () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
+            });
+          },
+      onSecondaryButtonPressed: onContinue ??
+          () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                Navigator.of(context).pop(false);
+              }
+            });
+          },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
@@ -125,33 +135,40 @@ class AtsModal extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 if (primaryButtonText != null)
-                  atsButton(                    onPressed: onPrimaryButtonPressed ?? () {
-                      // Use try-catch to handle any potential navigation errors
-                      try {
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        print('Error closing modal: $e');
-                      }
-                    },
+                  atsButton(
+                    onPressed: onPrimaryButtonPressed ??
+                        () {
+                          // Use try-catch to handle any potential navigation errors
+                          try {
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            print('Error closing modal: $e');
+                          }
+                        },
                     backgroundColor: primaryButtonColor,
                     child: Text(
                       primaryButtonText!,
                       style: primaryButtonColor != null
                           ? TextStyle(
-                              color: Theme.of(context).colorScheme.onErrorContainer)
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer)
                           : null,
                     ),
                   ),
                 if (primaryButtonText != null && secondaryButtonText != null)
-                  const SizedBox(width: 10),                if (secondaryButtonText != null)
-                  atsButton(                    onPressed: onSecondaryButtonPressed ?? () {
-                      // Use try-catch to handle any potential navigation errors
-                      try {
-                        Navigator.of(context).pop();
-                      } catch (e) {
-                        print('Error closing modal: $e');
-                      }
-                    },
+                  const SizedBox(width: 10),
+                if (secondaryButtonText != null)
+                  atsButton(
+                    onPressed: onSecondaryButtonPressed ??
+                        () {
+                          // Use try-catch to handle any potential navigation errors
+                          try {
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            print('Error closing modal: $e');
+                          }
+                        },
                     backgroundColor: secondaryButtonColor,
                     child: Text(secondaryButtonText!),
                   ),
@@ -162,4 +179,4 @@ class AtsModal extends StatelessWidget {
       ),
     );
   }
-} 
+}

@@ -68,8 +68,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         if (context.mounted) {
           // Use Future.delayed to avoid Navigator lock issues
           Future.delayed(Duration.zero, () {
-            Navigator.of(context).pop();
-            Navigator.of(context).pop();
+            if (mounted) {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
           });
         }
       },
@@ -77,8 +79,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
         if (context.mounted) {
           // Use Future.delayed to avoid Navigator lock issues
           Future.delayed(Duration.zero, () {
-            Navigator.of(context).pop();
-            // We don't reset the startTime here to maintain workout continuity
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
           });
         }
       },
@@ -100,8 +103,10 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           if (context.mounted) {
             // Use Future.delayed to avoid Navigator lock issues
             Future.delayed(Duration.zero, () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
+              if (mounted) {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
             });
           }
         });
@@ -109,7 +114,9 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       onSecondaryButtonPressed: () {
         // Use Future.delayed to avoid Navigator lock issues
         Future.delayed(Duration.zero, () {
-          Navigator.of(context).pop();
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
         });
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
@@ -162,82 +169,82 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ),
     );
   }
-
-  void showEndWorkoutConfirmationModal() {
-    // First check if workout has any completed exercises
-    bool hasCompletedExercises = false;
-
-    // Check if any exercise has at least one completed set
+  // Check if workout has any completed exercises
+  bool _hasCompletedExercises() {
     for (final exercise in widget.workoutTemplate.exercises ?? []) {
       for (final repSet in exercise.sets) {
         if (repSet.completed) {
-          hasCompletedExercises = true;
-          break;
+          return true;
         }
       }
-      if (hasCompletedExercises) break;
     }
-
-    // If no completed exercises, show the error message directly
-    if (!hasCompletedExercises) {
-      showEmptyWorkoutErrorMessage();
-      return;
+    return false;
+  }
+  
+  // Remove uncompleted sets from exercises
+  void _removeUncompletedSets() {
+    // Remove uncompleted sets from each exercise
+    for (final exercise in widget.workoutTemplate.exercises!) {
+      exercise.sets.removeWhere((repSet) => !repSet.completed);
     }
-
-    // Store the logic to be executed after confirming
-    confirmEndWorkout() async {
-      List<Exercise> exerciseToRemove = [];
-      for (final exercise in widget.workoutTemplate.exercises!) {
-        List<RepSet> repSetToRemove = [];
-        for (final repSet in exercise.sets) {
-          if (repSet.completed == false) {
-            repSetToRemove.add(repSet);
-          }
-        }
-        for (final repSet in repSetToRemove) {
-          exercise.sets.remove(repSet);
-        }
-        if (exercise.sets.isEmpty) {
-          exerciseToRemove.add(exercise);
-        }
-      }
-      for (final exercise in exerciseToRemove) {
-        widget.workoutTemplate.exercises!.remove(exercise);
-      }
-
-      if (widget.workoutTemplate.exercises!.isNotEmpty) {
-        DatabaseHelper.saveWorkoutSession(
-            widget.workoutTemplate, widget.stopWatchTimer.secondTime.value);
-
-        widget.stopWatchTimer.onStopTimer();
-
-        // Clear temporary workout data after successful save
-        await DatabaseHelper.clearTemporaryWorkout();
-
+    
+    // Remove exercises with no sets left
+    widget.workoutTemplate.exercises!.removeWhere((exercise) => exercise.sets.isEmpty);
+  }
+  
+  // Save workout and cleanup
+  Future<void> _saveWorkoutAndCleanup() async {
+    DatabaseHelper.saveWorkoutSession(
+        widget.workoutTemplate, widget.stopWatchTimer.secondTime.value);
+    
+    widget.stopWatchTimer.onStopTimer();
+    
+    // Clear temporary workout data after successful save
+    await DatabaseHelper.clearTemporaryWorkout();
+  }
+  
+  // Show workout summary and navigate back
+  void _showSummaryAndNavigateBack() {
+    if (!mounted) return;
+    
+    Navigator.of(context).pop(); // Pop the confirmation modal
+    
+    // Show the summary in a separate step after the pop completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showEndWorkoutSummaryModal().then((_) {
         if (mounted) {
-          Navigator.of(context).pop(); // Pop the confirmation modal
-          // Show the summary in a separate step after the pop completes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showEndWorkoutSummaryModal().then((_) {
-              if (mounted) {
-                Navigator.of(context)
-                    .pop(); // Pop back to previous screen after summary
-              }
-            });
-          });
+          Navigator.of(context).pop(); // Pop back to previous screen after summary
         }
-      } else {
-        if (context.mounted) {
-          Navigator.of(context).pop(); // Pop the confirmation modal
-          // Show the error message in a separate step after the pop completes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showEmptyWorkoutErrorMessage();
-          });
-        }
-      }
+      });
+    });
+  }
+  
+  // Show error message and pop modal
+  void _showErrorAndPopModal() {
+    if (!context.mounted) return;
+    
+    Navigator.of(context).pop(); // Pop the confirmation modal
+    
+    // Show the error message in a separate step after the pop completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showEmptyWorkoutErrorMessage();
+    });
+  }
+  
+  // Process workout end confirmation
+  Future<void> _processWorkoutEndConfirmation() async {
+    _removeUncompletedSets();
+    
+    if (widget.workoutTemplate.exercises!.isNotEmpty) {
+      await _saveWorkoutAndCleanup();
+      _showSummaryAndNavigateBack();
+    } else {
+      _showErrorAndPopModal();
     }
-
-    // Proceed with normal confirmation dialog if there are completed exercises
+  }
+  
+  // Show confirmation dialog
+  void _showConfirmationDialog() {
     AtsModal.show(
       context: context,
       title: 'end workout session?',
@@ -245,13 +252,26 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
           'are you sure you want to end the workout session? This will end the current workout and save all the data.',
       primaryButtonText: 'end & save',
       secondaryButtonText: continueWorkoutText,
-      onPrimaryButtonPressed: confirmEndWorkout,
+      onPrimaryButtonPressed: () async {
+        await _processWorkoutEndConfirmation();
+      },
       onSecondaryButtonPressed: () {
         Navigator.of(context).pop();
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
+  
+  // Main method to show end workout confirmation
+  void showEndWorkoutConfirmationModal() {
+    // If no completed exercises, show the error message directly
+    if (!_hasCompletedExercises()) {
+      showEmptyWorkoutErrorMessage();
+      return;
+    }
+    
+    // Show confirmation dialog
+    _showConfirmationDialog();  }
 
   @override
   Widget build(BuildContext context) {

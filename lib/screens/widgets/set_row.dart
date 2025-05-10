@@ -10,7 +10,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
 class SetRow extends StatelessWidget {
-  SetRow(
+  const SetRow(
       {super.key,
       required this.setIndex,
       required this.index,
@@ -84,170 +84,204 @@ class SetRow extends StatelessWidget {
     // Handle non-editable set row
     return _buildSetRow(context);
   }
+  // Method to copy values from previous set
+  void _copyFromPreviousSet() {
+    if (!_isPreviousSetAvailable()) return;
+    
+    selectedExercises[index].sets[setIndex].weight =
+        selectedExercises[index].previousSets![setIndex].weight;
+    selectedExercises[index].sets[setIndex].reps =
+        selectedExercises[index].previousSets![setIndex].reps;
+    refresh!();
+  }
 
-  // Extract the row content to a separate method
+  // Check if previous set exists and is available
+  bool _isPreviousSetAvailable() {
+    if (selectedExercises[index].previousSets == null) return false;
+    if (setIndex > selectedExercises[index].previousSets!.length - 1) return false;
+    return true;
+  }
+
+  // Build the set number cell
+  Widget _buildSetNumberCell() {
+    return Expanded(child: Center(child: Text('${setIndex + 1}')));
+  }
+
+  // Build the previous weight cell with gesture detector
+  Widget _buildPreviousWeightCell() {
+    return Expanded(
+      flex: 4,
+      child: Center(
+        child: GestureDetector(
+          onTap: _copyFromPreviousSet,
+          child: Text(getPreviousWeight()),
+        ),
+      ),
+    );
+  }
+
+  // Build the weight input field
+  Widget _buildWeightInputField() {
+    return Expanded(
+      flex: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 30,
+          child: atsTextField(
+            selectAllOnTap: true,
+            textEditingController: TextEditingController(
+              text: Helper.getWeightInCorrectUnit(
+                selectedExercises[index].sets[setIndex].weight
+              ).toStringAsFixed(1),
+            ),
+            textAlign: TextAlign.center,
+            labelText: '',
+            keyboardType: TextInputType.number,
+            enabled: isEditable != null,
+            onChanged: (value) {
+              selectedExercises[index].sets[setIndex].weight =
+                  Helper.convertToKg(double.tryParse(value) ?? 0);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build the reps input field
+  Widget _buildRepsInputField() {
+    return Expanded(
+      flex: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 30,
+          child: atsTextField(
+            selectAllOnTap: true,
+            textEditingController: TextEditingController(
+              text: selectedExercises[index].sets[setIndex].reps.toString()
+            ),
+            textAlign: TextAlign.center,
+            labelText: '',
+            keyboardType: TextInputType.number,
+            onChanged: (value) {
+              selectedExercises[index].sets[setIndex].reps =
+                  int.tryParse(value) ?? 0;
+            },
+            enabled: isEditable != null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Create workout object for saving
+  Workout _createTemporaryWorkout() {
+    return Workout(
+      name: selectedExercises.isNotEmpty ? selectedExercises[0].name : "Workout",
+      id: "temp_workout",
+      exercises: selectedExercises,
+      startTime: null,
+    );
+  }
+
+  // Debug log workout details
+  void _logWorkoutDebugInfo() {
+    if (!kDebugMode) return;
+    
+    print('Saving workout with ${selectedExercises.length} exercises');
+    for (var ex in selectedExercises) {
+      print('Exercise: ${ex.name} with ${ex.sets.length} sets');
+      for (var set in ex.sets) {
+        print('  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+      }
+    }
+  }
+
+  // Apply start time to workout from existing or create new
+  void _applyWorkoutStartTime(Workout currentWorkout, Workout? existingWorkout) {
+    if (existingWorkout != null && existingWorkout.startTime != null) {
+      currentWorkout.startTime = existingWorkout.startTime;
+      if (kDebugMode) {
+        print('Using existing start time: ${currentWorkout.startTime}');
+      }
+    } else {
+      currentWorkout.startTime = DateTime.now();
+      if (kDebugMode) {
+        print('Setting new start time: ${currentWorkout.startTime}');
+      }
+    }
+  }
+
+  // Calculate workout duration in seconds
+  int _calculateWorkoutDuration(Workout workout) {
+    if (workout.startTime == null) return 0;
+    return DateTime.now().difference(workout.startTime!).inSeconds;
+  }
+
+  // Save workout to temporary storage
+  void _saveWorkoutToTemporaryStorage(Workout workout, int duration) {
+    DatabaseHelper.saveTemporaryWorkout(workout, duration).then((success) {
+      if (kDebugMode) {
+        print('Temporary workout saved: $success with duration: ${duration}s');
+      }
+    });
+  }
+
+  // Handle checkbox state change
+  void _handleCheckboxChanged(bool value) {
+    if (!_isValidSetIndex()) return;
+    
+    selectedExercises[index].sets[setIndex].completed = value;
+    refresh!();
+    
+    if (isActiveWorkout == true && selectedExercises.isNotEmpty) {
+      _saveActiveWorkout();
+    }
+  }
+
+  // Check if index and setIndex are valid
+  bool _isValidSetIndex() {
+    return index < selectedExercises.length && 
+           setIndex < selectedExercises[index].sets.length;
+  }
+
+  // Save active workout
+  void _saveActiveWorkout() {
+    final currentWorkout = _createTemporaryWorkout();
+    _logWorkoutDebugInfo();
+    
+    DatabaseHelper.getTemporaryWorkout().then((existingWorkout) {
+      _applyWorkoutStartTime(currentWorkout, existingWorkout);
+      
+      final workoutDuration = _calculateWorkoutDuration(currentWorkout);
+      _saveWorkoutToTemporaryStorage(currentWorkout, workoutDuration);
+    });
+  }
+
+  // Build the checkbox cell
+  Widget _buildCompletionCheckbox() {
+    if (isActiveWorkout != true) return const SizedBox();
+    
+    return atsCheckbox(
+      checked: _isValidSetIndex() 
+          ? selectedExercises[index].sets[setIndex].completed
+          : false,
+      onChanged: _handleCheckboxChanged,
+    );
+  }
+
+  // Main method to build the row
   Widget _buildSetRow(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Center(child: Text('${setIndex + 1}'))),
-        Expanded(
-            flex: 4,
-            child: Center(
-                child: GestureDetector(
-                    onTap: () {
-                      if (selectedExercises[index].previousSets == null) {
-                        return;
-                      }
-                      if (setIndex >
-                          selectedExercises[index].previousSets!.length - 1) {
-                        return;
-                      }
-                      selectedExercises[index].sets[setIndex].weight =
-                          selectedExercises[index]
-                              .previousSets![setIndex]
-                              .weight;
-                      selectedExercises[index].sets[setIndex].reps =
-                          selectedExercises[index].previousSets![setIndex].reps;
-                      refresh!();
-                    },
-                    child: Text(getPreviousWeight())))),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                selectAllOnTap: true,
-                textEditingController: TextEditingController(
-                    text: Helper.getWeightInCorrectUnit(
-                            selectedExercises[index].sets[setIndex].weight)
-                        .toStringAsFixed(1)),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                enabled: isEditable != null,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].weight =
-                      Helper.convertToKg(double.tryParse(value) ?? 0);
-                },
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                selectAllOnTap: true,
-                textEditingController: TextEditingController(
-                    text: selectedExercises[index]
-                        .sets[setIndex]
-                        .reps
-                        .toString()),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].reps =
-                      int.tryParse(value) ?? 0;
-                },
-                enabled: isEditable != null,
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: isActiveWorkout == true
-              ? atsCheckbox(
-                  checked: index < selectedExercises.length &&
-                          setIndex < selectedExercises[index].sets.length
-                      ? selectedExercises[index].sets[setIndex].completed
-                      : false,
-                  onChanged: (value) {
-                    // Check if the index and setIndex are valid to prevent range errors
-                    if (index < selectedExercises.length &&
-                        setIndex < selectedExercises[index].sets.length) {
-                      selectedExercises[index].sets[setIndex].completed = value;
-                      refresh!();
-                      // Save workout data to temporary table for recovery
-                      if (isActiveWorkout == true &&
-                          selectedExercises.isNotEmpty) {
-                        // First, create a workout with null startTime
-                        Workout currentWorkout = Workout(
-                          name: selectedExercises.isNotEmpty
-                              ? selectedExercises[0].name
-                              : "Workout",
-                          id: "temp_workout", // Set an ID for the temporary workout
-                          exercises: selectedExercises,
-                          startTime:
-                              null, // Will be set after checking for existing workouts
-                        );
-                        // Print additional debug info
-                        if (kDebugMode) {
-                          print(
-                              'Saving workout with ${selectedExercises.length} exercises');
-                          for (var ex in selectedExercises) {
-                            print(
-                                'Exercise: ${ex.name} with ${ex.sets.length} sets');
-                            for (var set in ex.sets) {
-                              print(
-                                  '  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
-                            }
-                          }
-                        }
-
-                        // Check for an existing temporary workout first to maintain timer continuity
-                        DatabaseHelper.getTemporaryWorkout()
-                            .then((existingWorkout) {
-                          if (existingWorkout != null &&
-                              existingWorkout.startTime != null) {
-                            // Use the existing start time for continuity
-                            currentWorkout.startTime =
-                                existingWorkout.startTime;
-                            if (kDebugMode) {
-                              print(
-                                  'Using existing start time: ${currentWorkout.startTime}');
-                            }
-                          } else {
-                            // If no existing workout, set a new start time
-                            currentWorkout.startTime = DateTime.now();
-                            if (kDebugMode) {
-                              print(
-                                  'Setting new start time: ${currentWorkout.startTime}');
-                            }
-                          }
-                          ;
-
-                          // Get the current workout duration in seconds
-                          int workoutDuration = 0;
-                          if (currentWorkout.startTime != null) {
-                            workoutDuration = DateTime.now()
-                                .difference(currentWorkout.startTime!)
-                                .inSeconds;
-                          }
-
-                          // Save to temporary storage
-                          DatabaseHelper.saveTemporaryWorkout(
-                                  currentWorkout, workoutDuration)
-                              .then((success) {
-                            if (kDebugMode) {
-                              print(
-                                  'Temporary workout saved: $success with duration: ${workoutDuration}s');
-                            }
-                          });
-                        });
-                      }
-                    }
-                  },
-                )
-              : const SizedBox(),
-        )
+        _buildSetNumberCell(),
+        _buildPreviousWeightCell(),
+        _buildWeightInputField(),
+        _buildRepsInputField(),
+        Expanded(flex: 2, child: _buildCompletionCheckbox()),
       ],
     );
   }

@@ -626,7 +626,7 @@ class DatabaseHelper {
         
         // Insert the new temporary workout
         await txn.insert('temporary_workout', {
-          'workout_template_id': workout.id != null ? workout.id : null,
+          'workout_template_id': workout.id,
           'workout_data': json.encode(workoutJson),
           'start_time': workout.startTime != null 
               ? workout.startTime!.toIso8601String() 
@@ -683,6 +683,53 @@ class DatabaseHelper {
       return false;
     }
   }
+    // Helper method to parse basic workout data
+  static Workout _parseBasicWorkoutData(Map<String, dynamic> workoutData) {
+    final workoutJson = json.decode(workoutData['workout_data'] as String);
+    final workout = Workout.fromJson(workoutJson);
+    workout.startTime = DateTime.parse(workoutData['start_time'] as String);
+    workout.duration = workoutData['duration'] as int;
+    return workout;
+  }
+  
+  // Helper method to load exercise sets
+  static List<RepSet> _loadSets(List<dynamic>? setsData) {
+    if (setsData == null) return [];
+    return setsData.map((setData) => RepSet.fromJson(setData)).toList();
+  }
+  
+  // Helper method to load exercises
+  static List<Exercise> _loadExercises(List<dynamic>? exercisesData) {
+    if (exercisesData == null) return [];
+    
+    return exercisesData.map((exercise) {
+      final loadedExercise = Exercise.fromJson(exercise);
+      
+      // Explicitly load sets with their completed state
+      if (exercise['sets'] != null) {
+        loadedExercise.sets = _loadSets(exercise['sets']);
+      }
+      
+      return loadedExercise;
+    }).toList();
+  }
+  
+  // Helper method to log workout details in debug mode
+  static void _logWorkoutDebugInfo(Workout workout) {
+    if (!kDebugMode) return;
+    
+    print('Recovered workout: ${workout.name} with ${workout.exercises?.length ?? 0} exercises');
+    
+    final exercises = workout.exercises;
+    if (exercises == null) return;
+    
+    for (var ex in exercises) {
+      print('  Exercise: ${ex.name} with ${ex.sets.length} sets');
+      for (var set in ex.sets) {
+        print('    Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+      }
+    }
+  }
   
   static Future<Workout?> getTemporaryWorkout() async {
     if (database == null) {
@@ -690,59 +737,28 @@ class DatabaseHelper {
     }
     
     try {
-      // Use a transaction for reading the database
       return await database!.transaction((txn) async {
         final result = await txn.query('temporary_workout');
-        
-        if (result.isEmpty) {
-          return null;
-        }
+        if (result.isEmpty) return null;
         
         final workoutData = result.first;
         final workoutJson = json.decode(workoutData['workout_data'] as String);
         
-        final workout = Workout.fromJson(workoutJson);
-        workout.startTime = DateTime.parse(workoutData['start_time'] as String);
-        workout.duration = workoutData['duration'] as int;
+        // Parse basic workout data
+        final workout = _parseBasicWorkoutData(workoutData);
         
-        // Need to reload exercises from JSON because fromJson might not populate them correctly
+        // Load exercises if available
         if (workoutJson['exercises'] != null) {
-          List<Exercise> exercises = [];
-          for (var exercise in workoutJson['exercises']) {
-            Exercise loadedExercise = Exercise.fromJson(exercise);
-            
-            // Explicitly load sets with their completed state
-            if (exercise['sets'] != null) {
-              loadedExercise.sets = [];
-              for (var setData in exercise['sets']) {
-                RepSet set = RepSet.fromJson(setData);
-                loadedExercise.sets.add(set);
-              }
-            }
-            
-            exercises.add(loadedExercise);
-          }
-          workout.exercises = exercises;
+          workout.exercises = _loadExercises(workoutJson['exercises']);
         }
         
-        if (kDebugMode) {
-          print('Recovered workout: ${workout.name} with ${workout.exercises?.length ?? 0} exercises');
-          if (workout.exercises != null) {
-            for (var ex in workout.exercises!) {
-              print('  Exercise: ${ex.name} with ${ex.sets.length} sets');
-              for (var set in ex.sets) {
-                print('    Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
-              }
-            }
-          }
-        }
+        // Log debug info
+        _logWorkoutDebugInfo(workout);
         
         return workout;
       });
     } catch (e) {
-      if (kDebugMode) {
-        print('Error retrieving temporary workout: $e');
-      }
+      if (kDebugMode) print('Error retrieving temporary workout: $e');
       return null;
     }
   }

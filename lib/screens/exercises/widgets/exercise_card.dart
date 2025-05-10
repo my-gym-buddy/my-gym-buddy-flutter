@@ -52,7 +52,7 @@ class ExerciseCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: _getDifficultyColor(exercise.difficulty).withOpacity(0.7),
+                  color: _getDifficultyColor(exercise.difficulty).withValues(),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
