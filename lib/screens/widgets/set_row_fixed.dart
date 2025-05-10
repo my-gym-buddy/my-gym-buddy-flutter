@@ -109,8 +109,9 @@ class SetRow extends StatelessWidget {
   // Check if previous set data is available
   bool _hasPreviousSet() {
     if (selectedExercises[index].previousSets == null) return false;
-    if (setIndex > selectedExercises[index].previousSets!.length - 1)
+    if (setIndex > selectedExercises[index].previousSets!.length - 1) {
       return false;
+    }
     return true;
   }
 
