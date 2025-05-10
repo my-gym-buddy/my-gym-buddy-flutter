@@ -30,7 +30,7 @@ class SetRow extends StatelessWidget {
   String getPreviousWeight() {
     // Safely check if the index is valid
     if (index >= selectedExercises.length) return "-";
-    
+
     if (selectedExercises[index].previousSets == null) return "-";
 
     if (setIndex > selectedExercises[index].previousSets!.length - 1) {
@@ -51,14 +51,13 @@ class SetRow extends StatelessWidget {
           const Expanded(flex: 4, child: Center(child: Text('previous'))),
           Expanded(
               flex: 4,
-              child:
-                  Center(child: Text('+${Config.getUnitAbbreviation()}'))),
+              child: Center(child: Text('+${Config.getUnitAbbreviation()}'))),
           const Expanded(flex: 4, child: Center(child: Text('reps'))),
           const Expanded(flex: 2, child: Center(child: Text(''))),
         ],
       );
     }
-    
+
     // Handle editable set row with Slidable
     if (isEditable != null) {
       return Slidable(
@@ -71,10 +70,8 @@ class SetRow extends StatelessWidget {
                 refresh!();
               },
               borderRadius: BorderRadius.circular(40),
-              backgroundColor:
-                  Theme.of(context).colorScheme.errorContainer,
-              foregroundColor:
-                  Theme.of(context).colorScheme.onErrorContainer,
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
               icon: Icons.delete,
               label: 'Delete',
             ),
@@ -83,7 +80,7 @@ class SetRow extends StatelessWidget {
         child: _buildSetRow(context),
       );
     }
-    
+
     // Handle non-editable set row
     return _buildSetRow(context);
   }
@@ -165,51 +162,85 @@ class SetRow extends StatelessWidget {
           ),
         ),
         Expanded(
-          flex: 2,          child: isActiveWorkout == true ? atsCheckbox(
-                  checked: index < selectedExercises.length && 
-                           setIndex < selectedExercises[index].sets.length ? 
-                           selectedExercises[index].sets[setIndex].completed : false,
+          flex: 2,
+          child: isActiveWorkout == true
+              ? atsCheckbox(
+                  checked: index < selectedExercises.length &&
+                          setIndex < selectedExercises[index].sets.length
+                      ? selectedExercises[index].sets[setIndex].completed
+                      : false,
                   onChanged: (value) {
                     // Check if the index and setIndex are valid to prevent range errors
-                    if (index < selectedExercises.length && 
+                    if (index < selectedExercises.length &&
                         setIndex < selectedExercises[index].sets.length) {
                       selectedExercises[index].sets[setIndex].completed = value;
                       refresh!();
                       // Save workout data to temporary table for recovery
-                      if (isActiveWorkout == true && selectedExercises.isNotEmpty) {
-                        // Create a workout object from the current exercises
-                        Workout currentWorkout = Workout(                          name: selectedExercises.isNotEmpty ? selectedExercises[0].name : "Workout",  // Use the first exercise name as fallback or default name
+                      if (isActiveWorkout == true &&
+                          selectedExercises.isNotEmpty) {
+                        // First, create a workout with null startTime
+                        Workout currentWorkout = Workout(
+                          name: selectedExercises.isNotEmpty
+                              ? selectedExercises[0].name
+                              : "Workout",
                           id: "temp_workout", // Set an ID for the temporary workout
                           exercises: selectedExercises,
-                          startTime: DateTime.now(),
+                          startTime:
+                              null, // Will be set after checking for existing workouts
                         );
-                      
-                      // Print additional debug info
-                      if (kDebugMode) {
-                        print('Saving workout with ${selectedExercises.length} exercises');
-                        for (var ex in selectedExercises) {
-                          print('Exercise: ${ex.name} with ${ex.sets.length} sets');
-                          for (var set in ex.sets) {
-                            print('  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+                        // Print additional debug info
+                        if (kDebugMode) {
+                          print(
+                              'Saving workout with ${selectedExercises.length} exercises');
+                          for (var ex in selectedExercises) {
+                            print(
+                                'Exercise: ${ex.name} with ${ex.sets.length} sets');
+                            for (var set in ex.sets) {
+                              print(
+                                  '  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+                            }
                           }
                         }
-                      }
-                      
-                      // Get the current workout duration in seconds
-                      // Using the current DateTime minus the startTime or default to 0 if not possible
-                      int workoutDuration = 0;
-                      if (currentWorkout.startTime != null) {
-                        workoutDuration = DateTime.now().difference(currentWorkout.startTime!).inSeconds;
-                      }
-                      
-                      // Save to temporary storage
-                      DatabaseHelper.saveTemporaryWorkout(
-                        currentWorkout, 
-                        workoutDuration
-                      ).then((success) {
-                        if (kDebugMode) {
-                            print('Temporary workout saved: $success with duration: ${workoutDuration}s');
+
+                        // Check for an existing temporary workout first to maintain timer continuity
+                        DatabaseHelper.getTemporaryWorkout()
+                            .then((existingWorkout) {
+                          if (existingWorkout != null &&
+                              existingWorkout.startTime != null) {
+                            // Use the existing start time for continuity
+                            currentWorkout.startTime =
+                                existingWorkout.startTime;
+                            if (kDebugMode) {
+                              print(
+                                  'Using existing start time: ${currentWorkout.startTime}');
+                            }
+                          } else {
+                            // If no existing workout, set a new start time
+                            currentWorkout.startTime = DateTime.now();
+                            if (kDebugMode) {
+                              print(
+                                  'Setting new start time: ${currentWorkout.startTime}');
+                            }
                           }
+                          ;
+
+                          // Get the current workout duration in seconds
+                          int workoutDuration = 0;
+                          if (currentWorkout.startTime != null) {
+                            workoutDuration = DateTime.now()
+                                .difference(currentWorkout.startTime!)
+                                .inSeconds;
+                          }
+
+                          // Save to temporary storage
+                          DatabaseHelper.saveTemporaryWorkout(
+                                  currentWorkout, workoutDuration)
+                              .then((success) {
+                            if (kDebugMode) {
+                              print(
+                                  'Temporary workout saved: $success with duration: ${workoutDuration}s');
+                            }
+                          });
                         });
                       }
                     }
