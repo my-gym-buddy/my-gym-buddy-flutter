@@ -12,10 +12,18 @@ class Workout {
   int? duration;
   DateTime? startTime;
   double? totalWeightLifted;
-
   List<Exercise>? exercises;
 
-  Workout({required this.name, this.id, this.exercises});
+  Workout({
+    required this.name, 
+    this.id, 
+    this.exercises, 
+    this.description, 
+    this.daysOfWeek, 
+    this.duration, 
+    this.startTime, 
+    this.totalWeightLifted
+  });
 
   Map<String, dynamic> toJson() {
     var exercisesJson = [];

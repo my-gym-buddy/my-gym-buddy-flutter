@@ -20,13 +20,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        title: 'Gym Buddy',
-        theme: ThemeData(
-          fontFamily: 'Montserrat',
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
-          useMaterial3: true,
-        ),
-        debugShowCheckedModeBanner: false,
-        home: const Home());
+      title: 'Gym Buddy',
+      theme: ThemeData(
+        fontFamily: 'Montserrat',
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.green),
+        useMaterial3: true,
+      ),
+      debugShowCheckedModeBanner: false,
+      home: const Home(),
+    );
   }
 }

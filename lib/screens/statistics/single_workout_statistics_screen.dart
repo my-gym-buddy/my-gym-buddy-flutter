@@ -74,7 +74,7 @@ class _SingleWorkoutStatsisticsScreenState
               Text('duration: ${Helper.prettyTime(widget.workout.duration!)}'),
               Text(
                   'total weight lifted: ${Helper.getWeightInCorrectUnit(Helper.calculateTotalWeightLifted(widget.workout)).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}'),
-              SizedBox(
+              const SizedBox(
                 height: 20,
               ),
               ListView.builder(
