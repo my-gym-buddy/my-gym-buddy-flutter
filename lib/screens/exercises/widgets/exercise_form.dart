@@ -89,7 +89,7 @@ class _ExerciseFormState extends State<ExerciseForm> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildImageUrlInput(),
+            // _buildImageUrlInput(),
             const SizedBox(height: 16),
             atsTextField(
               textEditingController: nameController,
@@ -102,54 +102,54 @@ class _ExerciseFormState extends State<ExerciseForm> {
               maxLines: 4,
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: atsDropdown<String>(
-                    value: selectedCategory,
-                    items: categories,
-                    labelText: 'Category',
-                    onChanged: (value) {
-                      setState(() => selectedCategory = value);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                atsIconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => _showAddDialog(
-                    title: 'Add Category',
-                    hintText: 'Enter new category',
-                    onAdd: _addCategory,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: atsDropdown<String>(
-                    value: selectedDifficulty,
-                    items: difficulties,
-                    labelText: 'Difficulty',
-                    onChanged: (value) {
-                      setState(() => selectedDifficulty = value);
-                    },
-                  ),
-                ),
-                const SizedBox(width: 10),
-                atsIconButton(
-                  icon: const Icon(Icons.add),
-                  onPressed: () => _showAddDialog(
-                    title: 'Add Difficulty',
-                    hintText: 'Enter new difficulty',
-                    onAdd: _addDifficulty,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: atsDropdown<String>(
+            //         value: selectedCategory,
+            //         items: categories,
+            //         labelText: 'Category',
+            //         onChanged: (value) {
+            //           setState(() => selectedCategory = value);
+            //         },
+            //       ),
+            //     ),
+            //     const SizedBox(width: 10),
+            //     atsIconButton(
+            //       icon: const Icon(Icons.add),
+            //       onPressed: () => _showAddDialog(
+            //         title: 'Add Category',
+            //         hintText: 'Enter new category',
+            //         onAdd: _addCategory,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 16),
+            // Row(
+            //   children: [
+            //     Expanded(
+            //       child: atsDropdown<String>(
+            //         value: selectedDifficulty,
+            //         items: difficulties,
+            //         labelText: 'Difficulty',
+            //         onChanged: (value) {
+            //           setState(() => selectedDifficulty = value);
+            //         },
+            //       ),
+            //     ),
+            //     const SizedBox(width: 10),
+            //     atsIconButton(
+            //       icon: const Icon(Icons.add),
+            //       onPressed: () => _showAddDialog(
+            //         title: 'Add Difficulty',
+            //         hintText: 'Enter new difficulty',
+            //         onAdd: _addDifficulty,
+            //       ),
+            //     ),
+            //   ],
+            // ),
+            // const SizedBox(height: 16),
             atsTextField(
               textEditingController: videoIDController,
               labelText: 'Video URL',
