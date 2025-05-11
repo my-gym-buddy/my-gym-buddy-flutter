@@ -5,9 +5,10 @@ import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
 import 'package:gym_buddy_app/models/set_row.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
-class SetRow extends StatelessWidget {
+class SetRow extends StatefulWidget {
   const SetRow(
       {super.key,
       required this.setIndex,
@@ -23,17 +24,36 @@ class SetRow extends StatelessWidget {
   final int setIndex;
   final int index;
   final List<Exercise> selectedExercises;
-  
+
+  @override
+  _SetRowState createState() => _SetRowState();
+}
+
+class _SetRowState extends State<SetRow> with SingleTickerProviderStateMixin {
+  late final SlidableController _slidableController;
+
+  @override
+  void initState() {
+    super.initState();
+    _slidableController = SlidableController(this);
+  }
+
+  @override
+  void dispose() {
+    _slidableController.dispose();
+    super.dispose();
+  }
+
   // Create model instance
   SetRowModel get _model => SetRowModel(
-    selectedExercises: selectedExercises,
-    setIndex: setIndex,
-    index: index,
-    isEditable: isEditable,
-    refresh: refresh,
-    isActiveWorkout: isActiveWorkout,
-  );
-  
+        selectedExercises: widget.selectedExercises,
+        setIndex: widget.setIndex,
+        index: widget.index,
+        isEditable: widget.isEditable,
+        refresh: widget.refresh,
+        isActiveWorkout: widget.isActiveWorkout,
+      );
+
   String getPreviousWeight() {
     return _model.getPreviousWeight();
   }
@@ -41,7 +61,7 @@ class SetRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Handle header row case
-    if (setIndex == -1) {
+    if (widget.setIndex == -1) {
       return Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -57,31 +77,34 @@ class SetRow extends StatelessWidget {
     }
 
     // Safety check for invalid index
-    if (index >= selectedExercises.length) {
+    if (widget.index >= widget.selectedExercises.length) {
       return const SizedBox(); // Return empty widget if index is invalid
-    }    
-    
+    }
+
     // Handle editable set row with Slidable
-    if (isEditable != null) {
+    if (widget.isEditable != null) {
       return Slidable(
+        controller: _slidableController,
         endActionPane: ActionPane(
+          extentRatio: 0.25,
           motion: const ScrollMotion(),
           children: [
-            SlidableAction(
-              onPressed: (context) {
-                // Safety check before removing
-                if (index < selectedExercises.length &&
-                    setIndex < selectedExercises[index].sets.length) {
-                  selectedExercises[index].sets.removeAt(setIndex);
-                  refresh!();
-                }
-              },
-              borderRadius: BorderRadius.circular(40),
-              backgroundColor: Theme.of(context).colorScheme.errorContainer,
-              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
-              icon: Icons.delete,
-              label: 'Delete',
-            ),
+            Expanded(
+              child: atsIconButton(
+                  icon: const Icon(Icons.delete),
+                  backgroundColor: Theme.of(context).colorScheme.errorContainer,
+                  onPressed: () {
+                    if (widget.index < widget.selectedExercises.length &&
+                        widget.setIndex <
+                            widget
+                                .selectedExercises[widget.index].sets.length) {
+                      widget.selectedExercises[widget.index].sets
+                          .removeAt(widget.setIndex);
+                      _slidableController.close();
+                      widget.refresh!();
+                    }
+                  }),
+            )
           ],
         ),
         child: _buildSetRow(context),
@@ -113,7 +136,7 @@ class SetRow extends StatelessWidget {
 
   // Build set number cell
   Widget _buildSetNumberCell() {
-    return Expanded(child: Center(child: Text('${setIndex + 1}')));
+    return Expanded(child: Center(child: Text('${widget.setIndex + 1}')));
   }
 
   // Build previous weight cell
@@ -140,13 +163,15 @@ class SetRow extends StatelessWidget {
           child: atsTextField(
             selectAllOnTap: true,
             textEditingController: TextEditingController(
-                text: Helper.getWeightInCorrectUnit(
-                        selectedExercises[index].sets[setIndex].weight)
+                text: Helper.getWeightInCorrectUnit(widget
+                        .selectedExercises[widget.index]
+                        .sets[widget.setIndex]
+                        .weight)
                     .toStringAsFixed(1)),
             textAlign: TextAlign.center,
             labelText: '',
             keyboardType: TextInputType.number,
-            enabled: isEditable != null,
+            enabled: widget.isEditable != null,
             onChanged: (value) => _model.updateWeight(value),
           ),
         ),
@@ -165,12 +190,14 @@ class SetRow extends StatelessWidget {
           child: atsTextField(
             selectAllOnTap: true,
             textEditingController: TextEditingController(
-                text: selectedExercises[index].sets[setIndex].reps.toString()),
+                text: widget
+                    .selectedExercises[widget.index].sets[widget.setIndex].reps
+                    .toString()),
             textAlign: TextAlign.center,
             labelText: '',
             keyboardType: TextInputType.number,
             onChanged: (value) => _model.updateReps(value),
-            enabled: isEditable != null,
+            enabled: widget.isEditable != null,
           ),
         ),
       ),
@@ -179,11 +206,12 @@ class SetRow extends StatelessWidget {
 
   // Build the completion checkbox
   Widget _buildCompletionCheckbox() {
-    if (isActiveWorkout != true) return const SizedBox();
+    if (widget.isActiveWorkout != true) return const SizedBox();
 
     return atsCheckbox(
-      checked: _model.areIndicesValid() 
-          ? selectedExercises[index].sets[setIndex].completed
+      checked: _model.areIndicesValid()
+          ? widget
+              .selectedExercises[widget.index].sets[widget.setIndex].completed
           : false,
       onChanged: _model.handleCheckboxChanged,
     );

@@ -40,12 +40,12 @@ class ExerciseDetailScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildTitleSection(context),
-                  const SizedBox(height: 24),
+                  // const SizedBox(height: 24),
                   _buildDescriptionSection(context),
                   const SizedBox(height: 32),
-                  if (exercise.id != null && exercise.id!.isNotEmpty)
-                    _buildExerciseFormSection(context),
-                  const SizedBox(height: 32),
+                  // if (exercise.id != null && exercise.id!.isNotEmpty)
+                  //   _buildExerciseFormSection(context),
+                  // const SizedBox(height: 32),
                   if (exercise.id != null && exercise.id!.isNotEmpty)
                     _buildExerciseHistorySection(context),
                   const SizedBox(height: 32),
@@ -102,7 +102,7 @@ class ExerciseDetailScreen extends StatelessWidget {
 
   Widget _buildImageSection(BuildContext context) {
     return SizedBox(
-      height: 300,
+      height: MediaQuery.of(context).size.height * 0.25,
       width: double.infinity,
       child: _buildExerciseImages(context),
     );
@@ -119,8 +119,8 @@ class ExerciseDetailScreen extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 16),
-        _buildCategoryChips(context),
+        // const SizedBox(height: 16),
+        // _buildCategoryChips(context),
       ],
     );
   }
@@ -145,24 +145,11 @@ class ExerciseDetailScreen extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Description',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Text(
-            exercise.description ?? 'No description available',
-            style: const TextStyle(height: 1.5),
-          ),
+        Text(
+          exercise.description == ""
+              ? 'No description available'
+              : exercise.description ?? 'No description available',
+          style: const TextStyle(height: 1.5),
         ),
       ],
     );
@@ -258,16 +245,44 @@ class ExerciseDetailScreen extends StatelessWidget {
         videoId != null;
     final totalItems = (hasVideo ? 1 : 0) + (exercise.images?.length ?? 0);
 
-    return PageView.builder(
-      itemCount: totalItems,
-      itemBuilder: (context, index) {
-        if (hasVideo && index == 0) {
-          return _buildVideoPlayer(context, videoId!);
-        } else {
-          return _buildImageView(context, index, hasVideo);
-        }
-      },
+    if (hasVideo) {
+      return Container(
+        child: _buildVideoPlayer(context, videoId),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Container(
+        decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            color: Theme.of(context).colorScheme.primaryContainer),
+        child: Center(
+          child: Text(
+            'no video available',
+          ),
+        ),
+      ),
     );
+
+    // return PageView.builder(
+    //   itemCount: totalItems,
+    //   itemBuilder: (context, index) {
+    //     if (hasVideo && index == 0) {
+    //       return _buildVideoPlayer(context, videoId!);
+    //     } else {
+    //       return SizedBox(
+    //         height: 300,
+    //         width: double.infinity,
+    //         child: Container(
+
+    //             // child: _buildImageView(context, index, hasVideo),
+    //             ),
+    //       );
+    //       // return _buildImageView(context, index, hasVideo);
+    //     }
+    //   },
+    // );
   }
 
   String? getYoutubeVideoId(String? url) {
@@ -443,7 +458,7 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   Color _getDifficultyColor(BuildContext context, String? difficulty) {
-    if (difficulty == null){
+    if (difficulty == null) {
       return Theme.of(context).colorScheme.surfaceContainerHighest;
     }
 
@@ -521,11 +536,9 @@ class ExerciseDetailScreen extends StatelessWidget {
     return PopScope(
       canPop: false,
       child: DraggableScrollableSheet(
-        initialChildSize: 0.7,
-        minChildSize: 0.5,
-        maxChildSize: 0.75,
         expand: false,
-        builder: (context, scrollController) => _buildExerciseFormWithPadding(context),
+        builder: (context, scrollController) =>
+            _buildExerciseFormWithPadding(context),
       ),
     );
   }
@@ -538,16 +551,18 @@ class ExerciseDetailScreen extends StatelessWidget {
       child: ExerciseForm(
         exercise: exercise,
         isModal: true,
-        onSave: (updatedExercise) => _handleExerciseUpdate(context, updatedExercise),
+        onSave: (updatedExercise) =>
+            _handleExerciseUpdate(context, updatedExercise),
       ),
     );
   }
 
-  Future<void> _handleExerciseUpdate(BuildContext context, Exercise updatedExercise) async {
+  Future<void> _handleExerciseUpdate(
+      BuildContext context, Exercise updatedExercise) async {
     try {
       await DatabaseHelper.updateExercise(updatedExercise);
       if (!context.mounted) return;
-      
+
       Navigator.pop(context);
       Navigator.pushReplacement(
         context,
@@ -579,11 +594,13 @@ class ExerciseDetailScreen extends StatelessWidget {
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
-  }  Future<void> _handleDelete(BuildContext context) async {
+  }
+
+  Future<void> _handleDelete(BuildContext context) async {
     final result = await DatabaseHelper.deleteExercise(exercise);
     final success = result['success'] as bool;
     final workoutCount = result['workoutCount'] as int;
-    
+
     if (!context.mounted) return;
 
     Navigator.pop(context); // Close dialog
@@ -593,19 +610,21 @@ class ExerciseDetailScreen extends StatelessWidget {
         const SnackBar(content: Text('Exercise deleted')),
       );
       if (!context.mounted) return;
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
-      );    } else {      // Show AtsModal with workout count if available, otherwise generic message
+      );
+    } else {
+      // Show AtsModal with workout count if available, otherwise generic message
       // Extract the workout text to handle singular/plural case
       String workoutText = workoutCount == 1 ? 'workout' : 'workouts';
-      
+
       // Build the message based on whether we have a count
       String message = workoutCount > 0
           ? 'This exercise cannot be deleted because it is being used in $workoutCount $workoutText. Please remove this exercise from all workouts before deleting it.'
           : 'This exercise cannot be deleted because it is being used in one or more workouts. Please remove this exercise from all workouts before deleting it.';
-      
+
       AtsModal.show(
         context: context,
         title: 'Cannot Delete Exercise',
@@ -621,7 +640,7 @@ class ExerciseDetailScreen extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          'Exercise History',
+          'exercise history',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,
@@ -642,10 +661,7 @@ class ExerciseDetailScreen extends StatelessWidget {
             final history = snapshot.data ?? [];
 
             if (history.isEmpty) {
-              return const Padding(
-                padding: EdgeInsets.all(16.0),
-                child: Text('No history found for this exercise'),
-              );
+              return const Text('no history found for this exercise');
             }
 
             return ListView.builder(
@@ -660,12 +676,16 @@ class ExerciseDetailScreen extends StatelessWidget {
                   onTap: () async {
                     final sessionId = session['sessionId'].toString();
                     // Get all sessions and find the one matching this ID
-                    final allSessions = await DatabaseHelper.getAllWorkoutSessions();
+                    final allSessions =
+                        await DatabaseHelper.getAllWorkoutSessions();
                     final targetWorkout = allSessions.firstWhere(
                       (workout) => workout.id == sessionId,
-                      orElse: () => Workout(id: sessionId, name: session['workoutName'], exercises: []),
+                      orElse: () => Workout(
+                          id: sessionId,
+                          name: session['workoutName'],
+                          exercises: []),
                     );
-                    
+
                     if (context.mounted) {
                       Navigator.push(
                         context,

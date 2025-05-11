@@ -94,42 +94,50 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               widget.data != null
                   ? SizedBox(
                       height: MediaQuery.of(context).size.height * 0.45,
-                      width: MediaQuery.of(context).size.width,
+                      width: MediaQuery.of(context).size.width, // Full width
                       child: PageView.builder(
-                          itemCount: 2,
-                          scrollDirection: Axis.horizontal,
-                          itemBuilder: (BuildContext context, int index) {
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                    index == 0
-                                        ? 'total weight lifted'
-                                        : 'total time spent',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .titleMedium),
-                                SfCartesianChart(
-                                    // Initialize category axis
-                                    primaryXAxis: const CategoryAxis(),
-                                    series: <LineSeries<dynamic, String>>[
-                                      LineSeries<dynamic, String>(
-                                          dataSource:
-                                              getDailyTotalDurationForSpecificPeriod(
-                                                  DateTime.now().subtract(
-                                                      const Duration(days: 6)),
-                                                  DateTime.now(),
-                                                  index == 0
-                                                      ? 'dailyTotalWeightLifted'
-                                                      : 'dailyTotalDuration'),
-                                          xValueMapper: (dynamic sales, _) =>
-                                              sales.keys.first.day.toString(),
-                                          yValueMapper: (dynamic sales, _) =>
-                                              sales.values.first)
-                                    ]),
-                              ],
-                            );
-                          }),
+                        itemCount: 2,
+                        scrollDirection: Axis.horizontal,
+                        itemBuilder: (BuildContext context, int index) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment
+                                .start, // Ensures the text aligns well
+                            children: [
+                              Text(
+                                index == 0
+                                    ? 'total weight lifted'
+                                    : 'total time spent',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(
+                                  height:
+                                      8), // optional spacing between text and chart
+                              Expanded(
+                                child: SfCartesianChart(
+                                  primaryXAxis: const CategoryAxis(),
+                                  series: <LineSeries<dynamic, String>>[
+                                    LineSeries<dynamic, String>(
+                                      dataSource:
+                                          getDailyTotalDurationForSpecificPeriod(
+                                        DateTime.now()
+                                            .subtract(const Duration(days: 6)),
+                                        DateTime.now(),
+                                        index == 0
+                                            ? 'dailyTotalWeightLifted'
+                                            : 'dailyTotalDuration',
+                                      ),
+                                      xValueMapper: (dynamic sales, _) =>
+                                          sales.keys.first.day.toString(),
+                                      yValueMapper: (dynamic sales, _) =>
+                                          sales.values.first,
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
                     )
                   : const CircularProgressIndicator(),
               const SizedBox(height: 20),

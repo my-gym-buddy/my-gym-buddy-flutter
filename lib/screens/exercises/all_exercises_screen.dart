@@ -24,13 +24,10 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
           leading: atsIconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => const Home()));
+                Navigator.push(context,
+                    MaterialPageRoute(builder: (context) => const Home()));
               }),
           actions: [
-          
             Padding(
               padding: const EdgeInsets.only(right: 8.0),
               child: atsIconButton(
