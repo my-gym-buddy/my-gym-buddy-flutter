@@ -54,10 +54,7 @@ class _AllExercisesScreenState extends State<AllExercisesScreen> {
                     itemCount: snapshot.data!.length,
                     itemBuilder: (context, index) {
                       Exercise exercise = snapshot.data![index];
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: ExerciseCard(exercise: exercise, editMode: true),
-                      );
+                      return ExerciseCard(exercise: exercise, editMode: true);
                     },
                   ),
                 );
