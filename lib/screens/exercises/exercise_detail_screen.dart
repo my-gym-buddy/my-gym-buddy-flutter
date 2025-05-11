@@ -597,10 +597,13 @@ class ExerciseDetailScreen extends StatelessWidget {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
-      );
-    } else {      // Show AtsModal with workout count if available, otherwise generic message
+      );    } else {      // Show AtsModal with workout count if available, otherwise generic message
+      // Extract the workout text to handle singular/plural case
+      String workoutText = workoutCount == 1 ? 'workout' : 'workouts';
+      
+      // Build the message based on whether we have a count
       String message = workoutCount > 0
-          ? 'This exercise cannot be deleted because it is being used in $workoutCount ${workoutCount == 1 ? 'workout' : 'workouts'}. Please remove this exercise from all workouts before deleting it.'
+          ? 'This exercise cannot be deleted because it is being used in $workoutCount $workoutText. Please remove this exercise from all workouts before deleting it.'
           : 'This exercise cannot be deleted because it is being used in one or more workouts. Please remove this exercise from all workouts before deleting it.';
       
       AtsModal.show(

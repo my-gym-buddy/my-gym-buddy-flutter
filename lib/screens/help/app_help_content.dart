@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 
 /// A class that provides help content for the app
