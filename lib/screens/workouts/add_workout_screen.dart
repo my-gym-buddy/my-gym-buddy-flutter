@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_modal.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 import 'package:gym_buddy_app/screens/workouts/widgets/exercises_rep_set_display.dart';
 import 'package:search_page/search_page.dart';
@@ -13,7 +14,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_confirm_exit_showmodal
 class AddWorkoutScreen extends StatefulWidget {
   AddWorkoutScreen({super.key, this.workout});
 
-  Workout? workout;
+  final Workout? workout;
 
   @override
   State<AddWorkoutScreen> createState() => _AddWorkoutScreenState();
@@ -155,14 +156,25 @@ class _AddWorkoutScreenState extends State<AddWorkoutScreen> {
                 ExercisesRepSetDisplay(workoutTemplate: workout),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    widget.workout != null
+                  children: [                    widget.workout != null
                         ? atsButton(
-                            onPressed: () async {
-                              await DatabaseHelper.deleteWorkout(
-                                  widget.workout!);
-                              Navigator.pop(context);
-                              return null;
+                            onPressed: () {
+                              // Show confirmation modal before deleting
+                              AtsModal.show(
+                                context: context,
+                                title: 'delete workout',
+                                message: 'are you sure you want to delete this workout?',
+                                primaryButtonText: 'delete',
+                                secondaryButtonText: 'cancel',
+                                onPrimaryButtonPressed: () async {
+                                  Navigator.of(context).pop(); // Close modal
+                                  await DatabaseHelper.deleteWorkout(widget.workout!);
+                                  if (context.mounted) {
+                                    Navigator.pop(context); // Return to previous screen
+                                  }
+                                },
+                                primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
+                              );
                             },
                             backgroundColor:
                                 Theme.of(context).colorScheme.errorContainer,

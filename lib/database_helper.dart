@@ -128,10 +128,9 @@ class DatabaseHelper {
     final rawWorkout = await database!.query('workout_template_exercises',
         where: 'exercise_id = ?', whereArgs: [exercise.id]);
 
-    final rawWorkoutSession = await database!.query('workout_session_exercises',
-        where: 'exercise_id = ?', whereArgs: [exercise.id]);
+    
 
-    int workoutCount = rawWorkout.length + rawWorkoutSession.length;
+    int workoutCount = rawWorkout.length;
 
     if (workoutCount > 0) {
       return {
