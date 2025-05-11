@@ -37,7 +37,10 @@ class ExerciseCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
             style: Theme.of(context).textTheme.titleSmall),
-        subtitle: Text(exercise.description ?? 'no description',
+        subtitle: Text(
+            exercise.description == ""
+                ? 'no description'
+                : exercise.description ?? 'no description',
             overflow: TextOverflow.ellipsis,
             maxLines: 2,
             style: Theme.of(context).textTheme.bodySmall),
