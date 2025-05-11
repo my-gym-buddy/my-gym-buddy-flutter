@@ -3,7 +3,6 @@ import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
@@ -27,14 +26,21 @@ class ActiveWorkout extends StatefulWidget {
 
 class _ActiveWorkoutState extends State<ActiveWorkout> {
   List<Exercise> allExercises = [];
-  
   static const String cancelWorkoutText = 'cancel workout';
   static const String continueWorkoutText = 'continue workout';
 
   @override
   void initState() {
     super.initState();
+
+    // Set start time if not already set
+    if (widget.workoutTemplate.startTime == null) {
+      widget.workoutTemplate.startTime = DateTime.now();
+    }
+
     widget.stopWatchTimer.onStartTimer();
+    // We're no longer doing automatic periodic saving here
+    // The saving is triggered only when a checkbox is clicked in SetRow
 
     DatabaseHelper.getExercises().then((value) {
       setState(() {
@@ -53,18 +59,29 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     AtsModal.show(
       context: context,
       title: 'empty workout',
-      message: 'you cannot end a workout with no exercises. Please add exercises to the workout before ending it.',
+      message:
+          'you cannot end a workout with no exercises. Please add exercises to the workout before ending it.',
       primaryButtonText: cancelWorkoutText,
       secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () {
         if (context.mounted) {
-          Navigator.pop(context);
-          Navigator.pop(context);
+          // Use Future.delayed to avoid Navigator lock issues
+          Future.delayed(Duration.zero, () {
+            if (mounted) {
+              Navigator.of(context).pop();
+              Navigator.of(context).pop();
+            }
+          });
         }
       },
       onSecondaryButtonPressed: () {
         if (context.mounted) {
-          Navigator.pop(context);
+          // Use Future.delayed to avoid Navigator lock issues
+          Future.delayed(Duration.zero, () {
+            if (mounted) {
+              Navigator.of(context).pop();
+            }
+          });
         }
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
@@ -75,56 +92,69 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
     AtsModal.show(
       context: context,
       title: 'cancel workout session?',
-      message: 'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',
+      message:
+          'are you sure you want to cancel the workout session? This will end the current workout and discard all the data.',
       primaryButtonText: cancelWorkoutText,
       secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () {
-        Navigator.pop(context);
-        Navigator.pop(context);
+        // Clear temporary workout data when canceling
+        DatabaseHelper.clearTemporaryWorkout().then((_) {
+          if (context.mounted) {
+            // Use Future.delayed to avoid Navigator lock issues
+            Future.delayed(Duration.zero, () {
+              if (mounted) {
+                Navigator.of(context).pop();
+                Navigator.of(context).pop();
+              }
+            });
+          }
+        });
       },
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        // Use Future.delayed to avoid Navigator lock issues
+        Future.delayed(Duration.zero, () {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
 
   Future<void> showEndWorkoutSummaryModal() async {
-    await AtsModal.show(
+    return AtsModal.show(
       context: context,
       title: 'workout summary',
-      message: 'duration: ${StopWatchTimer.getDisplayTime(widget.stopWatchTimer.rawTime.value, milliSecond: false)}\ntotal weight lifted: ${Helper.getWeightInCorrectUnit(Helper.calculateTotalWeightLifted(widget.workoutTemplate)).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}',
+      message:
+          'duration: ${StopWatchTimer.getDisplayTime(widget.stopWatchTimer.rawTime.value, milliSecond: false)}\ntotal weight lifted: ${Helper.getWeightInCorrectUnit(Helper.calculateTotalWeightLifted(widget.workoutTemplate)).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}',
       primaryButtonText: 'share',
       secondaryButtonText: 'close',
       onPrimaryButtonPressed: () {
         Helper.shareWorkoutSummary(
-            widget.workoutTemplate,
-            widget.stopWatchTimer.secondTime.value);
+            widget.workoutTemplate, widget.stopWatchTimer.secondTime.value);
       },
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        Navigator.of(context).pop();
       },
-      customContent: Expanded(
+      customContent: SizedBox(
+        height: MediaQuery.of(context).size.height * 0.4,
         child: Center(
           child: SingleChildScrollView(
             child: Column(children: [
               ...widget.workoutTemplate.exercises!
                   .map((exercise) => Column(
-                        crossAxisAlignment:
-                            CrossAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
                             exercise.name,
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall,
+                            style: Theme.of(context).textTheme.titleSmall,
                           ),
                           ...exercise.sets
                               .map((repSet) => Text(
                                   '${Helper.getWeightInCorrectUnit(repSet.weight).toStringAsFixed(2)} ${Config.getUnitAbbreviation()}x ${repSet.reps} reps',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyMedium))
+                                  style:
+                                      Theme.of(context).textTheme.bodyMedium))
                               .toList(),
                           const SizedBox(
                             height: 10,
@@ -138,65 +168,115 @@ class _ActiveWorkoutState extends State<ActiveWorkout> {
       ),
     );
   }
-
-  void showEndWorkoutConfirmationModal() async {
+  // Check if workout has any completed exercises
+  bool _hasCompletedExercises() {
+    for (final exercise in widget.workoutTemplate.exercises ?? []) {
+      for (final repSet in exercise.sets) {
+        if (repSet.completed) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+  
+  // Remove uncompleted sets from exercises
+  void _removeUncompletedSets() {
+    // Remove uncompleted sets from each exercise
+    for (final exercise in widget.workoutTemplate.exercises!) {
+      exercise.sets.removeWhere((repSet) => !repSet.completed);
+    }
+    
+    // Remove exercises with no sets left
+    widget.workoutTemplate.exercises!.removeWhere((exercise) => exercise.sets.isEmpty);
+  }
+  
+  // Save workout and cleanup
+  Future<void> _saveWorkoutAndCleanup() async {
+    DatabaseHelper.saveWorkoutSession(
+        widget.workoutTemplate, widget.stopWatchTimer.secondTime.value);
+    
+    widget.stopWatchTimer.onStopTimer();
+    
+    // Clear temporary workout data after successful save
+    await DatabaseHelper.clearTemporaryWorkout();
+  }
+  
+  // Show workout summary and navigate back
+  void _showSummaryAndNavigateBack() {
+    if (!mounted) return;
+    
+    Navigator.of(context).pop(); // Pop the confirmation modal
+    
+    // Show the summary in a separate step after the pop completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showEndWorkoutSummaryModal().then((_) {
+        if (mounted) {
+          Navigator.of(context).pop(); // Pop back to previous screen after summary
+        }
+      });
+    });
+  }
+  
+  // Show error message and pop modal
+  void _showErrorAndPopModal() {
+    if (!context.mounted) return;
+    
+    Navigator.of(context).pop(); // Pop the confirmation modal
+    
+    // Show the error message in a separate step after the pop completes
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      showEmptyWorkoutErrorMessage();
+    });
+  }
+  
+  // Process workout end confirmation
+  Future<void> _processWorkoutEndConfirmation() async {
+    _removeUncompletedSets();
+    
+    if (widget.workoutTemplate.exercises!.isNotEmpty) {
+      await _saveWorkoutAndCleanup();
+      _showSummaryAndNavigateBack();
+    } else {
+      _showErrorAndPopModal();
+    }
+  }
+  
+  // Show confirmation dialog
+  void _showConfirmationDialog() {
     AtsModal.show(
       context: context,
       title: 'end workout session?',
-      message: 'are you sure you want to end the workout session? This will end the current workout and save all the data.',
+      message:
+          'are you sure you want to end the workout session? This will end the current workout and save all the data.',
       primaryButtonText: 'end & save',
       secondaryButtonText: continueWorkoutText,
       onPrimaryButtonPressed: () async {
-        List<Exercise> exerciseToRemove = [];
-        for (final exercise in widget.workoutTemplate.exercises!) {
-          List<RepSet> repSetToRemove = [];
-          for (final repSet in exercise.sets) {
-            if (repSet.completed == false) {
-              repSetToRemove.add(repSet);
-            }
-          }
-          for (final repSet in repSetToRemove) {
-            exercise.sets.remove(repSet);
-          }
-          if (exercise.sets.isEmpty) {
-            exerciseToRemove.add(exercise);
-          }
-        }
-        for (final exercise in exerciseToRemove) {
-          widget.workoutTemplate.exercises!.remove(exercise);
-        }
-
-        if (widget.workoutTemplate.exercises!.isNotEmpty) {
-          DatabaseHelper.saveWorkoutSession(
-              widget.workoutTemplate,
-              widget.stopWatchTimer.secondTime.value);
-
-          widget.stopWatchTimer.onStopTimer();
-
-          await showEndWorkoutSummaryModal();
-          if (mounted) {
-            Navigator.pop(context);
-            Navigator.pop(context);
-          }
-        } else {
-          if (context.mounted) {
-            Navigator.pop(context);
-            showEmptyWorkoutErrorMessage();
-          }
-        }
+        await _processWorkoutEndConfirmation();
       },
       onSecondaryButtonPressed: () {
-        Navigator.pop(context);
+        Navigator.of(context).pop();
       },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
+  
+  // Main method to show end workout confirmation
+  void showEndWorkoutConfirmationModal() {
+    // If no completed exercises, show the error message directly
+    if (!_hasCompletedExercises()) {
+      showEmptyWorkoutErrorMessage();
+      return;
+    }
+    
+    // Show confirmation dialog
+    _showConfirmationDialog();  }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvokedWithResult : (status, result) {
+      onPopInvokedWithResult: (status, result) {
         showEndWorkoutConfirmationModal();
       },
       child: Scaffold(

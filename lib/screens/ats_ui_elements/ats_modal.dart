@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 
 /// A reusable modal dialog component that follows the app's design pattern.
-/// 
+///
 /// This component can be used to display confirmation dialogs, alerts, or any
 /// other modal content with consistent styling across the app.
 class AtsModal extends StatelessWidget {
@@ -42,20 +42,36 @@ class AtsModal extends StatelessWidget {
     Color? secondaryButtonColor,
     Widget? customContent,
   }) async {
-    return showModalBottomSheet(
-      context: context,
-      builder: (context) => AtsModal(
-        title: title,
-        message: message,
-        primaryButtonText: primaryButtonText,
-        secondaryButtonText: secondaryButtonText,
-        onPrimaryButtonPressed: onPrimaryButtonPressed,
-        onSecondaryButtonPressed: onSecondaryButtonPressed,
-        primaryButtonColor: primaryButtonColor,
-        secondaryButtonColor: secondaryButtonColor,
-        customContent: customContent,
-      ),
-    );
+    // Wrap in a try-catch to handle any Navigation errors gracefully
+    try {
+      return await showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        isDismissible: true,
+        enableDrag: true,
+        useSafeArea: true,
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(15.0)),
+        ),
+        builder: (BuildContext context) => AtsModal(
+          title: title,
+          message: message,
+          primaryButtonText: primaryButtonText,
+          secondaryButtonText: secondaryButtonText,
+          onPrimaryButtonPressed: onPrimaryButtonPressed,
+          onSecondaryButtonPressed: onSecondaryButtonPressed,
+          primaryButtonColor: primaryButtonColor,
+          secondaryButtonColor: secondaryButtonColor,
+          customContent: customContent,
+        ),
+      );
+    } catch (e) {
+      // Handle any navigation errors here
+      print('Error showing modal: $e');
+      // Return a completed future to prevent the error from propagating
+      return Future.value();
+    }
   }
 
   /// Shows a confirmation dialog for unsaved changes.
@@ -67,11 +83,26 @@ class AtsModal extends StatelessWidget {
     return show(
       context: context,
       title: 'unsaved changes',
-      message: 'you have unsaved changes. are you sure you want to leave without saving?',
+      message:
+          'you have unsaved changes. are you sure you want to leave without saving?',
       primaryButtonText: 'discard changes',
       secondaryButtonText: 'continue editing',
-      onPrimaryButtonPressed: onDiscard ?? () => Navigator.pop(context, true),
-      onSecondaryButtonPressed: onContinue ?? () => Navigator.pop(context, false),
+      onPrimaryButtonPressed: onDiscard ??
+          () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                Navigator.of(context).pop(true);
+              }
+            });
+          },
+      onSecondaryButtonPressed: onContinue ??
+          () {
+            Future.delayed(Duration.zero, () {
+              if (context.mounted) {
+                Navigator.of(context).pop(false);
+              }
+            });
+          },
       primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
   }
@@ -105,13 +136,23 @@ class AtsModal extends StatelessWidget {
               children: [
                 if (primaryButtonText != null)
                   atsButton(
-                    onPressed: onPrimaryButtonPressed ?? () => Navigator.pop(context),
+                    onPressed: onPrimaryButtonPressed ??
+                        () {
+                          // Use try-catch to handle any potential navigation errors
+                          try {
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            print('Error closing modal: $e');
+                          }
+                        },
                     backgroundColor: primaryButtonColor,
                     child: Text(
                       primaryButtonText!,
                       style: primaryButtonColor != null
                           ? TextStyle(
-                              color: Theme.of(context).colorScheme.onErrorContainer)
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onErrorContainer)
                           : null,
                     ),
                   ),
@@ -119,15 +160,24 @@ class AtsModal extends StatelessWidget {
                   const SizedBox(width: 10),
                 if (secondaryButtonText != null)
                   atsButton(
-                    onPressed: onSecondaryButtonPressed ?? () => Navigator.pop(context),
+                    onPressed: onSecondaryButtonPressed ??
+                        () {
+                          // Use try-catch to handle any potential navigation errors
+                          try {
+                            Navigator.of(context).pop();
+                          } catch (e) {
+                            print('Error closing modal: $e');
+                          }
+                        },
                     backgroundColor: secondaryButtonColor,
                     child: Text(secondaryButtonText!),
                   ),
               ],
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),
     );
   }
-} 
+}

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_slidable/flutter_slidable.dart'; // Add this import
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
+import 'package:gym_buddy_app/models/set_row.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
 class SetRow extends StatelessWidget {
-  SetRow(
+  const SetRow(
       {super.key,
       required this.setIndex,
       required this.index,
@@ -18,22 +19,23 @@ class SetRow extends StatelessWidget {
 
   final bool? isEditable;
   final Function? refresh;
-
   final bool? isActiveWorkout;
-
   final int setIndex;
   final int index;
-
-  List<Exercise> selectedExercises;
-
+  final List<Exercise> selectedExercises;
+  
+  // Create model instance
+  SetRowModel get _model => SetRowModel(
+    selectedExercises: selectedExercises,
+    setIndex: setIndex,
+    index: index,
+    isEditable: isEditable,
+    refresh: refresh,
+    isActiveWorkout: isActiveWorkout,
+  );
+  
   String getPreviousWeight() {
-    if (selectedExercises[index].previousSets == null) return "-";
-
-    if (setIndex > selectedExercises[index].previousSets!.length - 1) {
-      return '-';
-    } else {
-      return '${Helper.getWeightInCorrectUnit(selectedExercises[index].previousSets![setIndex].weight).toStringAsFixed(1)}${Config.getUnitAbbreviation()} x ${selectedExercises[index].previousSets![setIndex].reps}';
-    }
+    return _model.getPreviousWeight();
   }
 
   @override
@@ -47,13 +49,17 @@ class SetRow extends StatelessWidget {
           const Expanded(flex: 4, child: Center(child: Text('previous'))),
           Expanded(
               flex: 4,
-              child:
-                  Center(child: Text('+${Config.getUnitAbbreviation()}'))),
+              child: Center(child: Text('+${Config.getUnitAbbreviation()}'))),
           const Expanded(flex: 4, child: Center(child: Text('reps'))),
           const Expanded(flex: 2, child: Center(child: Text(''))),
         ],
       );
     }
+
+    // Safety check for invalid index
+    if (index >= selectedExercises.length) {
+      return const SizedBox(); // Return empty widget if index is invalid
+    }    
     
     // Handle editable set row with Slidable
     if (isEditable != null) {
@@ -63,14 +69,16 @@ class SetRow extends StatelessWidget {
           children: [
             SlidableAction(
               onPressed: (context) {
-                selectedExercises[index].sets.removeAt(setIndex);
-                refresh!();
+                // Safety check before removing
+                if (index < selectedExercises.length &&
+                    setIndex < selectedExercises[index].sets.length) {
+                  selectedExercises[index].sets.removeAt(setIndex);
+                  refresh!();
+                }
               },
               borderRadius: BorderRadius.circular(40),
-              backgroundColor:
-                  Theme.of(context).colorScheme.errorContainer,
-              foregroundColor:
-                  Theme.of(context).colorScheme.onErrorContainer,
+              backgroundColor: Theme.of(context).colorScheme.errorContainer,
+              foregroundColor: Theme.of(context).colorScheme.onErrorContainer,
               icon: Icons.delete,
               label: 'Delete',
             ),
@@ -79,100 +87,105 @@ class SetRow extends StatelessWidget {
         child: _buildSetRow(context),
       );
     }
-    
+
     // Handle non-editable set row
     return _buildSetRow(context);
   }
 
   // Extract the row content to a separate method
   Widget _buildSetRow(BuildContext context) {
+    // Safety check for invalid indices
+    if (!_model.areIndicesValid()) {
+      return const SizedBox();
+    }
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Center(child: Text('${setIndex + 1}'))),
-        Expanded(
-            flex: 4,
-            child: Center(
-                child: GestureDetector(
-                    onTap: () {
-                      if (selectedExercises[index].previousSets == null) {
-                        return;
-                      }
-                      if (setIndex >
-                          selectedExercises[index].previousSets!.length - 1) {
-                        return;
-                      }
-                      selectedExercises[index].sets[setIndex].weight =
-                          selectedExercises[index]
-                              .previousSets![setIndex]
-                              .weight;
-                      selectedExercises[index].sets[setIndex].reps =
-                          selectedExercises[index].previousSets![setIndex].reps;
-                      refresh!();
-                    },
-                    child: Text(getPreviousWeight())))),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                selectAllOnTap: true,
-                textEditingController: TextEditingController(
-                    text: Helper.getWeightInCorrectUnit(
-                            selectedExercises[index].sets[setIndex].weight)
-                        .toStringAsFixed(1)),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                enabled: isEditable != null,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].weight =
-                      Helper.convertToKg(double.tryParse(value) ?? 0);
-                },
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: SizedBox(
-              height: 30,
-              child: atsTextField(
-                selectAllOnTap: true,
-                textEditingController: TextEditingController(
-                    text: selectedExercises[index]
-                        .sets[setIndex]
-                        .reps
-                        .toString()),
-                textAlign: TextAlign.center,
-                labelText: '',
-                keyboardType: TextInputType.number,
-                onChanged: (value) {
-                  selectedExercises[index].sets[setIndex].reps =
-                      int.tryParse(value) ?? 0;
-                },
-                enabled: isEditable != null,
-              ),
-            ),
-          ),
-        ),
-        Expanded(
-          flex: 2,
-          child: isActiveWorkout == true
-              ? atsCheckbox(
-                  checked: selectedExercises[index].sets[setIndex].completed,
-                  onChanged: (value) {
-                    selectedExercises[index].sets[setIndex].completed = value;
-                    refresh!();
-                  },
-                )
-              : const SizedBox(),
-        )
+        _buildSetNumberCell(),
+        _buildPreviousWeightCell(),
+        _buildWeightInputField(),
+        _buildRepsInputField(),
+        Expanded(flex: 2, child: _buildCompletionCheckbox()),
       ],
+    );
+  }
+
+  // Build set number cell
+  Widget _buildSetNumberCell() {
+    return Expanded(child: Center(child: Text('${setIndex + 1}')));
+  }
+
+  // Build previous weight cell
+  Widget _buildPreviousWeightCell() {
+    return Expanded(
+      flex: 4,
+      child: Center(
+        child: GestureDetector(
+          onTap: () => _model.copyFromPreviousSet(),
+          child: Text(getPreviousWeight()),
+        ),
+      ),
+    );
+  }
+
+  // Build weight input field
+  Widget _buildWeightInputField() {
+    return Expanded(
+      flex: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 30,
+          child: atsTextField(
+            selectAllOnTap: true,
+            textEditingController: TextEditingController(
+                text: Helper.getWeightInCorrectUnit(
+                        selectedExercises[index].sets[setIndex].weight)
+                    .toStringAsFixed(1)),
+            textAlign: TextAlign.center,
+            labelText: '',
+            keyboardType: TextInputType.number,
+            enabled: isEditable != null,
+            onChanged: (value) => _model.updateWeight(value),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build reps input field
+  Widget _buildRepsInputField() {
+    return Expanded(
+      flex: 4,
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: 30,
+          child: atsTextField(
+            selectAllOnTap: true,
+            textEditingController: TextEditingController(
+                text: selectedExercises[index].sets[setIndex].reps.toString()),
+            textAlign: TextAlign.center,
+            labelText: '',
+            keyboardType: TextInputType.number,
+            onChanged: (value) => _model.updateReps(value),
+            enabled: isEditable != null,
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Build the completion checkbox
+  Widget _buildCompletionCheckbox() {
+    if (isActiveWorkout != true) return const SizedBox();
+
+    return atsCheckbox(
+      checked: _model.areIndicesValid() 
+          ? selectedExercises[index].sets[setIndex].completed
+          : false,
+      onChanged: _model.handleCheckboxChanged,
     );
   }
 }

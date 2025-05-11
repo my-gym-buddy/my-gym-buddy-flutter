@@ -93,7 +93,7 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
               const SizedBox(height: 20),
               widget.data != null
                   ? SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.4,
+                      height: MediaQuery.of(context).size.height * 0.45,
                       width: MediaQuery.of(context).size.width,
                       child: PageView.builder(
                           itemCount: 2,

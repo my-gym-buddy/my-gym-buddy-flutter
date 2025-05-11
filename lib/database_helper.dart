@@ -124,22 +124,25 @@ class DatabaseHelper {
 
     return true;
   }
-
-  static Future<bool> deleteExercise(Exercise exercise) async {
+  static Future<Map<String, dynamic>> deleteExercise(Exercise exercise) async {
     final rawWorkout = await database!.query('workout_template_exercises',
         where: 'exercise_id = ?', whereArgs: [exercise.id]);
 
-    final rawWorkoutSession = await database!.query('workout_session_exercises',
-        where: 'exercise_id = ?', whereArgs: [exercise.id]);
+    
 
-    if (rawWorkout.isNotEmpty || rawWorkoutSession.isNotEmpty) {
-      return false;
+    int workoutCount = rawWorkout.length;
+
+    if (workoutCount > 0) {
+      return {
+        'success': false, 
+        'workoutCount': workoutCount
+      };
     }
 
     await database!
         .delete('exercises', where: 'id = ?', whereArgs: [exercise.id]);
 
-    return true;
+    return {'success': true, 'workoutCount': 0};
   }
 
   static Future<bool> updateExercise(Exercise exercise) async {
@@ -604,5 +607,162 @@ class DatabaseHelper {
     }
     
     return history;
+  }
+  static Future<bool> saveTemporaryWorkout(Workout workout, int duration) async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction to avoid database locking issues
+      return await database!.transaction((txn) async {
+        // First, clear any existing temporary workout
+        await txn.delete('temporary_workout');
+        
+        // Convert the workout to JSON format
+        var workoutJson = workout.toJson();
+        
+        if (kDebugMode) {
+          print('Saving temporary workout: ${json.encode(workoutJson)}');
+          print('Duration: $duration');
+        }
+        
+        // Insert the new temporary workout
+        await txn.insert('temporary_workout', {
+          'workout_template_id': workout.id,
+          'workout_data': json.encode(workoutJson),
+          'start_time': workout.startTime != null 
+              ? workout.startTime!.toIso8601String() 
+              : DateTime.now().toIso8601String(),
+          'duration': duration,
+        });
+        
+        if (kDebugMode) {
+          print('Temporary workout saved with duration: $duration');
+        }
+        
+        return true;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error saving temporary workout: $e');
+      }
+      return false;
+    }
+  }
+    static Future<bool> clearTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction for database operations
+      return await database!.transaction((txn) async {
+        await txn.delete('temporary_workout');
+        return true;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error clearing temporary workout: $e');
+      }
+      return false;
+    }
+  }
+    static Future<bool> hasTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      // Use a transaction for database operations
+      return await database!.transaction((txn) async {
+        final result = await txn.query('temporary_workout');
+        return result.isNotEmpty;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error checking for temporary workout: $e');
+      }
+      return false;
+    }
+  }
+    // Helper method to parse basic workout data
+  static Workout _parseBasicWorkoutData(Map<String, dynamic> workoutData) {
+    final workoutJson = json.decode(workoutData['workout_data'] as String);
+    final workout = Workout.fromJson(workoutJson);
+    workout.startTime = DateTime.parse(workoutData['start_time'] as String);
+    workout.duration = workoutData['duration'] as int;
+    return workout;
+  }
+  
+  // Helper method to load exercise sets
+  static List<RepSet> _loadSets(List<dynamic>? setsData) {
+    if (setsData == null) return [];
+    return setsData.map((setData) => RepSet.fromJson(setData)).toList();
+  }
+  
+  // Helper method to load exercises
+  static List<Exercise> _loadExercises(List<dynamic>? exercisesData) {
+    if (exercisesData == null) return [];
+    
+    return exercisesData.map((exercise) {
+      final loadedExercise = Exercise.fromJson(exercise);
+      
+      // Explicitly load sets with their completed state
+      if (exercise['sets'] != null) {
+        loadedExercise.sets = _loadSets(exercise['sets']);
+      }
+      
+      return loadedExercise;
+    }).toList();
+  }
+  
+  // Helper method to log workout details in debug mode
+  static void _logWorkoutDebugInfo(Workout workout) {
+    if (!kDebugMode) return;
+    
+    print('Recovered workout: ${workout.name} with ${workout.exercises?.length ?? 0} exercises');
+    
+    final exercises = workout.exercises;
+    if (exercises == null) return;
+    
+    for (var ex in exercises) {
+      print('  Exercise: ${ex.name} with ${ex.sets.length} sets');
+      for (var set in ex.sets) {
+        print('    Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
+      }
+    }
+  }
+  
+  static Future<Workout?> getTemporaryWorkout() async {
+    if (database == null) {
+      await openLocalDatabase();
+    }
+    
+    try {
+      return await database!.transaction((txn) async {
+        final result = await txn.query('temporary_workout');
+        if (result.isEmpty) return null;
+        
+        final workoutData = result.first;
+        final workoutJson = json.decode(workoutData['workout_data'] as String);
+        
+        // Parse basic workout data
+        final workout = _parseBasicWorkoutData(workoutData);
+        
+        // Load exercises if available
+        if (workoutJson['exercises'] != null) {
+          workout.exercises = _loadExercises(workoutJson['exercises']);
+        }
+        
+        // Log debug info
+        _logWorkoutDebugInfo(workout);
+        
+        return workout;
+      });
+    } catch (e) {
+      if (kDebugMode) print('Error retrieving temporary workout: $e');
+      return null;
+    }
   }
 }
