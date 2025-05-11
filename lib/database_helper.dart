@@ -124,22 +124,26 @@ class DatabaseHelper {
 
     return true;
   }
-
-  static Future<bool> deleteExercise(Exercise exercise) async {
+  static Future<Map<String, dynamic>> deleteExercise(Exercise exercise) async {
     final rawWorkout = await database!.query('workout_template_exercises',
         where: 'exercise_id = ?', whereArgs: [exercise.id]);
 
     final rawWorkoutSession = await database!.query('workout_session_exercises',
         where: 'exercise_id = ?', whereArgs: [exercise.id]);
 
-    if (rawWorkout.isNotEmpty || rawWorkoutSession.isNotEmpty) {
-      return false;
+    int workoutCount = rawWorkout.length + rawWorkoutSession.length;
+
+    if (workoutCount > 0) {
+      return {
+        'success': false, 
+        'workoutCount': workoutCount
+      };
     }
 
     await database!
         .delete('exercises', where: 'id = ?', whereArgs: [exercise.id]);
 
-    return true;
+    return {'success': true, 'workoutCount': 0};
   }
 
   static Future<bool> updateExercise(Exercise exercise) async {

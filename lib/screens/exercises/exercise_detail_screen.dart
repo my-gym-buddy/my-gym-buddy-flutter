@@ -5,6 +5,7 @@ import 'package:gym_buddy_app/models/rep_set.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_modal.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
 import 'package:gym_buddy_app/screens/exercises/widgets/exercise_form.dart';
@@ -566,29 +567,23 @@ class ExerciseDetailScreen extends StatelessWidget {
   }
 
   void _showDeleteConfirmation(BuildContext context) {
-    showDialog(
+    AtsModal.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Delete Exercise'),
-          content: const Text('Are you sure you want to delete this exercise?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => _handleDelete(context),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
+      title: 'delete exercise',
+      message: 'are you sure you want to delete this exercise?',
+      primaryButtonText: 'delete',
+      secondaryButtonText: 'cancel',
+      onPrimaryButtonPressed: () => _handleDelete(context),
+      onSecondaryButtonPressed: () {
+        Navigator.of(context).pop();
       },
+      primaryButtonColor: Theme.of(context).colorScheme.errorContainer,
     );
-  }
-
-  Future<void> _handleDelete(BuildContext context) async {
-    final success = await DatabaseHelper.deleteExercise(exercise);
+  }  Future<void> _handleDelete(BuildContext context) async {
+    final result = await DatabaseHelper.deleteExercise(exercise);
+    final success = result['success'] as bool;
+    final workoutCount = result['workoutCount'] as int;
+    
     if (!context.mounted) return;
 
     Navigator.pop(context); // Close dialog
@@ -603,9 +598,17 @@ class ExerciseDetailScreen extends StatelessWidget {
         context,
         MaterialPageRoute(builder: (context) => const AllExercisesScreen()),
       );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to delete exercise')),
+    } else {      // Show AtsModal with workout count if available, otherwise generic message
+      String message = workoutCount > 0
+          ? 'This exercise cannot be deleted because it is being used in <b>$workoutCount</b> <b>${workoutCount == 1 ? 'workout' : 'workouts'}</b>. Please remove this exercise from all workouts before deleting it.'
+          : 'This exercise cannot be deleted because it is being used in one or more workouts. Please remove this exercise from all workouts before deleting it.';
+      
+      AtsModal.show(
+        context: context,
+        title: 'Cannot Delete Exercise',
+        message: message,
+        primaryButtonText: 'OK',
+        primaryButtonColor: Theme.of(context).colorScheme.primaryContainer,
       );
     }
   }
