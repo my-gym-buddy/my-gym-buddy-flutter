@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
-import 'package:flutter_slidable/flutter_slidable.dart'; // Add this import
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:gym_buddy_app/config.dart';
-import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/helper.dart';
 import 'package:gym_buddy_app/models/exercise.dart';
-import 'package:gym_buddy_app/models/workout.dart';
+import 'package:gym_buddy_app/models/set_row.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_checkbox.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_text_field.dart';
 
@@ -21,22 +19,23 @@ class SetRow extends StatelessWidget {
 
   final bool? isEditable;
   final Function? refresh;
-
   final bool? isActiveWorkout;
   final int setIndex;
   final int index;
-
-  final List<Exercise> selectedExercises;  String getPreviousWeight() {
-    // Safely check if the index is valid
-    if (index >= selectedExercises.length) return "-";
-
-    if (selectedExercises[index].previousSets == null) return "-";
-
-    if (setIndex > selectedExercises[index].previousSets!.length - 1) {
-      return '-';
-    } else {
-      return '${Helper.getWeightInCorrectUnit(selectedExercises[index].previousSets![setIndex].weight).toStringAsFixed(1)}${Config.getUnitAbbreviation()} x ${selectedExercises[index].previousSets![setIndex].reps}';
-    }
+  final List<Exercise> selectedExercises;
+  
+  // Create model instance
+  SetRowModel get _model => SetRowModel(
+    selectedExercises: selectedExercises,
+    setIndex: setIndex,
+    index: index,
+    isEditable: isEditable,
+    refresh: refresh,
+    isActiveWorkout: isActiveWorkout,
+  );
+  
+  String getPreviousWeight() {
+    return _model.getPreviousWeight();
   }
 
   @override
@@ -60,7 +59,9 @@ class SetRow extends StatelessWidget {
     // Safety check for invalid index
     if (index >= selectedExercises.length) {
       return const SizedBox(); // Return empty widget if index is invalid
-    }    // Handle editable set row with Slidable
+    }    
+    
+    // Handle editable set row with Slidable
     if (isEditable != null) {
       return Slidable(
         endActionPane: ActionPane(
@@ -91,32 +92,25 @@ class SetRow extends StatelessWidget {
     return _buildSetRow(context);
   }
 
-  // Copy values from previous set
-  void _copyFromPreviousSet() {
-    if (!_hasPreviousSet()) return;
-
-    selectedExercises[index].sets[setIndex].weight =
-        selectedExercises[index].previousSets![setIndex].weight;
-    selectedExercises[index].sets[setIndex].reps =
-        selectedExercises[index].previousSets![setIndex].reps;
-    refresh!();
-  }
-
-  // Check if previous set data is available
-  bool _hasPreviousSet() {
-    if (selectedExercises[index].previousSets == null) return false;
-    if (setIndex > selectedExercises[index].previousSets!.length - 1) {
-      return false;
+  // Extract the row content to a separate method
+  Widget _buildSetRow(BuildContext context) {
+    // Safety check for invalid indices
+    if (!_model.areIndicesValid()) {
+      return const SizedBox();
     }
-    return true;
+
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildSetNumberCell(),
+        _buildPreviousWeightCell(),
+        _buildWeightInputField(),
+        _buildRepsInputField(),
+        Expanded(flex: 2, child: _buildCompletionCheckbox()),
+      ],
+    );
   }
 
-  // Check if indices are valid
-  bool _areIndicesValid() {
-    if (index >= selectedExercises.length) return false;
-    if (setIndex >= selectedExercises[index].sets.length) return false;
-    return true;
-  }
   // Build set number cell
   Widget _buildSetNumberCell() {
     return Expanded(child: Center(child: Text('${setIndex + 1}')));
@@ -128,7 +122,7 @@ class SetRow extends StatelessWidget {
       flex: 4,
       child: Center(
         child: GestureDetector(
-          onTap: _copyFromPreviousSet,
+          onTap: () => _model.copyFromPreviousSet(),
           child: Text(getPreviousWeight()),
         ),
       ),
@@ -153,10 +147,7 @@ class SetRow extends StatelessWidget {
             labelText: '',
             keyboardType: TextInputType.number,
             enabled: isEditable != null,
-            onChanged: (value) {
-              selectedExercises[index].sets[setIndex].weight =
-                  Helper.convertToKg(double.tryParse(value) ?? 0);
-            },
+            onChanged: (value) => _model.updateWeight(value),
           ),
         ),
       ),
@@ -178,97 +169,23 @@ class SetRow extends StatelessWidget {
             textAlign: TextAlign.center,
             labelText: '',
             keyboardType: TextInputType.number,
-            onChanged: (value) {
-              selectedExercises[index].sets[setIndex].reps =
-                  int.tryParse(value) ?? 0;
-            },
+            onChanged: (value) => _model.updateReps(value),
             enabled: isEditable != null,
           ),
         ),
       ),
     );
   }
-  // Create a workout object for saving
-  Workout _createWorkout() {
-    return Workout(
-      name:
-          selectedExercises.isNotEmpty ? selectedExercises[0].name : "Workout",
-      id: "temp_workout",
-      exercises: selectedExercises,
-      startTime: DateTime.now(),
-    );
-  }
 
-  // Log workout debug info
-  void _logWorkoutDebugInfo(Workout workout) {
-    if (!kDebugMode) return;
-
-    print('Saving workout with ${selectedExercises.length} exercises');
-    for (var ex in selectedExercises) {
-      print('Exercise: ${ex.name} with ${ex.sets.length} sets');
-      for (var set in ex.sets) {
-        print(
-            '  Set: ${set.reps} reps, ${set.weight} kg, completed: ${set.completed}');
-      }
-    }
-  }
-
-  // Save the workout to database
-  void _saveWorkout(Workout workout) {
-    // Calculate workout duration
-    int workoutDuration = 0;
-    if (workout.startTime != null) {
-      workoutDuration = DateTime.now().difference(workout.startTime!).inSeconds;
-    }
-
-    // Save to temporary storage
-    DatabaseHelper.saveTemporaryWorkout(workout, workoutDuration)
-        .then((success) {
-      if (kDebugMode) {
-        print(
-            'Temporary workout saved: $success with duration: ${workoutDuration}s');
-      }
-    });
-  }  // Handle checkbox state changes
-  void _handleCheckboxChanged(bool value) {
-    if (!_areIndicesValid()) return;
-    
-    selectedExercises[index].sets[setIndex].completed = value;
-    refresh!();
-
-    if (isActiveWorkout == true) {
-      final workout = _createWorkout();
-      _logWorkoutDebugInfo(workout);
-      _saveWorkout(workout);
-    }
-  }  // Build the completion checkbox
+  // Build the completion checkbox
   Widget _buildCompletionCheckbox() {
     if (isActiveWorkout != true) return const SizedBox();
 
     return atsCheckbox(
-      checked: _areIndicesValid() 
+      checked: _model.areIndicesValid() 
           ? selectedExercises[index].sets[setIndex].completed
           : false,
-      onChanged: _handleCheckboxChanged,
-    );
-  }
-
-  // Extract the row content to a separate method
-  Widget _buildSetRow(BuildContext context) {
-    // Safety check for invalid indices
-    if (!_areIndicesValid()) {
-      return const SizedBox();
-    }
-
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        _buildSetNumberCell(),
-        _buildPreviousWeightCell(),
-        _buildWeightInputField(),
-        _buildRepsInputField(),
-        Expanded(flex: 2, child: _buildCompletionCheckbox()),
-      ],
+      onChanged: _model.handleCheckboxChanged,
     );
   }
 }
