@@ -7,11 +7,6 @@ class AppHelpContent {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'how to use my gym buddy',
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 15),
         _buildHelpStep(
           context,
           '1',
