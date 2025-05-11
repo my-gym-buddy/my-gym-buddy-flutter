@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/models/workout.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_icon_button.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_modal.dart';
 import 'package:gym_buddy_app/screens/exercises/all_exercises_screen.dart';
+import 'package:gym_buddy_app/screens/help/temporary_guide.dart';
 import 'package:gym_buddy_app/screens/settings.dart';
 import 'package:gym_buddy_app/screens/statistics/statistics.dart';
 import 'package:gym_buddy_app/screens/workouts/active_workout.dart';
@@ -18,8 +20,7 @@ class Home extends StatefulWidget {
   State<Home> createState() => _HomeState();
 }
 
-class _HomeState extends State<Home> {
-  @override
+class _HomeState extends State<Home> {  @override
   void initState() {
     super.initState();
     // Check for unfinished workouts when Home screen is initialized
@@ -172,7 +173,7 @@ class _HomeState extends State<Home> {
             'Ready to workout?',
           )),
       body: Padding(
-        padding: EdgeInsets.all(15.0),
+        padding: const EdgeInsets.all(15.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -265,19 +266,18 @@ class _HomeState extends State<Home> {
             ),
             const Text("statistics"),
             atsButton(
-                child: Text('statistics'),
+                child: const Text('statistics'),
                 onPressed: () {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => StatisticsScreen()));
-                }),
-            const SizedBox(
+                }),            const SizedBox(
               height: 10,
             ),
             const Text("exercises"),
             atsButton(
-                child: Text('all excerises'),
+                child: const Text('all excerises'),
                 onPressed: () {
                   Navigator.push(
                       context,
@@ -287,6 +287,8 @@ class _HomeState extends State<Home> {
             const SizedBox(
               height: 10,
             ),
+            // Show temporary guide if user hasn't seen it yet
+            if (!Config.hasSeenGuide) const TemporaryGuide(),
           ],
         ),
       ),

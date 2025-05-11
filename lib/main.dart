@@ -5,10 +5,10 @@ import 'package:gym_buddy_app/screens/home.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await DatabaseHelper.openLocalDatabase(newDatabase: false);
 
-  Config.loadConfig();
+  // Load config and await to ensure defaults are loaded
+  await Config.loadConfig();
 
   runApp(const MyApp());
 }

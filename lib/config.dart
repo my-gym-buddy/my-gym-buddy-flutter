@@ -8,18 +8,25 @@ class Config {
     return _config;
   }
   Config._internal();
-
   static String unit = 'metric';
+  static bool hasSeenGuide = false;
 
-  static void loadConfig() async {
+  static Future<void> loadConfig() async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     unit = prefs.getString('unit') ?? 'metric';
+    hasSeenGuide = prefs.getBool('hasSeenGuide') ?? false;
   }
 
   static void setUnit(String newUnit) async {
     final SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setString('unit', newUnit);
     unit = newUnit;
+  }
+
+  static void setHasSeenGuide(bool seen) async {
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool('hasSeenGuide', seen);
+    hasSeenGuide = seen;
   }
 
   static String getUnitAbbreviation() {

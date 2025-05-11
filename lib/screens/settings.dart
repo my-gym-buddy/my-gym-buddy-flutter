@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/config.dart';
 import 'package:gym_buddy_app/database_helper.dart';
 import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
+import 'package:gym_buddy_app/screens/ats_ui_elements/ats_modal.dart';
+import 'package:gym_buddy_app/screens/help/app_help_content.dart';
 
 class Settings extends StatefulWidget {
   const Settings({super.key});
@@ -156,6 +158,25 @@ class _SettingsState extends State<Settings> {
                   onChanged: (value) {
                     Config.setUnit(value!);
                   }),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            const Text("help & support"),
+            const SizedBox(
+              height: 10,
+            ),
+            atsButton(
+              child: const Text('how to use the app'),
+              onPressed: () {
+                AtsModal.show(
+                  context: context,
+                  title: 'how to use my gym buddy',
+                  message: 'Follow these steps to get started:',
+                  customContent: AppHelpContent.getHelpContent(context),
+                  primaryButtonText: 'got it',
+                );
+              },
             ),
           ],
         ),
