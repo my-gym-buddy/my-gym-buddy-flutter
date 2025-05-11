@@ -64,15 +64,9 @@ class _TemporaryGuideState extends State<TemporaryGuide> with SingleTickerProvid
         margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 5),
         padding: const EdgeInsets.all(15),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceVariant,
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(),
-              blurRadius: 4,
-              offset: const Offset(0, 2),
-            ),
-          ],
+          
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
