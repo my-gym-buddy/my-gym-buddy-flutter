@@ -174,6 +174,7 @@ class AtsModal extends StatelessWidget {
                   ),
               ],
             ),
+            const SizedBox(height: 20),
           ],
         ),
       ),

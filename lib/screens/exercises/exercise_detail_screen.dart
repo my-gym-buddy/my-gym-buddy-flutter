@@ -600,7 +600,7 @@ class ExerciseDetailScreen extends StatelessWidget {
       );
     } else {      // Show AtsModal with workout count if available, otherwise generic message
       String message = workoutCount > 0
-          ? 'This exercise cannot be deleted because it is being used in <b>$workoutCount</b> <b>${workoutCount == 1 ? 'workout' : 'workouts'}</b>. Please remove this exercise from all workouts before deleting it.'
+          ? 'This exercise cannot be deleted because it is being used in $workoutCount ${workoutCount == 1 ? 'workout' : 'workouts'}. Please remove this exercise from all workouts before deleting it.'
           : 'This exercise cannot be deleted because it is being used in one or more workouts. Please remove this exercise from all workouts before deleting it.';
       
       AtsModal.show(
