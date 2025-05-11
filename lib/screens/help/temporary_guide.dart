@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gym_buddy_app/config.dart';
-import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/help/app_help_content.dart';
 
 class TemporaryGuide extends StatefulWidget {
@@ -14,7 +13,6 @@ class _TemporaryGuideState extends State<TemporaryGuide> with SingleTickerProvid
   late AnimationController _animationController;
   late Animation<double> _opacityAnimation;
   bool _isVisible = true;
-
   @override
   void initState() {
     super.initState();
@@ -29,6 +27,9 @@ class _TemporaryGuideState extends State<TemporaryGuide> with SingleTickerProvid
     _opacityAnimation = Tween<double>(begin: 1.0, end: 0.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeOut)
     );
+    
+    // Register the callback for when all steps are completed
+    AppHelpContent.setOnAllStepsCompletedCallback(_hide);
   }
 
   @override
@@ -89,19 +90,8 @@ class _TemporaryGuideState extends State<TemporaryGuide> with SingleTickerProvid
                   iconSize: 20,
                 ),
               ],
-            ),
-            const SizedBox(height: 10),
+            ),            const SizedBox(height: 10),
             AppHelpContent.getHelpContent(context),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                atsButton(
-                  onPressed: _hide,
-                  child: const Text('got it'),
-                ),
-              ],
-            ),
           ],
         ),
       ),
