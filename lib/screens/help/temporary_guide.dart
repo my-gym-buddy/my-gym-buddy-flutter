@@ -4,7 +4,7 @@ import 'package:gym_buddy_app/screens/ats_ui_elements/ats_button.dart';
 import 'package:gym_buddy_app/screens/help/app_help_content.dart';
 
 class TemporaryGuide extends StatefulWidget {
-  const TemporaryGuide({Key? key}) : super(key: key);
+  const TemporaryGuide({super.key});
 
   @override
   State<TemporaryGuide> createState() => _TemporaryGuideState();
